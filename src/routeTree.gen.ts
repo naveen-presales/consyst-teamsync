@@ -15,8 +15,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
-import { Route as AppOpportunitiesRouteImport } from './routes/_app.opportunities'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
 import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminQuestionsRouteImport } from './routes/_app.admin.questions'
@@ -50,20 +50,20 @@ const AppRatingsRoute = AppRatingsRouteImport.update({
   path: '/ratings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOpportunitiesRoute = AppOpportunitiesRouteImport.update({
-  id: '/opportunities',
-  path: '/opportunities',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOpportunitiesIndexRoute = AppOpportunitiesIndexRouteImport.update({
+  id: '/opportunities/',
+  path: '/opportunities/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppOpportunitiesRoute,
+  id: '/opportunities/$id',
+  path: '/opportunities/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
   id: '/admin/users',
@@ -82,11 +82,11 @@ export interface FileRoutesByFullPath {
   '/pending': typeof PendingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
-  '/opportunities': typeof AppOpportunitiesRouteWithChildren
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/opportunities/': typeof AppOpportunitiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,11 +94,11 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
-  '/opportunities': typeof AppOpportunitiesRouteWithChildren
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/opportunities': typeof AppOpportunitiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,11 +108,11 @@ export interface FileRoutesById {
   '/pending': typeof PendingRoute
   '/signup': typeof SignupRoute
   '/_app/dashboard': typeof AppDashboardRoute
-  '/_app/opportunities': typeof AppOpportunitiesRouteWithChildren
   '/_app/ratings': typeof AppRatingsRoute
   '/_app/admin/questions': typeof AppAdminQuestionsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/_app/opportunities/': typeof AppOpportunitiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,11 +122,11 @@ export interface FileRouteTypes {
     | '/pending'
     | '/signup'
     | '/dashboard'
-    | '/opportunities'
     | '/ratings'
     | '/admin/questions'
     | '/admin/users'
     | '/opportunities/$id'
+    | '/opportunities/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -134,11 +134,11 @@ export interface FileRouteTypes {
     | '/pending'
     | '/signup'
     | '/dashboard'
-    | '/opportunities'
     | '/ratings'
     | '/admin/questions'
     | '/admin/users'
     | '/opportunities/$id'
+    | '/opportunities'
   id:
     | '__root__'
     | '/'
@@ -147,11 +147,11 @@ export interface FileRouteTypes {
     | '/pending'
     | '/signup'
     | '/_app/dashboard'
-    | '/_app/opportunities'
     | '/_app/ratings'
     | '/_app/admin/questions'
     | '/_app/admin/users'
     | '/_app/opportunities/$id'
+    | '/_app/opportunities/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,13 +206,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRatingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/opportunities': {
-      id: '/_app/opportunities'
-      path: '/opportunities'
-      fullPath: '/opportunities'
-      preLoaderRoute: typeof AppOpportunitiesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -220,12 +213,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/opportunities/': {
+      id: '/_app/opportunities/'
+      path: '/opportunities'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof AppOpportunitiesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/opportunities/$id': {
       id: '/_app/opportunities/$id'
-      path: '/$id'
+      path: '/opportunities/$id'
       fullPath: '/opportunities/$id'
       preLoaderRoute: typeof AppOpportunitiesIdRouteImport
-      parentRoute: typeof AppOpportunitiesRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/users': {
       id: '/_app/admin/users'
@@ -244,31 +244,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppOpportunitiesRouteChildren {
-  AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
-}
-
-const AppOpportunitiesRouteChildren: AppOpportunitiesRouteChildren = {
-  AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
-}
-
-const AppOpportunitiesRouteWithChildren =
-  AppOpportunitiesRoute._addFileChildren(AppOpportunitiesRouteChildren)
-
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
-  AppOpportunitiesRoute: typeof AppOpportunitiesRouteWithChildren
   AppRatingsRoute: typeof AppRatingsRoute
   AppAdminQuestionsRoute: typeof AppAdminQuestionsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
+  AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
+  AppOpportunitiesIndexRoute: typeof AppOpportunitiesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
-  AppOpportunitiesRoute: AppOpportunitiesRouteWithChildren,
   AppRatingsRoute: AppRatingsRoute,
   AppAdminQuestionsRoute: AppAdminQuestionsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
+  AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
+  AppOpportunitiesIndexRoute: AppOpportunitiesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -283,3 +274,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { AlertTriangle, Plus, Search, Download } from "lucide-react";
 
-export const Route = createFileRoute("/_app/opportunities")({ component: OppsPage });
+export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
 type OppRow = {
   id: string; customer_name: string; project_name: string; crm_number: string;
