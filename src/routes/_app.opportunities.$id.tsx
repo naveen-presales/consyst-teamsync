@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NotionEditor } from "@/components/NotionEditor";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -227,15 +228,10 @@ function DocEditor({ doc, oppId }: { doc: { id: string; name: string; content: s
   }, [name, content]);
 
   return (
-    <div className="space-y-3">
-      <Input className="text-lg font-semibold border-0 px-0 focus-visible:ring-0 shadow-none" value={name} onChange={(e) => setName(e.target.value)} />
-      <Textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Solution notes, meeting points, internal discussion… markdown supported."
-        className="min-h-[400px] font-mono text-sm leading-relaxed border-0 px-0 focus-visible:ring-0 shadow-none resize-none"
-      />
-      <div className="text-xs text-muted-foreground flex items-center gap-1"><Save className="h-3 w-3" /> Auto-saved</div>
+    <div className="space-y-2">
+      <Input className="text-3xl font-bold border-0 px-0 focus-visible:ring-0 shadow-none h-auto py-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="Untitled" />
+      <NotionEditor value={content} onChange={setContent} placeholder="Write about the solution, meeting notes, decisions…" />
+      <div className="text-xs text-muted-foreground flex items-center gap-1 pt-2"><Save className="h-3 w-3" /> Auto-saved</div>
     </div>
   );
 }

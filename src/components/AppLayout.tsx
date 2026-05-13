@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import {
   LayoutDashboard,
   Briefcase,
@@ -9,6 +10,8 @@ import {
   ListChecks,
   LogOut,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,9 +24,13 @@ interface NavItem {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, isVp, signOut } = useAuth();
+  const { profile, isAdmin, isVp, signOut, refresh } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Re-sync roles/profile on route change so role updates take effect without re-login
+  useEffect(() => { refresh(); }, [pathname]);
 
   const items: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
@@ -71,6 +78,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <div className="text-sm font-medium truncate">{profile?.full_name || profile?.email}</div>
             <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2"
+            onClick={toggle}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
