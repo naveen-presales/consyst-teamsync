@@ -183,6 +183,66 @@ function DashboardPage() {
 
       {(isAdmin || isVp) && (
         <Card className="p-5 mt-4">
+          <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="text-left py-2 font-medium">Architect</th>
+                  <th className="text-left py-2 font-medium">Email</th>
+                  <th className="text-right py-2 font-medium">Active</th>
+                  <th className="text-right py-2 font-medium">In Progress</th>
+                  <th className="text-right py-2 font-medium">Completed</th>
+                  <th className="text-right py-2 font-medium">Breaches</th>
+                  <th className="text-right py-2 font-medium">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p]));
+                  const oppMap = new Map(opps.map((o) => [o.id, o]));
+                  const byUser: Record<string, { inProg: number; completed: number; pending: number; breaches: number }> = {};
+                  (assignsQ.data ?? []).forEach((a) => {
+                    const o = oppMap.get(a.opportunity_id);
+                    if (!o) return;
+                    const b = (byUser[a.user_id] ||= { inProg: 0, completed: 0, pending: 0, breaches: 0 });
+                    if (o.status === "In Progress") b.inProg++;
+                    else if (o.status === "Completed") b.completed++;
+                    else b.pending++;
+                    if (o.revision_count > 2) b.breaches++;
+                  });
+                  const rows = Object.entries(byUser).map(([uid, c]) => ({
+                    uid,
+                    name: profMap.get(uid)?.full_name || profMap.get(uid)?.email || "Unknown",
+                    email: profMap.get(uid)?.email ?? "—",
+                    active: c.pending + c.inProg,
+                    ...c,
+                    total: c.pending + c.inProg + c.completed,
+                  })).sort((a, b) => b.active - a.active);
+
+                  if (rows.length === 0) {
+                    return <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
+                  }
+                  return rows.map((r) => (
+                    <tr key={r.uid} className="border-t border-border">
+                      <td className="py-2.5 font-medium">{r.name}</td>
+                      <td className="py-2.5 text-muted-foreground text-xs">{r.email}</td>
+                      <td className="py-2.5 text-right">{r.active}</td>
+                      <td className="py-2.5 text-right">{r.inProg}</td>
+                      <td className="py-2.5 text-right">{r.completed}</td>
+                      <td className={`py-2.5 text-right ${r.breaches > 0 ? "text-destructive font-medium" : ""}`}>{r.breaches}</td>
+                      <td className="py-2.5 text-right font-semibold">{r.total}</td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {(isAdmin || isVp) && (
+        <Card className="p-5 mt-4">
           <h3 className="text-sm font-medium mb-3">Flagged opportunities</h3>
           <div className="space-y-2">
             {opps.filter((o) => o.revision_count > 2).map((o) => (
