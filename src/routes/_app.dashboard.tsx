@@ -45,14 +45,9 @@ function DashboardPage() {
   const assignsQ = useQuery({
     queryKey: ["dashboard-assigns"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("opportunity_architects")
-        .select("opportunity_id, user_id, profiles:profiles!opportunity_architects_user_id_fkey(full_name,email)");
-      if (error) {
-        const fb = await supabase.from("opportunity_architects").select("opportunity_id, user_id");
-        return (fb.data ?? []) as { opportunity_id: string; user_id: string; profiles?: { full_name: string | null; email: string | null } }[];
-      }
-      return data as { opportunity_id: string; user_id: string; profiles?: { full_name: string | null; email: string | null } }[];
+      const { data, error } = await supabase.from("opportunity_architects").select("opportunity_id, user_id");
+      if (error) throw error;
+      return (data ?? []) as { opportunity_id: string; user_id: string }[];
     },
   });
 
