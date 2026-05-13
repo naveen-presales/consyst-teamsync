@@ -14,16 +14,281 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          opportunity_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          opportunity_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          opportunity_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          completed_date: string | null
+          created_at: string
+          created_by: string | null
+          crm_number: string
+          customer_name: string
+          deadline: string | null
+          id: string
+          opportunity_type: Database["public"]["Enums"]["opportunity_type"]
+          project_name: string
+          received_date: string | null
+          revision_count: number
+          start_date: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          updated_at: string
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          crm_number: string
+          customer_name: string
+          deadline?: string | null
+          id?: string
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          project_name: string
+          received_date?: string | null
+          revision_count?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          updated_at?: string
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          crm_number?: string
+          customer_name?: string
+          deadline?: string | null
+          id?: string
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          project_name?: string
+          received_date?: string | null
+          revision_count?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      opportunity_architects: {
+        Row: {
+          opportunity_id: string
+          user_id: string
+        }
+        Insert: {
+          opportunity_id: string
+          user_id: string
+        }
+        Update: {
+          opportunity_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_architects_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rating_answers: {
+        Row: {
+          id: string
+          question_id: string
+          rating_id: string
+          score: number
+        }
+        Insert: {
+          id?: string
+          question_id: string
+          rating_id: string
+          score: number
+        }
+        Update: {
+          id?: string
+          question_id?: string
+          rating_id?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rating_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "rating_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rating_answers_rating_id_fkey"
+            columns: ["rating_id"]
+            isOneToOne: false
+            referencedRelation: "ratings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rating_questions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          text: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          text: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          text?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          opportunity_id: string
+          vp_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          opportunity_id: string
+          vp_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          opportunity_id?: string
+          vp_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
+      is_assigned: {
+        Args: { _opp_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "architect" | "vp"
+      opportunity_status: "Pending" | "In Progress" | "Completed"
+      opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
+      user_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +415,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "architect", "vp"],
+      opportunity_status: ["Pending", "In Progress", "Completed"],
+      opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
+      user_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
