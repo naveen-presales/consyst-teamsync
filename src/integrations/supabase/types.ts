@@ -120,11 +120,71 @@ export type Database = {
           {
             foreignKeyName: "opportunity_architects_opportunity_id_fkey"
             columns: ["opportunity_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
         ]
+      }
+      opportunity_requests: {
+        Row: {
+          created_at: string
+          created_opportunity_id: string | null
+          crm_number: string
+          customer_name: string
+          deadline: string | null
+          id: string
+          notes: string | null
+          opportunity_type: Database["public"]["Enums"]["opportunity_type"]
+          project_name: string
+          received_date: string | null
+          requested_by: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_opportunity_id?: string | null
+          crm_number: string
+          customer_name: string
+          deadline?: string | null
+          id?: string
+          notes?: string | null
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          project_name: string
+          received_date?: string | null
+          requested_by: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_opportunity_id?: string | null
+          crm_number?: string
+          customer_name?: string
+          deadline?: string | null
+          id?: string
+          notes?: string | null
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          project_name?: string
+          received_date?: string | null
+          requested_by?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -271,6 +331,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_opportunity_request: {
+        Args: { _request_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -288,6 +352,7 @@ export type Database = {
       app_role: "admin" | "architect" | "vp"
       opportunity_status: "Pending" | "In Progress" | "Completed"
       opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
+      request_status: "pending" | "approved" | "rejected"
       user_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -419,6 +484,7 @@ export const Constants = {
       app_role: ["admin", "architect", "vp"],
       opportunity_status: ["Pending", "In Progress", "Completed"],
       opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
+      request_status: ["pending", "approved", "rejected"],
       user_status: ["pending", "approved", "rejected"],
     },
   },
