@@ -12,11 +12,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_app/admin/users")({ component: AdminUsers });
 
 function AdminUsers() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isVp } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  useEffect(() => { if (!isAdmin) navigate({ to: "/dashboard" }); }, [isAdmin]);
+  useEffect(() => { if (!isAdmin && !isVp) navigate({ to: "/dashboard" }); }, [isAdmin, isVp]);
 
   const profilesQ = useQuery({
     queryKey: ["admin-profiles"],
