@@ -186,6 +186,7 @@ function DashboardPage() {
       {(isAdmin || isVp) && (
         <Card className="p-5 mt-4">
           <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click an architect to see their opportunities.</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs uppercase text-muted-foreground">
@@ -197,6 +198,7 @@ function DashboardPage() {
                   <th className="text-right py-2 font-medium">Completed</th>
                   <th className="text-right py-2 font-medium">Breaches</th>
                   <th className="text-right py-2 font-medium">Total</th>
+                  <th className="w-6" />
                 </tr>
               </thead>
               <tbody>
