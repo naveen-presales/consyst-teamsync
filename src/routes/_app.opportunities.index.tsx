@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { AlertTriangle, Plus, Search, Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -19,6 +20,9 @@ type OppRow = {
   id: string; customer_name: string; project_name: string; crm_number: string;
   received_date: string | null; start_date: string | null; deadline: string | null; completed_date: string | null;
   opportunity_type: string; revision_count: number; status: string; created_by: string | null;
+  phase1_completed_at: string | null; phase2_completed_at: string | null;
+  phase3_completed_at: string | null; phase4_completed_at: string | null;
+  on_hold: boolean;
 };
 
 type Profile = { id: string; full_name: string | null; email: string | null };
