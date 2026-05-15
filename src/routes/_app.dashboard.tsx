@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,9 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star } from "lucide-react";
+import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -30,6 +31,7 @@ function DashboardPage() {
   const { isAdmin, isVp } = useAuth();
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
+  const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
 
   const oppsQ = useQuery({
     queryKey: ["dashboard-opps"],
@@ -184,6 +186,7 @@ function DashboardPage() {
       {(isAdmin || isVp) && (
         <Card className="p-5 mt-4">
           <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click an architect to see their opportunities.</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs uppercase text-muted-foreground">
@@ -195,6 +198,7 @@ function DashboardPage() {
                   <th className="text-right py-2 font-medium">Completed</th>
                   <th className="text-right py-2 font-medium">Breaches</th>
                   <th className="text-right py-2 font-medium">Total</th>
+                  <th className="w-6" />
                 </tr>
               </thead>
               <tbody>
@@ -221,10 +225,14 @@ function DashboardPage() {
                   })).sort((a, b) => b.active - a.active);
 
                   if (rows.length === 0) {
-                    return <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
+                    return <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
                   }
                   return rows.map((r) => (
-                    <tr key={r.uid} className="border-t border-border">
+                    <tr
+                      key={r.uid}
+                      className="border-t border-border cursor-pointer hover:bg-muted/40"
+                      onClick={() => setSelectedArchitect(r.uid)}
+                    >
                       <td className="py-2.5 font-medium">{r.name}</td>
                       <td className="py-2.5 text-muted-foreground text-xs">{r.email}</td>
                       <td className="py-2.5 text-right">{r.active}</td>
@@ -232,6 +240,7 @@ function DashboardPage() {
                       <td className="py-2.5 text-right">{r.completed}</td>
                       <td className={`py-2.5 text-right ${r.breaches > 0 ? "text-destructive font-medium" : ""}`}>{r.breaches}</td>
                       <td className="py-2.5 text-right font-semibold">{r.total}</td>
+                      <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
                     </tr>
                   ));
                 })()}
@@ -260,7 +269,79 @@ function DashboardPage() {
           </div>
         </Card>
       )}
+
+      <ArchitectDetailDialog
+        userId={selectedArchitect}
+        onClose={() => setSelectedArchitect(null)}
+        profile={(profilesQ.data ?? []).find((p) => p.id === selectedArchitect) ?? null}
+        opps={opps.filter((o) => (assignsQ.data ?? []).some((a) => a.user_id === selectedArchitect && a.opportunity_id === o.id))}
+      />
     </div>
+  );
+}
+
+function ArchitectDetailDialog({
+  userId, onClose, profile, opps,
+}: {
+  userId: string | null;
+  onClose: () => void;
+  profile: { id: string; full_name: string | null; email: string | null } | null;
+  opps: Opp[];
+}) {
+  const open = !!userId;
+  const counts = {
+    pending: opps.filter((o) => o.status === "Pending").length,
+    inProg: opps.filter((o) => o.status === "In Progress").length,
+    completed: opps.filter((o) => o.status === "Completed").length,
+    breaches: opps.filter((o) => o.revision_count > 2).length,
+  };
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{profile?.full_name || profile?.email || "Architect"}</DialogTitle>
+          <p className="text-xs text-muted-foreground">{profile?.email}</p>
+        </DialogHeader>
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Pending</div><div className="text-lg font-semibold">{counts.pending}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">In Progress</div><div className="text-lg font-semibold">{counts.inProg}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Completed</div><div className="text-lg font-semibold">{counts.completed}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Breaches</div><div className={`text-lg font-semibold ${counts.breaches > 0 ? "text-destructive" : ""}`}>{counts.breaches}</div></Card>
+        </div>
+        <div className="max-h-96 overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                <th className="text-left px-3 py-2 font-medium">Status</th>
+                <th className="text-right px-3 py-2 font-medium">Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {opps.length === 0 && (
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">No opportunities.</td></tr>
+              )}
+              {opps.map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
+                  <td className={`px-3 py-2 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
