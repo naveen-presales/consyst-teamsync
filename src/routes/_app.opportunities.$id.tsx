@@ -131,7 +131,7 @@ function OppDetail() {
               <div>
                 <div className="font-medium text-sm">On Hold</div>
                 <div className="text-sm text-muted-foreground">{opp.hold_reason}</div>
-                <div className="text-xs text-muted-foreground mt-1">Since {new Date(opp.hold_started_at).toLocaleString()}</div>
+                {opp.hold_started_at && <div className="text-xs text-muted-foreground mt-1">Since {new Date(opp.hold_started_at).toLocaleString()}</div>}
               </div>
             </div>
             <ResumeButton opp={opp} userId={user!.id} />
