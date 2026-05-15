@@ -225,10 +225,14 @@ function DashboardPage() {
                   })).sort((a, b) => b.active - a.active);
 
                   if (rows.length === 0) {
-                    return <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
+                    return <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
                   }
                   return rows.map((r) => (
-                    <tr key={r.uid} className="border-t border-border">
+                    <tr
+                      key={r.uid}
+                      className="border-t border-border cursor-pointer hover:bg-muted/40"
+                      onClick={() => setSelectedArchitect(r.uid)}
+                    >
                       <td className="py-2.5 font-medium">{r.name}</td>
                       <td className="py-2.5 text-muted-foreground text-xs">{r.email}</td>
                       <td className="py-2.5 text-right">{r.active}</td>
@@ -236,6 +240,7 @@ function DashboardPage() {
                       <td className="py-2.5 text-right">{r.completed}</td>
                       <td className={`py-2.5 text-right ${r.breaches > 0 ? "text-destructive font-medium" : ""}`}>{r.breaches}</td>
                       <td className="py-2.5 text-right font-semibold">{r.total}</td>
+                      <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
                     </tr>
                   ));
                 })()}
