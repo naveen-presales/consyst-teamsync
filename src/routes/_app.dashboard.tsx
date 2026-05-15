@@ -31,6 +31,7 @@ function DashboardPage() {
   const { isAdmin, isVp } = useAuth();
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
+  const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
 
   const oppsQ = useQuery({
     queryKey: ["dashboard-opps"],
