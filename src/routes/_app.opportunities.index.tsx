@@ -170,7 +170,13 @@ function OppsPage() {
 }
 
 function StatusBadge({ s }: { s: string }) {
-  const map: Record<string, string> = { Pending: "bg-muted text-muted-foreground", "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30", Completed: "bg-success/15 text-success border border-success/30" };
+  const map: Record<string, string> = {
+    Pending: "bg-muted text-muted-foreground",
+    "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30",
+    Completed: "bg-success/15 text-success border border-success/30",
+    "On Hold": "bg-amber-500/15 text-amber-700 border border-amber-500/30",
+    "Submitted to Sales": "bg-primary/15 text-primary border border-primary/30",
+  };
   return <span className={`inline-block px-2 py-0.5 rounded text-xs ${map[s] || "bg-muted"}`}>{s}</span>;
 }
 
