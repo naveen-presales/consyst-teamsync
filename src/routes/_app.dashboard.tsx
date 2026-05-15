@@ -269,7 +269,79 @@ function DashboardPage() {
           </div>
         </Card>
       )}
+
+      <ArchitectDetailDialog
+        userId={selectedArchitect}
+        onClose={() => setSelectedArchitect(null)}
+        profile={(profilesQ.data ?? []).find((p) => p.id === selectedArchitect) ?? null}
+        opps={opps.filter((o) => (assignsQ.data ?? []).some((a) => a.user_id === selectedArchitect && a.opportunity_id === o.id))}
+      />
     </div>
+  );
+}
+
+function ArchitectDetailDialog({
+  userId, onClose, profile, opps,
+}: {
+  userId: string | null;
+  onClose: () => void;
+  profile: { id: string; full_name: string | null; email: string | null } | null;
+  opps: Opp[];
+}) {
+  const open = !!userId;
+  const counts = {
+    pending: opps.filter((o) => o.status === "Pending").length,
+    inProg: opps.filter((o) => o.status === "In Progress").length,
+    completed: opps.filter((o) => o.status === "Completed").length,
+    breaches: opps.filter((o) => o.revision_count > 2).length,
+  };
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{profile?.full_name || profile?.email || "Architect"}</DialogTitle>
+          <p className="text-xs text-muted-foreground">{profile?.email}</p>
+        </DialogHeader>
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Pending</div><div className="text-lg font-semibold">{counts.pending}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">In Progress</div><div className="text-lg font-semibold">{counts.inProg}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Completed</div><div className="text-lg font-semibold">{counts.completed}</div></Card>
+          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Breaches</div><div className={`text-lg font-semibold ${counts.breaches > 0 ? "text-destructive" : ""}`}>{counts.breaches}</div></Card>
+        </div>
+        <div className="max-h-96 overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                <th className="text-left px-3 py-2 font-medium">Status</th>
+                <th className="text-right px-3 py-2 font-medium">Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {opps.length === 0 && (
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">No opportunities.</td></tr>
+              )}
+              {opps.map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
+                  <td className={`px-3 py-2 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
