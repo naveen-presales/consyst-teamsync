@@ -98,6 +98,9 @@ function OppDetail() {
     if (activeDoc === did) setActiveDoc(null);
   };
 
+  const isManager = isVp || isAdmin;
+  const progressPct = computeProgress(opp);
+
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
       <Link to="/opportunities" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
@@ -115,15 +118,35 @@ function OppDetail() {
               <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Revision breach</Badge>
             )}
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
+            <Badge>{opp.status}</Badge>
           </div>
         </div>
       </header>
 
-      <Tabs defaultValue="details">
+      {opp.on_hold && (
+        <Card className="mb-4 p-4 border-amber-500/40 bg-amber-500/10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <PauseCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <div className="font-medium text-sm">On Hold</div>
+                <div className="text-sm text-muted-foreground">{opp.hold_reason}</div>
+                <div className="text-xs text-muted-foreground mt-1">Since {new Date(opp.hold_started_at).toLocaleString()}</div>
+              </div>
+            </div>
+            <ResumeButton opp={opp} userId={user!.id} />
+          </div>
+        </Card>
+      )}
+
+      <PhaseTracker opp={opp} userId={user!.id} isManager={isManager} disabled={opp.on_hold} progressPct={progressPct} />
+
+      <Tabs defaultValue="details" className="mt-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="docs">Documents</TabsTrigger>
           <TabsTrigger value="ratings">VP Ratings</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="mt-4">
