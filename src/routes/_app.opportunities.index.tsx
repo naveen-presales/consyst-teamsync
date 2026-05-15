@@ -5,14 +5,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { AlertTriangle, Plus, Search, Download, Send } from "lucide-react";
+import { AlertTriangle, Plus, Search, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -27,7 +26,7 @@ type Role = { user_id: string; role: string };
 
 function OppsPage() {
   const { user, isAdmin, isVp } = useAuth();
-  const canCreateDirect = isAdmin || isVp;
+  const canAssign = isAdmin || isVp;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -39,19 +38,6 @@ function OppsPage() {
       const { data, error } = await supabase.from("opportunities").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data as OppRow[];
-    },
-  });
-
-  const myReqsQ = useQuery({
-    queryKey: ["my-opp-requests", user?.id],
-    enabled: !!user?.id && !canCreateDirect,
-    queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("opportunity_requests")
-        .select("id, customer_name, project_name, crm_number, status, review_notes, created_at")
-        .eq("requested_by", user!.id)
-        .order("created_at", { ascending: false });
-      return (data ?? []) as { id: string; customer_name: string; project_name: string; crm_number: string; status: string; review_notes: string | null; created_at: string }[];
     },
   });
 
@@ -77,43 +63,23 @@ function OppsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Opportunities</h1>
           <p className="text-sm text-muted-foreground">
-            {canCreateDirect ? "Create and assign opportunities to architects." : "Submit opportunity requests for VP approval."}
+            {canAssign ? "Create opportunities and assign architects." : "Create and track your opportunities."}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                {canCreateDirect ? <><Plus className="h-4 w-4 mr-1.5" /> New opportunity</> : <><Send className="h-4 w-4 mr-1.5" /> Request opportunity</>}
-              </Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1.5" /> New opportunity</Button>
             </DialogTrigger>
-            {canCreateDirect ? (
-              <VpCreateDialog onCreated={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["opps"] }); }} />
-            ) : (
-              <RequestDialog onCreated={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["my-opp-requests", user?.id] }); }} userId={user!.id} />
-            )}
+            <CreateDialog
+              canAssign={canAssign}
+              userId={user!.id}
+              onCreated={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["opps"] }); }}
+            />
           </Dialog>
         </div>
       </header>
-
-      {!canCreateDirect && (myReqsQ.data?.length ?? 0) > 0 && (
-        <Card className="p-4 mb-5">
-          <h3 className="text-sm font-medium mb-2">My requests</h3>
-          <div className="space-y-1.5">
-            {myReqsQ.data!.slice(0, 5).map((r) => (
-              <div key={r.id} className="flex items-center justify-between text-sm border-b border-border last:border-0 py-1.5">
-                <div className="min-w-0">
-                  <span className="font-medium">{r.customer_name}</span>
-                  <span className="text-muted-foreground"> — {r.project_name}</span>
-                  <span className="text-xs text-muted-foreground ml-2 font-mono">{r.crm_number}</span>
-                </div>
-                <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"}>{r.status}</Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
 
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1 max-w-sm">
@@ -190,62 +156,7 @@ function Field({ label, children, className = "" }: { label: string; children: R
   );
 }
 
-function RequestDialog({ onCreated, userId }: { onCreated: () => void; userId: string }) {
-  const [form, setForm] = useState({
-    customer_name: "", project_name: "", crm_number: "",
-    received_date: "", start_date: "", deadline: "",
-    opportunity_type: "Budgetary", notes: "",
-  });
-  const [saving, setSaving] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const payload: any = { ...form, requested_by: userId };
-    Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
-    const { error } = await (supabase as any).from("opportunity_requests").insert(payload);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Request sent to VP for approval");
-    onCreated();
-  };
-
-  const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
-
-  return (
-    <DialogContent className="max-w-lg">
-      <DialogHeader><DialogTitle>Request new opportunity</DialogTitle></DialogHeader>
-      <form onSubmit={submit} className="grid grid-cols-2 gap-3">
-        <Field label="Customer name" className="col-span-2"><Input required value={form.customer_name} onChange={(e) => set("customer_name", e.target.value)} /></Field>
-        <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
-        <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
-        <Field label="Type">
-          <Select value={form.opportunity_type} onValueChange={(v) => set("opportunity_type", v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Budgetary">Budgetary</SelectItem>
-              <SelectItem value="JIH">JIH</SelectItem>
-              <SelectItem value="Firm Budgetary">Firm Budgetary</SelectItem>
-              <SelectItem value="Tender">Tender</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Received"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
-        <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
-        <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
-        <Field label="Notes for VP" className="col-span-2">
-          <Textarea rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Context, urgency, any extra info…" />
-        </Field>
-        <DialogFooter className="col-span-2">
-          <Button type="submit" disabled={saving}>{saving ? "Sending…" : "Send request"}</Button>
-        </DialogFooter>
-      </form>
-    </DialogContent>
-  );
-}
-
-function VpCreateDialog({ onCreated }: { onCreated: () => void }) {
-  const { user } = useAuth();
+function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; userId: string; onCreated: () => void }) {
   const [form, setForm] = useState({
     customer_name: "", project_name: "", crm_number: "",
     received_date: "", start_date: "", deadline: "", completed_date: "",
@@ -256,6 +167,7 @@ function VpCreateDialog({ onCreated }: { onCreated: () => void }) {
 
   const architectsQ = useQuery({
     queryKey: ["architects-list"],
+    enabled: canAssign,
     queryFn: async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
       const archIds = (roles ?? []).filter((r: Role) => r.role === "architect").map((r: Role) => r.user_id);
@@ -271,17 +183,21 @@ function VpCreateDialog({ onCreated }: { onCreated: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.architect_id) return toast.error("Please assign an architect");
     setSaving(true);
     const { architect_id, ...rest } = form;
-    const payload: any = { ...rest, created_by: user!.id };
+    const payload: any = { ...rest, created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
     const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id").single();
     if (error) { setSaving(false); return toast.error(error.message); }
-    const { error: aerr } = await supabase.from("opportunity_architects").insert({ opportunity_id: opp.id, user_id: architect_id });
+
+    // Assign architect: VP/Admin can pick anyone (optional); architects auto-assign to themselves.
+    const assignTo = canAssign ? architect_id : userId;
+    if (assignTo) {
+      const { error: aerr } = await supabase.from("opportunity_architects").insert({ opportunity_id: opp.id, user_id: assignTo });
+      if (aerr) { setSaving(false); return toast.error(aerr.message); }
+    }
     setSaving(false);
-    if (aerr) return toast.error(aerr.message);
-    toast.success("Opportunity created and assigned");
+    toast.success("Opportunity created");
     onCreated();
   };
 
@@ -294,16 +210,18 @@ function VpCreateDialog({ onCreated }: { onCreated: () => void }) {
         <Field label="Customer name" className="col-span-2"><Input required value={form.customer_name} onChange={(e) => set("customer_name", e.target.value)} /></Field>
         <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
         <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
-        <Field label="Assign architect" className="col-span-2">
-          <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>
-            <SelectTrigger><SelectValue placeholder="Select architect…" /></SelectTrigger>
-            <SelectContent>
-              {(architectsQ.data ?? []).map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+        {canAssign && (
+          <Field label="Assign architect (optional)" className="col-span-2">
+            <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>
+              <SelectTrigger><SelectValue placeholder="Select architect…" /></SelectTrigger>
+              <SelectContent>
+                {(architectsQ.data ?? []).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
         <Field label="Type">
           <Select value={form.opportunity_type} onValueChange={(v) => set("opportunity_type", v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -331,7 +249,7 @@ function VpCreateDialog({ onCreated }: { onCreated: () => void }) {
         <Field label="Completed"><Input type="date" value={form.completed_date} onChange={(e) => set("completed_date", e.target.value)} /></Field>
         <Field label="Revisions" className="col-span-2"><Input type="number" min={0} value={form.revision_count} onChange={(e) => set("revision_count", parseInt(e.target.value) || 0)} /></Field>
         <DialogFooter className="col-span-2">
-          <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Create & assign"}</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Create"}</Button>
         </DialogFooter>
       </form>
     </DialogContent>
