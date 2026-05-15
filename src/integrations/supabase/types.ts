@@ -60,8 +60,18 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline: string | null
+          hold_reason: string | null
+          hold_started_at: string | null
           id: string
+          on_hold: boolean
           opportunity_type: Database["public"]["Enums"]["opportunity_type"]
+          phase1_completed_at: string | null
+          phase2_completed_at: string | null
+          phase3_completed_at: string | null
+          phase4_completed_at: string | null
+          pre_hold_status:
+            | Database["public"]["Enums"]["opportunity_status"]
+            | null
           project_name: string
           received_date: string | null
           revision_count: number
@@ -76,8 +86,18 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline?: string | null
+          hold_reason?: string | null
+          hold_started_at?: string | null
           id?: string
+          on_hold?: boolean
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          phase1_completed_at?: string | null
+          phase2_completed_at?: string | null
+          phase3_completed_at?: string | null
+          phase4_completed_at?: string | null
+          pre_hold_status?:
+            | Database["public"]["Enums"]["opportunity_status"]
+            | null
           project_name: string
           received_date?: string | null
           revision_count?: number
@@ -92,8 +112,18 @@ export type Database = {
           crm_number?: string
           customer_name?: string
           deadline?: string | null
+          hold_reason?: string | null
+          hold_started_at?: string | null
           id?: string
+          on_hold?: boolean
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          phase1_completed_at?: string | null
+          phase2_completed_at?: string | null
+          phase3_completed_at?: string | null
+          phase4_completed_at?: string | null
+          pre_hold_status?:
+            | Database["public"]["Enums"]["opportunity_status"]
+            | null
           project_name?: string
           received_date?: string | null
           revision_count?: number
@@ -102,6 +132,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      opportunity_activity_log: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          message: string | null
+          opportunity_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          message?: string | null
+          opportunity_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          message?: string | null
+          opportunity_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_activity_log_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       opportunity_architects: {
         Row: {
@@ -350,7 +415,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "architect" | "vp"
-      opportunity_status: "Pending" | "In Progress" | "Completed"
+      opportunity_status:
+        | "Pending"
+        | "In Progress"
+        | "Completed"
+        | "On Hold"
+        | "Submitted to Sales"
       opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
       request_status: "pending" | "approved" | "rejected"
       user_status: "pending" | "approved" | "rejected"
@@ -482,7 +552,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "architect", "vp"],
-      opportunity_status: ["Pending", "In Progress", "Completed"],
+      opportunity_status: [
+        "Pending",
+        "In Progress",
+        "Completed",
+        "On Hold",
+        "Submitted to Sales",
+      ],
       opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
       request_status: ["pending", "approved", "rejected"],
       user_status: ["pending", "approved", "rejected"],

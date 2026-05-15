@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { AlertTriangle, Plus, Search, Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -19,6 +20,9 @@ type OppRow = {
   id: string; customer_name: string; project_name: string; crm_number: string;
   received_date: string | null; start_date: string | null; deadline: string | null; completed_date: string | null;
   opportunity_type: string; revision_count: number; status: string; created_by: string | null;
+  phase1_completed_at: string | null; phase2_completed_at: string | null;
+  phase3_completed_at: string | null; phase4_completed_at: string | null;
+  on_hold: boolean;
 };
 
 type Profile = { id: string; full_name: string | null; email: string | null };
@@ -92,6 +96,8 @@ function OppsPage() {
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="Pending">Pending</SelectItem>
             <SelectItem value="In Progress">In Progress</SelectItem>
+            <SelectItem value="On Hold">On Hold</SelectItem>
+            <SelectItem value="Submitted to Sales">Submitted to Sales</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
           </SelectContent>
         </Select>
@@ -108,11 +114,15 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                <th className="text-left px-4 py-2.5 font-medium w-44">Progress</th>
                 <th className="text-left px-4 py-2.5 font-medium">Rev</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((o) => (
+              {filtered.map((o) => {
+                const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
+                const pct = done * 25;
+                return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-2.5 font-mono text-xs">
                     <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
@@ -123,6 +133,22 @@ function OppsPage() {
                   <td className="px-4 py-2.5">{o.deadline ?? "—"}</td>
                   <td className="px-4 py-2.5"><StatusBadge s={o.status} /></td>
                   <td className="px-4 py-2.5">
+                    {o.on_hold ? (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30">
+                        <PauseCircle className="h-3 w-3" /> On Hold
+                      </span>
+                    ) : pct === 100 ? (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-success/15 text-success border border-success/30">
+                        <CheckCircle2 className="h-3 w-3" /> 100%
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Progress value={pct} className="h-1.5 flex-1" />
+                        <span className="text-xs text-muted-foreground tabular-nums w-9 text-right">{pct}%</span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5">
                     {o.revision_count > 2 ? (
                       <span className="inline-flex items-center gap-1 text-destructive font-medium">
                         <AlertTriangle className="h-3.5 w-3.5" />{o.revision_count}
@@ -130,9 +156,10 @@ function OppsPage() {
                     ) : o.revision_count}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -143,7 +170,13 @@ function OppsPage() {
 }
 
 function StatusBadge({ s }: { s: string }) {
-  const map: Record<string, string> = { Pending: "bg-muted text-muted-foreground", "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30", Completed: "bg-success/15 text-success border border-success/30" };
+  const map: Record<string, string> = {
+    Pending: "bg-muted text-muted-foreground",
+    "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30",
+    Completed: "bg-success/15 text-success border border-success/30",
+    "On Hold": "bg-amber-500/15 text-amber-700 border border-amber-500/30",
+    "Submitted to Sales": "bg-primary/15 text-primary border border-primary/30",
+  };
   return <span className={`inline-block px-2 py-0.5 rounded text-xs ${map[s] || "bg-muted"}`}>{s}</span>;
 }
 
