@@ -173,7 +173,11 @@ function OppDetail() {
               </Select>
             </DetailField>
             <DetailField label="Revisions">
-              <Input type="number" min={0} defaultValue={opp.revision_count} onBlur={(e) => updateOpp({ revision_count: parseInt(e.target.value) || 0 })} />
+              {isManager ? (
+                <Input type="number" min={0} defaultValue={opp.revision_count} onBlur={(e) => updateOpp({ revision_count: parseInt(e.target.value) || 0 })} />
+              ) : (
+                <Input type="number" value={opp.revision_count} disabled title="Only VP/Admin can edit revisions" />
+              )}
             </DetailField>
             <DetailField label="Received"><Input type="date" defaultValue={opp.received_date ?? ""} onBlur={(e) => updateOpp({ received_date: e.target.value || null })} /></DetailField>
             <DetailField label="Start"><Input type="date" defaultValue={opp.start_date ?? ""} onBlur={(e) => updateOpp({ start_date: e.target.value || null })} /></DetailField>
