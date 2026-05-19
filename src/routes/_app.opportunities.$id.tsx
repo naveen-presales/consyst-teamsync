@@ -304,7 +304,7 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
               <PauseCircle className="h-4 w-4 mr-1.5" /> On Hold
             </Button>
           )}
-          {isManager && allDone && opp.phase4_completed_at && (
+          {allDone && opp.phase4_completed_at && (
             <Button size="sm" variant="outline" onClick={sendBackToPhase3} disabled={disabled}>
               <RotateCcw className="h-4 w-4 mr-1.5" /> Send back to Phase 3
             </Button>
