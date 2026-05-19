@@ -67,7 +67,10 @@ function OppDetail() {
   const updateOpp = async (patch: any) => {
     const { error } = await supabase.from("opportunities").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
+    const fields = Object.keys(patch).join(", ");
+    await logActivity(id, user!.id, "edit", `Updated: ${fields}`);
     qc.invalidateQueries({ queryKey: ["opp", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
