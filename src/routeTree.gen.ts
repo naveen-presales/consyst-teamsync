@@ -14,6 +14,7 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTodosRouteImport } from './routes/_app.todos'
 import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
@@ -44,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTodosRoute = AppTodosRouteImport.update({
+  id: '/todos',
+  path: '/todos',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppRatingsRoute = AppRatingsRouteImport.update({
   id: '/ratings',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
+  '/todos': typeof AppTodosRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
+  '/todos': typeof AppTodosRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/ratings': typeof AppRatingsRoute
+  '/_app/todos': typeof AppTodosRoute
   '/_app/admin/questions': typeof AppAdminQuestionsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/ratings'
+    | '/todos'
     | '/admin/questions'
     | '/admin/users'
     | '/opportunities/$id'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/ratings'
+    | '/todos'
     | '/admin/questions'
     | '/admin/users'
     | '/opportunities/$id'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_app/dashboard'
     | '/_app/ratings'
+    | '/_app/todos'
     | '/_app/admin/questions'
     | '/_app/admin/users'
     | '/_app/opportunities/$id'
@@ -199,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/todos': {
+      id: '/_app/todos'
+      path: '/todos'
+      fullPath: '/todos'
+      preLoaderRoute: typeof AppTodosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/ratings': {
       id: '/_app/ratings'
       path: '/ratings'
@@ -247,6 +266,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppRatingsRoute: typeof AppRatingsRoute
+  AppTodosRoute: typeof AppTodosRoute
   AppAdminQuestionsRoute: typeof AppAdminQuestionsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
@@ -256,6 +276,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppRatingsRoute: AppRatingsRoute,
+  AppTodosRoute: AppTodosRoute,
   AppAdminQuestionsRoute: AppAdminQuestionsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
@@ -274,3 +295,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
