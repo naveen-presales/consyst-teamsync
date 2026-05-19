@@ -67,7 +67,10 @@ function OppDetail() {
   const updateOpp = async (patch: any) => {
     const { error } = await supabase.from("opportunities").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
+    const fields = Object.keys(patch).join(", ");
+    await logActivity(id, user!.id, "edit", `Updated: ${fields}`);
     qc.invalidateQueries({ queryKey: ["opp", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
@@ -173,7 +176,11 @@ function OppDetail() {
               </Select>
             </DetailField>
             <DetailField label="Revisions">
-              <Input type="number" min={0} defaultValue={opp.revision_count} onBlur={(e) => updateOpp({ revision_count: parseInt(e.target.value) || 0 })} />
+              {isManager ? (
+                <Input type="number" min={0} defaultValue={opp.revision_count} onBlur={(e) => updateOpp({ revision_count: parseInt(e.target.value) || 0 })} />
+              ) : (
+                <Input type="number" value={opp.revision_count} disabled title="Only VP/Admin can edit revisions" />
+              )}
             </DetailField>
             <DetailField label="Received"><Input type="date" defaultValue={opp.received_date ?? ""} onBlur={(e) => updateOpp({ received_date: e.target.value || null })} /></DetailField>
             <DetailField label="Start"><Input type="date" defaultValue={opp.start_date ?? ""} onBlur={(e) => updateOpp({ start_date: e.target.value || null })} /></DetailField>
@@ -297,7 +304,7 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
               <PauseCircle className="h-4 w-4 mr-1.5" /> On Hold
             </Button>
           )}
-          {isManager && allDone && opp.phase4_completed_at && (
+          {allDone && opp.phase4_completed_at && (
             <Button size="sm" variant="outline" onClick={sendBackToPhase3} disabled={disabled}>
               <RotateCcw className="h-4 w-4 mr-1.5" /> Send back to Phase 3
             </Button>
@@ -415,6 +422,18 @@ function ActivityPanel({ oppId }: { oppId: string }) {
       return (data ?? []) as { id: string; event_type: string; message: string | null; created_at: string; user_id: string | null }[];
     },
   });
+  const userIds = Array.from(new Set((q.data ?? []).map((e) => e.user_id).filter(Boolean) as string[]));
+  const profilesQ = useQuery({
+    queryKey: ["activity-profiles", userIds.sort().join(",")],
+    enabled: userIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((p: any) => { map[p.id] = p.full_name || p.email || "Unknown"; });
+      return map;
+    },
+  });
+  const nameFor = (uid: string | null) => uid ? (profilesQ.data?.[uid] || "…") : "System";
   return (
     <Card className="p-5">
       <h3 className="text-sm font-medium mb-3">Activity log</h3>
@@ -422,7 +441,9 @@ function ActivityPanel({ oppId }: { oppId: string }) {
         {(q.data ?? []).map((e) => (
           <div key={e.id} className="text-sm border-l-2 border-border pl-3 py-1">
             <div>{e.message || e.event_type}</div>
-            <div className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground">
+              by <span className="font-medium text-foreground/80">{nameFor(e.user_id)}</span> · {new Date(e.created_at).toLocaleString()}
+            </div>
           </div>
         ))}
         {q.data?.length === 0 && <div className="text-sm text-muted-foreground">No activity yet.</div>}
