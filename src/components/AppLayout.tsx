@@ -8,6 +8,7 @@ import {
   Star,
   Users,
   ListChecks,
+  CheckSquare,
   LogOut,
   Sparkles,
   Sun,
