@@ -193,7 +193,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
   const [form, setForm] = useState({
     customer_name: "", project_name: "", crm_number: "",
     received_date: "", start_date: "", deadline: "", completed_date: "",
-    opportunity_type: "Budgetary", revision_count: 0, status: "Pending",
+    opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
   });
   const [saving, setSaving] = useState(false);
@@ -223,7 +223,6 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id").single();
     if (error) { setSaving(false); return toast.error(error.message); }
 
-    // Assign architect: VP/Admin can pick anyone (optional); architects auto-assign to themselves.
     const assignTo = canAssign ? architect_id : userId;
     if (assignTo) {
       const { error: aerr } = await supabase.from("opportunity_architects").insert({ opportunity_id: opp.id, user_id: assignTo });
@@ -280,7 +279,6 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
         <Field label="Completed"><Input type="date" value={form.completed_date} onChange={(e) => set("completed_date", e.target.value)} /></Field>
-        <Field label="Revisions" className="col-span-2"><Input type="number" min={0} value={form.revision_count} onChange={(e) => set("revision_count", parseInt(e.target.value) || 0)} /></Field>
         <DialogFooter className="col-span-2">
           <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Create"}</Button>
         </DialogFooter>
