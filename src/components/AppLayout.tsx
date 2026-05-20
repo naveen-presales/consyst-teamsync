@@ -50,10 +50,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <div className="h-8 w-8 rounded-md bg-accent text-accent-foreground grid place-items-center">
             <Sparkles className="h-4 w-4" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-sidebar-foreground">Presales</div>
             <div className="text-[11px] text-muted-foreground -mt-0.5">Opportunity Tracker</div>
           </div>
+          <NotificationBell />
         </div>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {items.filter((i) => i.show).map((i) => {
@@ -77,12 +78,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3 space-y-2">
-          <div className="px-2 flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium truncate">{profile?.full_name || profile?.email}</div>
-              <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
-            </div>
-            <NotificationBell />
+          <div className="px-2">
+            <div className="text-sm font-medium truncate">{profile?.full_name || profile?.email}</div>
+            <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
           </div>
           <Button
             variant="ghost"

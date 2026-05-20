@@ -305,6 +305,21 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
     }).eq("id", opp.id);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "revision_requested", "Sent back to Phase 3 — revision required");
+
+    // Notify assigned architects (and the creator) about the revision
+    const { data: assigned } = await supabase.from("opportunity_architects").select("user_id").eq("opportunity_id", opp.id);
+    const recipientIds = new Set<string>();
+    (assigned ?? []).forEach((r: any) => { if (r.user_id && r.user_id !== userId) recipientIds.add(r.user_id); });
+    if (opp.created_by && opp.created_by !== userId) recipientIds.add(opp.created_by);
+    if (recipientIds.size) {
+      await notify(Array.from(recipientIds).map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "opportunity_revision",
+        title: "Revision required — back to Phase 3",
+        body: `${opp.project_name} (${opp.crm_number}) was sent back for revision.`,
+        link: `/opportunities/${opp.id}`, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
