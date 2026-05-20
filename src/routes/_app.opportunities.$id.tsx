@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { notify, getVpAdminIds } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
@@ -78,6 +79,14 @@ function OppDetail() {
     if (on) {
       const { error } = await supabase.from("opportunity_architects").insert({ opportunity_id: id, user_id: uid });
       if (error) return toast.error(error.message);
+      if (uid !== user!.id) {
+        await notify({
+          recipient_id: uid, actor_id: user!.id, type: "opportunity_assigned",
+          title: "Opportunity assigned to you",
+          body: `${opp.project_name} (${opp.crm_number})`,
+          link: `/opportunities/${id}`, opportunity_id: id,
+        });
+      }
     } else {
       const { error } = await supabase.from("opportunity_architects").delete().eq("opportunity_id", id).eq("user_id", uid);
       if (error) return toast.error(error.message);
