@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface NavItem {
   to: string;
@@ -76,9 +77,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3 space-y-2">
-          <div className="px-2">
-            <div className="text-sm font-medium truncate">{profile?.full_name || profile?.email}</div>
-            <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
+          <div className="px-2 flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium truncate">{profile?.full_name || profile?.email}</div>
+              <div className="text-[11px] text-muted-foreground truncate">{profile?.email}</div>
+            </div>
+            <NotificationBell />
           </div>
           <Button
             variant="ghost"
