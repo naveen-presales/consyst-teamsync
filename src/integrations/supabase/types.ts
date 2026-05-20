@@ -52,6 +52,48 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          opportunity_id: string | null
+          read_at: string | null
+          recipient_id: string
+          title: string
+          todo_id: string | null
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          opportunity_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+          title: string
+          todo_id?: string | null
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          opportunity_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+          todo_id?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       opportunities: {
         Row: {
           completed_date: string | null

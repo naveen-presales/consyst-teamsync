@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { notify, getVpAdminIds } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
@@ -220,7 +221,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     const { architect_id, ...rest } = form;
     const payload: any = { ...rest, created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
-    const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id").single();
+    const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id, project_name, customer_name, crm_number").single();
     if (error) { setSaving(false); return toast.error(error.message); }
 
     const assignTo = canAssign ? architect_id : userId;
@@ -228,6 +229,27 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
       const { error: aerr } = await supabase.from("opportunity_architects").insert({ opportunity_id: opp.id, user_id: assignTo });
       if (aerr) { setSaving(false); return toast.error(aerr.message); }
     }
+
+    // Notifications
+    const link = `/opportunities/${opp.id}`;
+    const title = `${opp.project_name} (${opp.crm_number})`;
+    if (canAssign && assignTo && assignTo !== userId) {
+      // VP/Admin assigned an opportunity to an architect
+      await notify({
+        recipient_id: assignTo, actor_id: userId, type: "opportunity_assigned",
+        title: "New opportunity assigned to you", body: title, link, opportunity_id: opp.id,
+      });
+    } else if (!canAssign) {
+      // Architect created an opportunity → notify VPs/Admins
+      const vps = await getVpAdminIds(userId);
+      if (vps.length) {
+        await notify(vps.map((rid) => ({
+          recipient_id: rid, actor_id: userId, type: "opportunity_created",
+          title: "New opportunity added by architect", body: title, link, opportunity_id: opp.id,
+        })));
+      }
+    }
+
     setSaving(false);
     toast.success("Opportunity created");
     onCreated();

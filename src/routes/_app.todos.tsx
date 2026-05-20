@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { CheckCircle2, Circle, Clock, Plus, Trash2, AlertTriangle, User, ArrowLeft, Target } from "lucide-react";
+import { notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/_app/todos")({ component: TodosPage });
 
@@ -169,6 +170,12 @@ function ArchitectTodoView({ architectId, viewerId, isManagerView, onBack }: { a
     const patch: any = { status: nextDone ? "done" : "todo", completed_at: nextDone ? new Date().toISOString() : null };
     const { error } = await supabase.from("todos").update(patch).eq("id", t.id);
     if (error) return toast.error(error.message);
+    if (nextDone && t.assigned_by && t.assigned_by !== t.user_id) {
+      await notify({
+        recipient_id: t.assigned_by, actor_id: t.user_id, type: "todo_completed",
+        title: "Assigned task completed", body: t.title, link: "/todos", todo_id: t.id,
+      });
+    }
     qc.invalidateQueries({ queryKey: ["todos", architectId] });
     qc.invalidateQueries({ queryKey: ["todos-all-assigned"] });
   };
@@ -318,6 +325,12 @@ function NewTodoDialog({ architectId, viewerId, assigned, onCreated }: { archite
     const { error } = await supabase.from("todos").insert(payload);
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (assigned && architectId !== viewerId) {
+      await notify({
+        recipient_id: architectId, actor_id: viewerId, type: "todo_assigned",
+        title: "New task assigned to you", body: title.trim(), link: "/todos",
+      });
+    }
     toast.success(assigned ? "Task assigned" : "Task added");
     setTitle(""); setDescription(""); setDueAt("");
     onCreated();
