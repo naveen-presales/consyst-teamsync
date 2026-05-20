@@ -193,7 +193,7 @@ function Field({ label, children, className = "" }: { label: string; children: R
 function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; userId: string; onCreated: () => void }) {
   const [form, setForm] = useState({
     customer_name: "", project_name: "", crm_number: "",
-    received_date: "", start_date: "", deadline: "", completed_date: "",
+    received_date: "", start_date: "", deadline: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
   });
