@@ -300,7 +300,6 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Received"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
-        <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
         <DialogFooter className="col-span-2">
           <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Create"}</Button>
         </DialogFooter>
