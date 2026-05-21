@@ -10,10 +10,10 @@ import {
   ListChecks,
   CheckSquare,
   LogOut,
-  Sparkles,
   Sun,
   Moon,
 } from "lucide-react";
+import consystLogo from "@/assets/consyst-logo.png";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -47,12 +47,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-background">
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="px-5 py-5 flex items-center gap-2 border-b border-sidebar-border">
-          <div className="h-8 w-8 rounded-md bg-accent text-accent-foreground grid place-items-center">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-sidebar-foreground">Presales</div>
-            <div className="text-[11px] text-muted-foreground -mt-0.5">Opportunity Tracker</div>
+            <div className="text-[11px] text-muted-foreground">Opportunity Tracker</div>
           </div>
           <NotificationBell />
         </div>
