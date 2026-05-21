@@ -10,10 +10,10 @@ import {
   ListChecks,
   CheckSquare,
   LogOut,
-  Sparkles,
   Sun,
   Moon,
 } from "lucide-react";
+import consystLogo from "@/assets/consyst-logo.png";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
