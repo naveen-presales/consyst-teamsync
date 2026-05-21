@@ -47,6 +47,36 @@ function OppsPage() {
     },
   });
 
+  const assignsQ = useQuery({
+    queryKey: ["opps-assigns"],
+    enabled: canAssign,
+    queryFn: async () => {
+      const { data } = await supabase.from("opportunity_architects").select("opportunity_id, user_id");
+      return (data ?? []) as { opportunity_id: string; user_id: string }[];
+    },
+  });
+
+  const profilesQ = useQuery({
+    queryKey: ["opps-profiles"],
+    enabled: canAssign,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, email");
+      return (data ?? []) as Profile[];
+    },
+  });
+
+  const archByOpp = (() => {
+    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
+    const m = new Map<string, string[]>();
+    (assignsQ.data ?? []).forEach((a) => {
+      const name = profMap.get(a.user_id) || "Unknown";
+      const arr = m.get(a.opportunity_id) ?? [];
+      arr.push(name);
+      m.set(a.opportunity_id, arr);
+    });
+    return m;
+  })();
+
   const filtered = (oppsQ.data ?? []).filter((o) => {
     if (statusF !== "all" && o.status !== statusF) return false;
     if (!search) return true;
