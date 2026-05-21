@@ -24,6 +24,7 @@ type OppRow = {
   phase1_completed_at: string | null; phase2_completed_at: string | null;
   phase3_completed_at: string | null; phase4_completed_at: string | null;
   on_hold: boolean;
+  region: string | null;
 };
 
 type Profile = { id: string; full_name: string | null; email: string | null };
