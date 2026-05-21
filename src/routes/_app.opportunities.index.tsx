@@ -24,6 +24,7 @@ type OppRow = {
   phase1_completed_at: string | null; phase2_completed_at: string | null;
   phase3_completed_at: string | null; phase4_completed_at: string | null;
   on_hold: boolean;
+  region: string | null;
 };
 
 type Profile = { id: string; full_name: string | null; email: string | null };
@@ -46,6 +47,36 @@ function OppsPage() {
     },
   });
 
+  const assignsQ = useQuery({
+    queryKey: ["opps-assigns"],
+    enabled: canAssign,
+    queryFn: async () => {
+      const { data } = await supabase.from("opportunity_architects").select("opportunity_id, user_id");
+      return (data ?? []) as { opportunity_id: string; user_id: string }[];
+    },
+  });
+
+  const profilesQ = useQuery({
+    queryKey: ["opps-profiles"],
+    enabled: canAssign,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, email");
+      return (data ?? []) as Profile[];
+    },
+  });
+
+  const archByOpp = (() => {
+    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
+    const m = new Map<string, string[]>();
+    (assignsQ.data ?? []).forEach((a) => {
+      const name = profMap.get(a.user_id) || "Unknown";
+      const arr = m.get(a.opportunity_id) ?? [];
+      arr.push(name);
+      m.set(a.opportunity_id, arr);
+    });
+    return m;
+  })();
+
   const filtered = (oppsQ.data ?? []).filter((o) => {
     if (statusF !== "all" && o.status !== statusF) return false;
     if (!search) return true;
@@ -54,8 +85,8 @@ function OppsPage() {
   });
 
   const exportCsv = () => {
-    const headers = ["CRM", "Customer", "Project", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
-    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const headers = ["CRM", "Customer", "Project", "Region", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
+    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.region ?? "", o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -112,6 +143,8 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">CRM</th>
                 <th className="text-left px-4 py-2.5 font-medium">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium">Project</th>
+                <th className="text-left px-4 py-2.5 font-medium">Region</th>
+                {canAssign && <th className="text-left px-4 py-2.5 font-medium">Architect</th>}
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
@@ -123,6 +156,7 @@ function OppsPage() {
               {filtered.map((o) => {
                 const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
                 const pct = done * 25;
+                const archs = archByOpp.get(o.id) ?? [];
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-2.5 font-mono text-xs">
@@ -130,6 +164,12 @@ function OppsPage() {
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground">{o.region || "—"}</td>
+                  {canAssign && (
+                    <td className="px-4 py-2.5 text-xs">
+                      {archs.length === 0 ? <span className="text-muted-foreground">Unassigned</span> : archs.join(", ")}
+                    </td>
+                  )}
                   <td className="px-4 py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-4 py-2.5">{o.deadline ?? "—"}</td>
                   <td className="px-4 py-2.5"><StatusBadge s={o.status} /></td>
@@ -160,7 +200,7 @@ function OppsPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -192,7 +232,7 @@ function Field({ label, children, className = "" }: { label: string; children: R
 
 function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; userId: string; onCreated: () => void }) {
   const [form, setForm] = useState({
-    customer_name: "", project_name: "", crm_number: "",
+    customer_name: "", project_name: "", crm_number: "", region: "",
     received_date: "", start_date: "", deadline: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
@@ -264,6 +304,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Customer name" className="col-span-2"><Input required value={form.customer_name} onChange={(e) => set("customer_name", e.target.value)} /></Field>
         <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
         <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
+        <Field label="Region" className="col-span-2"><Input placeholder="e.g. North America, EMEA, Mumbai" value={form.region} onChange={(e) => set("region", e.target.value)} /></Field>
         {canAssign && (
           <Field label="Assign architect (optional)" className="col-span-2">
             <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>

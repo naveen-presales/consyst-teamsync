@@ -28,6 +28,14 @@ type Opp = {
 };
 
 function DashboardPage() {
+  const { isAdmin, isVp, isArchitect, user } = useAuth();
+  if (isArchitect && !isAdmin && !isVp && user) {
+    return <ArchitectDashboard userId={user.id} />;
+  }
+  return <VpDashboard />;
+}
+
+function VpDashboard() {
   const { isAdmin, isVp } = useAuth();
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
@@ -354,5 +362,188 @@ function Kpi({ icon: Icon, label, value, flag }: { icon: any; label: string; val
       </div>
       <div className={`mt-2 text-2xl font-semibold ${flag ? "text-destructive" : ""}`}>{value}</div>
     </Card>
+  );
+}
+
+function ArchitectDashboard({ userId }: { userId: string }) {
+  // Opportunities assigned to this architect
+  const assignsQ = useQuery({
+    queryKey: ["arch-assigns", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("opportunity_architects")
+        .select("opportunity_id")
+        .eq("user_id", userId);
+      return ((data ?? []) as { opportunity_id: string }[]).map((r) => r.opportunity_id);
+    },
+  });
+
+  const oppsQ = useQuery({
+    queryKey: ["arch-opps", userId, assignsQ.data?.length ?? 0],
+    enabled: !!assignsQ.data,
+    queryFn: async () => {
+      const ids = assignsQ.data ?? [];
+      if (ids.length === 0) return [] as Opp[];
+      const { data } = await supabase
+        .from("opportunities")
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status")
+        .in("id", ids);
+      return (data ?? []) as Opp[];
+    },
+  });
+
+  const ratingsQ = useQuery({
+    queryKey: ["arch-ratings", userId, assignsQ.data?.length ?? 0],
+    enabled: !!assignsQ.data,
+    queryFn: async () => {
+      const ids = assignsQ.data ?? [];
+      if (ids.length === 0) return [];
+      const { data } = await supabase
+        .from("rating_answers")
+        .select("score, rating_id, ratings:ratings!inner(opportunity_id, created_at)")
+        .in("ratings.opportunity_id", ids);
+      return (data ?? []) as { score: number; rating_id: string; ratings: { opportunity_id: string; created_at: string } }[];
+    },
+  });
+
+  const opps = oppsQ.data ?? [];
+  const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
+  const inProgress = opps.filter((o) => o.status === "In Progress");
+  const pending = opps.filter((o) => o.status === "Pending");
+  const onHold = opps.filter((o) => o.status === "On Hold");
+
+  // Avg rating per rating (avg of answers), then avg across ratings
+  const byRating: Record<string, number[]> = {};
+  (ratingsQ.data ?? []).forEach((a) => { (byRating[a.rating_id] ||= []).push(a.score); });
+  const ratingAvgs = Object.values(byRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
+  const avgRating = ratingAvgs.length ? Math.round((ratingAvgs.reduce((a, b) => a + b, 0) / ratingAvgs.length) * 10) / 10 : 0;
+
+  const turnaround = completed
+    .filter((o) => o.start_date && o.completed_date)
+    .map((o) => differenceInCalendarDays(new Date(o.completed_date!), new Date(o.start_date!)));
+  const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
+  const onTime = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)).length;
+  const onTimeRate = completed.length ? Math.round((onTime / completed.length) * 100) : 0;
+
+  const statusData = [
+    { name: "Pending", value: pending.length },
+    { name: "In Progress", value: inProgress.length },
+    { name: "On Hold", value: onHold.length },
+    { name: "Completed", value: completed.length },
+  ].filter((d) => d.value > 0);
+
+  const typeCounts: Record<string, number> = {};
+  opps.forEach((o) => (typeCounts[o.opportunity_type] = (typeCounts[o.opportunity_type] || 0) + 1));
+  const typeData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
+
+  // Rating trend over time (per rating, avg)
+  const trend = Object.entries(byRating)
+    .map(([rid, arr]) => {
+      const meta = (ratingsQ.data ?? []).find((x) => x.rating_id === rid)?.ratings;
+      return { date: meta?.created_at ?? "", avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 };
+    })
+    .filter((d) => d.date)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((d) => ({ ...d, date: d.date.slice(0, 10) }));
+
+  const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+
+  return (
+    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">My Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Your personal performance and workload.</p>
+      </header>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
+        <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
+        <Kpi icon={Briefcase} label="Active workload" value={inProgress.length + pending.length} />
+        <Kpi icon={Timer} label="Avg turnaround" value={`${avgTurn}d`} />
+        <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="p-5">
+          <h3 className="text-sm font-medium mb-4">My opportunities by status</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={80} label>
+                  {statusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+        <Card className="p-5">
+          <h3 className="text-sm font-medium mb-4">By opportunity type</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={typeData}>
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
+
+      {trend.length > 0 && (
+        <Card className="p-5 mt-4">
+          <h3 className="text-sm font-medium mb-4">My VP rating trend</h3>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={trend}>
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      )}
+
+      <Card className="p-5 mt-4">
+        <h3 className="text-sm font-medium mb-3">My opportunities</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="text-left py-2 font-medium">Customer / Project</th>
+                <th className="text-left py-2 font-medium">Type</th>
+                <th className="text-left py-2 font-medium">Deadline</th>
+                <th className="text-left py-2 font-medium">Status</th>
+                <th className="text-right py-2 font-medium">Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {opps.length === 0 && (
+                <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">No opportunities yet.</td></tr>
+              )}
+              {opps.map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="py-2.5">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="py-2.5 text-xs">{o.deadline ?? "—"}</td>
+                  <td className="py-2.5"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
+                  <td className={`py-2.5 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
   );
 }
