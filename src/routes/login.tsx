@@ -28,11 +28,9 @@ function LoginPage() {
   return (
     <div className="min-h-screen grid place-items-center bg-background px-4">
       <Card className="w-full max-w-sm p-7">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="h-8 w-8 rounded-md bg-accent text-accent-foreground grid place-items-center">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div>
+        <div className="flex flex-col items-center gap-3 mb-6">
+          <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
+          <div className="text-center">
             <div className="font-semibold leading-tight">Presales Tracker</div>
             <div className="text-xs text-muted-foreground">Sign in to your workspace</div>
           </div>
