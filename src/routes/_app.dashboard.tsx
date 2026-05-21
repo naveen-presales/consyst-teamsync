@@ -28,8 +28,15 @@ type Opp = {
 };
 
 function DashboardPage() {
+  const { isAdmin, isVp, isArchitect, user } = useAuth();
+  if (isArchitect && !isAdmin && !isVp && user) {
+    return <ArchitectDashboard userId={user.id} />;
+  }
+  return <VpDashboard />;
+}
+
+function VpDashboard() {
   const { isAdmin, isVp } = useAuth();
-  const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
 
