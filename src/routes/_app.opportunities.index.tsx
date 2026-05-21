@@ -304,6 +304,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Customer name" className="col-span-2"><Input required value={form.customer_name} onChange={(e) => set("customer_name", e.target.value)} /></Field>
         <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
         <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
+        <Field label="Region" className="col-span-2"><Input placeholder="e.g. North America, EMEA, Mumbai" value={form.region} onChange={(e) => set("region", e.target.value)} /></Field>
         {canAssign && (
           <Field label="Assign architect (optional)" className="col-span-2">
             <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>
