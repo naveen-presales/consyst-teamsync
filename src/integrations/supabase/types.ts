@@ -116,6 +116,7 @@ export type Database = {
             | null
           project_name: string
           received_date: string | null
+          region: string | null
           revision_count: number
           start_date: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
@@ -142,6 +143,7 @@ export type Database = {
             | null
           project_name: string
           received_date?: string | null
+          region?: string | null
           revision_count?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
@@ -168,6 +170,7 @@ export type Database = {
             | null
           project_name?: string
           received_date?: string | null
+          region?: string | null
           revision_count?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
