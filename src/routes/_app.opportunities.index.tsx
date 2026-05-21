@@ -143,6 +143,8 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">CRM</th>
                 <th className="text-left px-4 py-2.5 font-medium">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium">Project</th>
+                <th className="text-left px-4 py-2.5 font-medium">Region</th>
+                {canAssign && <th className="text-left px-4 py-2.5 font-medium">Architect</th>}
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
@@ -154,6 +156,7 @@ function OppsPage() {
               {filtered.map((o) => {
                 const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
                 const pct = done * 25;
+                const archs = archByOpp.get(o.id) ?? [];
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-2.5 font-mono text-xs">
@@ -161,6 +164,12 @@ function OppsPage() {
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground">{o.region || "—"}</td>
+                  {canAssign && (
+                    <td className="px-4 py-2.5 text-xs">
+                      {archs.length === 0 ? <span className="text-muted-foreground">Unassigned</span> : archs.join(", ")}
+                    </td>
+                  )}
                   <td className="px-4 py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-4 py-2.5">{o.deadline ?? "—"}</td>
                   <td className="px-4 py-2.5"><StatusBadge s={o.status} /></td>
@@ -191,7 +200,7 @@ function OppsPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
