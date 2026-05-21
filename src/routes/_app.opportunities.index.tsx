@@ -85,8 +85,8 @@ function OppsPage() {
   });
 
   const exportCsv = () => {
-    const headers = ["CRM", "Customer", "Project", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
-    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const headers = ["CRM", "Customer", "Project", "Region", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
+    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.region ?? "", o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
