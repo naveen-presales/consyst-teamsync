@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import consystLogo from "@/assets/consyst-logo.png";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
