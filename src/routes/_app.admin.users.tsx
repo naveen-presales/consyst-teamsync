@@ -103,9 +103,18 @@ function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {p.status !== "approved" && <Button size="sm" onClick={() => setStatus(p.id, "approved")}>Approve</Button>}
                         {p.status !== "rejected" && <Button size="sm" variant="outline" onClick={() => setStatus(p.id, "rejected")}>Reject</Button>}
+                        {p.id !== user?.id && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setPendingDelete({ id: p.id, label: p.full_name || p.email || "this user" })}
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -115,6 +124,41 @@ function AdminUsers() {
           </table>
         </div>
       </Card>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.label}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All data related to the account, including any data created within this app, will be permanently deleted from the database. This action is irreversible and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!pendingDelete) return;
+                setDeleting(true);
+                try {
+                  await deleteUserFn({ data: { userId: pendingDelete.id } });
+                  toast.success("User deleted");
+                  setPendingDelete(null);
+                  qc.invalidateQueries({ queryKey: ["admin-profiles"] });
+                  qc.invalidateQueries({ queryKey: ["admin-roles"] });
+                } catch (err: any) {
+                  toast.error(err?.message || "Failed to delete user");
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+            >
+              {deleting ? "Deleting…" : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
