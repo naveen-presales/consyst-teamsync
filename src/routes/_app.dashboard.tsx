@@ -128,7 +128,7 @@ function VpDashboard() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Performance across all presales opportunities.</p>
+        <p className="text-sm text-muted-foreground">Performance across all opportunities.</p>
       </header>
 
       <div className="flex gap-3 mb-6">
