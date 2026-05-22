@@ -31,7 +31,7 @@ function LoginPage() {
         <div className="flex flex-col items-center gap-3 mb-6">
           <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
           <div className="text-center">
-            <div className="font-semibold leading-tight">Presales Tracker</div>
+            <div className="font-semibold leading-tight">TeamSync</div>
             <div className="text-xs text-muted-foreground">Sign in to your workspace</div>
           </div>
         </div>

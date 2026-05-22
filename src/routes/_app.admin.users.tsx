@@ -1,20 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth, type Role } from "@/lib/auth";
+import { deleteUser } from "@/lib/users.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin/users")({ component: AdminUsers });
 
 function AdminUsers() {
-  const { isAdmin, isVp } = useAuth();
+  const { isAdmin, isVp, user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const deleteUserFn = useServerFn(deleteUser);
 
   useEffect(() => { if (!isAdmin && !isVp) navigate({ to: "/dashboard" }); }, [isAdmin, isVp]);
 
@@ -94,9 +103,18 @@ function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {p.status !== "approved" && <Button size="sm" onClick={() => setStatus(p.id, "approved")}>Approve</Button>}
                         {p.status !== "rejected" && <Button size="sm" variant="outline" onClick={() => setStatus(p.id, "rejected")}>Reject</Button>}
+                        {p.id !== user?.id && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setPendingDelete({ id: p.id, label: p.full_name || p.email || "this user" })}
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -106,6 +124,41 @@ function AdminUsers() {
           </table>
         </div>
       </Card>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.label}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All data related to the account, including any data created within this app, will be permanently deleted from the database. This action is irreversible and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!pendingDelete) return;
+                setDeleting(true);
+                try {
+                  await deleteUserFn({ data: { userId: pendingDelete.id } });
+                  toast.success("User deleted");
+                  setPendingDelete(null);
+                  qc.invalidateQueries({ queryKey: ["admin-profiles"] });
+                  qc.invalidateQueries({ queryKey: ["admin-roles"] });
+                } catch (err: any) {
+                  toast.error(err?.message || "Failed to delete user");
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+            >
+              {deleting ? "Deleting…" : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

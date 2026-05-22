@@ -19,6 +19,9 @@ function SignupPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^[^\s@]+@consyst\.biz$/i.test(email.trim())) {
+      return toast.error("invalid credentials");
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -29,7 +32,12 @@ function SignupPage() {
       },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = /consyst\.biz|invalid credentials/i.test(error.message)
+        ? "invalid credentials"
+        : error.message;
+      return toast.error(msg);
+    }
     toast.success("Account created. Awaiting admin approval.");
     navigate({ to: "/dashboard" });
   };
