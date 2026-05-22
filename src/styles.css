@@ -46,42 +46,42 @@
   --color-chart-5: var(--chart-5);
 }
 
-/* Notion-like light base with subtle teal accent */
+/* Consyst brand light base — soft blue-tinted background, deep blue primary */
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.99 0.003 90);
-  --foreground: oklch(0.22 0.015 260);
+  --background: oklch(0.975 0.012 250);
+  --foreground: oklch(0.18 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.015 260);
+  --card-foreground: oklch(0.18 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.015 260);
-  --primary: oklch(0.28 0.03 250);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.005 260);
-  --secondary-foreground: oklch(0.28 0.03 250);
-  --muted: oklch(0.965 0.005 260);
-  --muted-foreground: oklch(0.5 0.015 260);
-  --accent: oklch(0.65 0.11 195);
+  --popover-foreground: oklch(0.18 0.02 260);
+  --primary: oklch(0.46 0.14 252);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.018 250);
+  --secondary-foreground: oklch(0.46 0.14 252);
+  --muted: oklch(0.955 0.014 250);
+  --muted-foreground: oklch(0.5 0.02 255);
+  --accent: oklch(0.46 0.14 252);
   --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.58 0.22 27);
+  --destructive: oklch(0.62 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
   --success: oklch(0.62 0.14 155);
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.75 0.15 75);
   --warning-foreground: oklch(0.2 0.02 260);
-  --border: oklch(0.92 0.006 260);
-  --input: oklch(0.93 0.006 260);
-  --ring: oklch(0.65 0.11 195);
-  --sidebar: oklch(0.97 0.005 90);
-  --sidebar-foreground: oklch(0.3 0.015 260);
-  --sidebar-border: oklch(0.92 0.006 260);
-  --sidebar-accent: oklch(0.94 0.008 195);
-  --sidebar-accent-foreground: oklch(0.28 0.03 250);
-  --chart-1: oklch(0.65 0.11 195);
+  --border: oklch(0.9 0.015 250);
+  --input: oklch(0.92 0.015 250);
+  --ring: oklch(0.46 0.14 252);
+  --sidebar: oklch(0.96 0.014 250);
+  --sidebar-foreground: oklch(0.28 0.02 260);
+  --sidebar-border: oklch(0.9 0.015 250);
+  --sidebar-accent: oklch(0.92 0.025 252);
+  --sidebar-accent-foreground: oklch(0.46 0.14 252);
+  --chart-1: oklch(0.46 0.14 252);
   --chart-2: oklch(0.6 0.14 240);
   --chart-3: oklch(0.7 0.13 145);
   --chart-4: oklch(0.72 0.16 75);
-  --chart-5: oklch(0.6 0.18 20);
+  --chart-5: oklch(0.65 0.2 27);
 }
 
 .dark {
