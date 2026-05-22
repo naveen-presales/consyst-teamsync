@@ -49,7 +49,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="px-5 py-5 flex items-center gap-2 border-b border-sidebar-border">
           <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] text-muted-foreground">Opportunity Tracker</div>
+            <div className="text-[11px] text-muted-foreground">TeamSync</div>
           </div>
           <NotificationBell />
         </div>
