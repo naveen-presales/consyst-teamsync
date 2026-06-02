@@ -494,9 +494,10 @@ function ActivityPanel({ oppId }: { oppId: string }) {
   );
 }
 
-function DetailField({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
+function DetailField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
+  return <div className={`space-y-1.5 ${className}`}><Label className="text-xs">{label}</Label>{children}</div>;
 }
+
 
 function DocEditor({ doc, oppId }: { doc: { id: string; name: string; content: string }; oppId: string }) {
   const qc = useQueryClient();
