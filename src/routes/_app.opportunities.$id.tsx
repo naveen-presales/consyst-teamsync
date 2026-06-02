@@ -170,6 +170,8 @@ function OppDetail() {
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Closed Won">Closed Won</SelectItem>
+                  <SelectItem value="Closed Lost">Closed Lost</SelectItem>
                 </SelectContent>
               </Select>
             </DetailField>
@@ -195,6 +197,11 @@ function OppDetail() {
             <DetailField label="Start"><Input type="date" defaultValue={opp.start_date ?? ""} onBlur={(e) => updateOpp({ start_date: e.target.value || null })} /></DetailField>
             <DetailField label="Deadline"><Input type="date" defaultValue={opp.deadline ?? ""} onBlur={(e) => updateOpp({ deadline: e.target.value || null })} /></DetailField>
             <DetailField label="Completed"><Input type="date" defaultValue={opp.completed_date ?? ""} onBlur={(e) => updateOpp({ completed_date: e.target.value || null })} /></DetailField>
+            <DetailField label="Region"><Input defaultValue={opp.region ?? ""} placeholder="e.g. EMEA" onBlur={(e) => updateOpp({ region: e.target.value || null })} /></DetailField>
+            <DetailField label="Final BOM" className="md:col-span-2"><Input defaultValue={opp.final_bom ?? ""} placeholder="Paste BOM link or enter a number" onBlur={(e) => updateOpp({ final_bom: e.target.value || null })} /></DetailField>
+            <DetailField label="System Details" className="col-span-2 md:col-span-3">
+              <Textarea defaultValue={opp.system_details ?? ""} placeholder="Brief system details shown in the opportunities table" onBlur={(e) => updateOpp({ system_details: e.target.value || null })} />
+            </DetailField>
           </Card>
 
           <Card className="p-5 mt-4">
