@@ -225,7 +225,7 @@ function StatusSelect({ oppId, status }: { oppId: string; status: string }) {
   const [value, setValue] = useState(status);
   const onChange = async (v: string) => {
     setValue(v);
-    const { error } = await supabase.from("opportunities").update({ status: v }).eq("id", oppId);
+    const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", oppId);
     if (error) {
       setValue(status);
       return toast.error(error.message);
