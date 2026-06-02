@@ -25,6 +25,8 @@ type OppRow = {
   phase3_completed_at: string | null; phase4_completed_at: string | null;
   on_hold: boolean;
   region: string | null;
+  system_details: string | null;
+  final_bom: string | null;
 };
 
 type Profile = { id: string; full_name: string | null; email: string | null };
@@ -85,8 +87,8 @@ function OppsPage() {
   });
 
   const exportCsv = () => {
-    const headers = ["CRM", "Customer", "Project", "Region", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
-    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.region ?? "", o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    const headers = ["CRM", "Customer", "Project", "Region", "System Details", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
+    const rows = filtered.map((o) => [o.crm_number, o.customer_name, o.project_name, o.region ?? "", o.system_details ?? "", o.opportunity_type, o.status, o.received_date ?? "", o.start_date ?? "", o.deadline ?? "", o.completed_date ?? "", o.revision_count].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -131,6 +133,8 @@ function OppsPage() {
             <SelectItem value="On Hold">On Hold</SelectItem>
             <SelectItem value="Submitted to Sales">Submitted to Sales</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="Closed Won">Closed Won</SelectItem>
+            <SelectItem value="Closed Lost">Closed Lost</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -144,12 +148,13 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium">Project</th>
                 <th className="text-left px-4 py-2.5 font-medium">Region</th>
+                <th className="text-left px-4 py-2.5 font-medium">System Details</th>
                 {canAssign && <th className="text-left px-4 py-2.5 font-medium">Architect</th>}
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
-                <th className="text-left px-4 py-2.5 font-medium">Status</th>
                 <th className="text-left px-4 py-2.5 font-medium w-44">Progress</th>
                 <th className="text-left px-4 py-2.5 font-medium">Rev</th>
+                <th className="text-left px-4 py-2.5 font-medium w-40">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -165,6 +170,7 @@ function OppsPage() {
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
                   <td className="px-4 py-2.5 text-xs text-muted-foreground">{o.region || "—"}</td>
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground max-w-[220px] truncate" title={o.system_details ?? ""}>{o.system_details || "—"}</td>
                   {canAssign && (
                     <td className="px-4 py-2.5 text-xs">
                       {archs.length === 0 ? <span className="text-muted-foreground">Unassigned</span> : archs.join(", ")}
@@ -172,7 +178,6 @@ function OppsPage() {
                   )}
                   <td className="px-4 py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-4 py-2.5">{o.deadline ?? "—"}</td>
-                  <td className="px-4 py-2.5"><StatusBadge s={o.status} /></td>
                   <td className="px-4 py-2.5">
                     {o.on_hold ? (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30">
@@ -196,11 +201,14 @@ function OppsPage() {
                       </span>
                     ) : o.revision_count}
                   </td>
+                  <td className="px-4 py-2.5">
+                    <StatusSelect oppId={o.id} status={o.status} />
+                  </td>
                 </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -210,15 +218,35 @@ function OppsPage() {
   );
 }
 
-function StatusBadge({ s }: { s: string }) {
-  const map: Record<string, string> = {
-    Pending: "bg-muted text-muted-foreground",
-    "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30",
-    Completed: "bg-success/15 text-success border border-success/30",
-    "On Hold": "bg-amber-500/15 text-amber-700 border border-amber-500/30",
-    "Submitted to Sales": "bg-primary/15 text-primary border border-primary/30",
+const STATUS_OPTIONS = ["Pending", "In Progress", "Completed", "Closed Won", "Closed Lost"] as const;
+
+function StatusSelect({ oppId, status }: { oppId: string; status: string }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(status);
+  const onChange = async (v: string) => {
+    setValue(v);
+    const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", oppId);
+    if (error) {
+      setValue(status);
+      return toast.error(error.message);
+    }
+    toast.success("Status updated");
+    qc.invalidateQueries({ queryKey: ["opps"] });
+    qc.invalidateQueries({ queryKey: ["opp", oppId] });
   };
-  return <span className={`inline-block px-2 py-0.5 rounded text-xs ${map[s] || "bg-muted"}`}>{s}</span>;
+  const inList = (STATUS_OPTIONS as readonly string[]).includes(value);
+  return (
+    <Select value={inList ? value : ""} onValueChange={onChange}>
+      <SelectTrigger className="h-8 text-xs">
+        <SelectValue placeholder={value || "Set status"} />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((s) => (
+          <SelectItem key={s} value={s}>{s}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
