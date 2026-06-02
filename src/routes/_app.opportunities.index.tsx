@@ -218,15 +218,35 @@ function OppsPage() {
   );
 }
 
-function StatusBadge({ s }: { s: string }) {
-  const map: Record<string, string> = {
-    Pending: "bg-muted text-muted-foreground",
-    "In Progress": "bg-accent/15 text-accent-foreground border border-accent/30",
-    Completed: "bg-success/15 text-success border border-success/30",
-    "On Hold": "bg-amber-500/15 text-amber-700 border border-amber-500/30",
-    "Submitted to Sales": "bg-primary/15 text-primary border border-primary/30",
+const STATUS_OPTIONS = ["Pending", "In Progress", "Completed", "Closed Won", "Closed Lost"] as const;
+
+function StatusSelect({ oppId, status }: { oppId: string; status: string }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(status);
+  const onChange = async (v: string) => {
+    setValue(v);
+    const { error } = await supabase.from("opportunities").update({ status: v }).eq("id", oppId);
+    if (error) {
+      setValue(status);
+      return toast.error(error.message);
+    }
+    toast.success("Status updated");
+    qc.invalidateQueries({ queryKey: ["opps"] });
+    qc.invalidateQueries({ queryKey: ["opp", oppId] });
   };
-  return <span className={`inline-block px-2 py-0.5 rounded text-xs ${map[s] || "bg-muted"}`}>{s}</span>;
+  const inList = (STATUS_OPTIONS as readonly string[]).includes(value);
+  return (
+    <Select value={inList ? value : ""} onValueChange={onChange}>
+      <SelectTrigger className="h-8 text-xs">
+        <SelectValue placeholder={value || "Set status"} />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((s) => (
+          <SelectItem key={s} value={s}>{s}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
