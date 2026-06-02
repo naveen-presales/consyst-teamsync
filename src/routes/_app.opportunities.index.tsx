@@ -133,6 +133,8 @@ function OppsPage() {
             <SelectItem value="On Hold">On Hold</SelectItem>
             <SelectItem value="Submitted to Sales">Submitted to Sales</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="Closed Won">Closed Won</SelectItem>
+            <SelectItem value="Closed Lost">Closed Lost</SelectItem>
           </SelectContent>
         </Select>
       </div>
