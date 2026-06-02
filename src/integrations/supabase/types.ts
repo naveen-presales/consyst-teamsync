@@ -102,6 +102,7 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline: string | null
+          final_bom: string | null
           hold_reason: string | null
           hold_started_at: string | null
           id: string
@@ -120,6 +121,7 @@ export type Database = {
           revision_count: number
           start_date: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
+          system_details: string | null
           updated_at: string
         }
         Insert: {
@@ -129,6 +131,7 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline?: string | null
+          final_bom?: string | null
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
@@ -147,6 +150,7 @@ export type Database = {
           revision_count?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
+          system_details?: string | null
           updated_at?: string
         }
         Update: {
@@ -156,6 +160,7 @@ export type Database = {
           crm_number?: string
           customer_name?: string
           deadline?: string | null
+          final_bom?: string | null
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
@@ -174,6 +179,7 @@ export type Database = {
           revision_count?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
+          system_details?: string | null
           updated_at?: string
         }
         Relationships: []
