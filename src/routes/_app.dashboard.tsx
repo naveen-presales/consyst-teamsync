@@ -25,6 +25,9 @@ type Opp = {
   opportunity_type: string;
   revision_count: number;
   status: string;
+  breach_ignored?: boolean | null;
+  breach_ignored_reason?: string | null;
+  breach_ignored_at?: string | null;
 };
 
 function DashboardPage() {
