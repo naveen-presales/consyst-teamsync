@@ -477,6 +477,21 @@ function HoldDialog({ open, onOpenChange, opp, userId }: { open: boolean; onOpen
     setSaving(false);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "on_hold", `Placed on hold: ${reason.trim()}`);
+
+    // Notify the other side
+    const link = `/opportunities/${opp.id}`;
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    const vps = await getVpAdminIds(userId);
+    const recipients = Array.from(new Set([...archs, ...vps]));
+    if (recipients.length) {
+      await notify(recipients.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "opportunity_on_hold",
+        title: "Opportunity placed on hold",
+        body: `${opp.project_name} (${opp.crm_number}) — ${reason.trim()}`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
@@ -513,6 +528,20 @@ function ResumeButton({ opp, userId }: { opp: any; userId: string }) {
     }).eq("id", opp.id);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "resumed", "Resumed from hold");
+
+    const link = `/opportunities/${opp.id}`;
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    const vps = await getVpAdminIds(userId);
+    const recipients = Array.from(new Set([...archs, ...vps]));
+    if (recipients.length) {
+      await notify(recipients.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "opportunity_resumed",
+        title: "Opportunity resumed",
+        body: `${opp.project_name} (${opp.crm_number})`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
