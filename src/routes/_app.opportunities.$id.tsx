@@ -803,6 +803,17 @@ function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean;
       if (error) throw error;
       toast.success(mode === "ignore" ? "Breach ignored" : "Breach restored");
       await logActivity(opp.id, userId, mode === "ignore" ? "breach_ignored" : "breach_restored", reason.trim());
+
+      const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+      if (archs.length) {
+        await notify(archs.map((rid) => ({
+          recipient_id: rid, actor_id: userId,
+          type: mode === "ignore" ? "breach_ignored" : "breach_restored",
+          title: mode === "ignore" ? "Revision breach ignored" : "Revision breach restored",
+          body: `${opp.project_name} (${opp.crm_number}) — ${reason.trim()}`,
+          link: `/opportunities/${opp.id}`, opportunity_id: opp.id,
+        })));
+      }
       qc.invalidateQueries({ queryKey: ["opp", opp.id] });
       qc.invalidateQueries({ queryKey: ["breach-history", opp.id] });
       qc.invalidateQueries({ queryKey: ["opps"] });
