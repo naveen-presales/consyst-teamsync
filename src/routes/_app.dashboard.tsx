@@ -97,7 +97,7 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const onTime = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)).length;
     const completionRate = completed.length ? Math.round((onTime / completed.length) * 100) : 0;
-    const breaches = opps.filter((o) => o.revision_count > 2).length;
+    const breaches = opps.filter(isActiveBreach).length;
 
     // Avg rating per opp
     const byOpp: Record<string, number[]> = {};
