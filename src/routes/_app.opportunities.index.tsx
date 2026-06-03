@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { notify, getVpAdminIds } from "@/lib/notify";
+import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
@@ -202,7 +202,7 @@ function OppsPage() {
                     ) : o.revision_count}
                   </td>
                   <td className="px-4 py-2.5">
-                    <StatusSelect oppId={o.id} status={o.status} />
+                    <StatusSelect opp={o} />
                   </td>
                 </tr>
                 );
@@ -220,19 +220,52 @@ function OppsPage() {
 
 const STATUS_OPTIONS = ["Pending", "In Progress", "Completed", "Closed Won", "Closed Lost"] as const;
 
-function StatusSelect({ oppId, status }: { oppId: string; status: string }) {
+function StatusSelect({ opp }: { opp: OppRow }) {
   const qc = useQueryClient();
-  const [value, setValue] = useState(status);
+  const { user, isVp, isAdmin } = useAuth();
+  const [value, setValue] = useState(opp.status);
   const onChange = async (v: string) => {
+    const prev = value;
     setValue(v);
-    const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", oppId);
+    const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", opp.id);
     if (error) {
-      setValue(status);
+      setValue(prev);
       return toast.error(error.message);
     }
     toast.success("Status updated");
+
+    if (user) {
+      await supabase.from("opportunity_activity_log").insert({
+        opportunity_id: opp.id, user_id: user.id, event_type: "status_change",
+        message: `Status changed from ${prev} to ${v}`,
+      });
+
+      // Notify the other side
+      const link = `/opportunities/${opp.id}`;
+      const title = `Status changed: ${opp.project_name}`;
+      const body = `${opp.crm_number} — ${prev} → ${v}`;
+      if (isVp || isAdmin) {
+        const archs = await getOppArchitectRecipients(opp.id, opp.created_by, user.id);
+        if (archs.length) {
+          await notify(archs.map((rid) => ({
+            recipient_id: rid, actor_id: user.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: opp.id,
+          })));
+        }
+      } else {
+        const vps = await getVpAdminIds(user.id);
+        if (vps.length) {
+          await notify(vps.map((rid) => ({
+            recipient_id: rid, actor_id: user.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: opp.id,
+          })));
+        }
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ["opps"] });
-    qc.invalidateQueries({ queryKey: ["opp", oppId] });
+    qc.invalidateQueries({ queryKey: ["opp", opp.id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
   };
   const inList = (STATUS_OPTIONS as readonly string[]).includes(value);
   return (
@@ -317,6 +350,11 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         })));
       }
     }
+
+    await supabase.from("opportunity_activity_log").insert({
+      opportunity_id: opp.id, user_id: userId, event_type: "created",
+      message: `Opportunity created${assignTo ? assignTo === userId ? " and self-assigned" : " and architect assigned" : ""}`,
+    });
 
     setSaving(false);
     toast.success("Opportunity created");

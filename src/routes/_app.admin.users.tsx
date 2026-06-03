@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth, type Role } from "@/lib/auth";
 import { deleteUser } from "@/lib/users.functions";
+import { notify } from "@/lib/notify";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin/users")({ component: AdminUsers });
@@ -46,6 +47,14 @@ function AdminUsers() {
     const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Updated");
+    if (user && id !== user.id) {
+      await notify({
+        recipient_id: id, actor_id: user.id, type: "account_status",
+        title: status === "approved" ? "Account approved" : status === "rejected" ? "Account rejected" : "Account set to pending",
+        body: status === "approved" ? "You now have access to TeamSync." : status === "rejected" ? "Your access request was rejected." : null,
+        link: status === "approved" ? "/dashboard" : null,
+      });
+    }
     qc.invalidateQueries({ queryKey: ["admin-profiles"] });
   };
 
@@ -56,6 +65,13 @@ function AdminUsers() {
     } else {
       const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
       if (error) return toast.error(error.message);
+    }
+    if (user && userId !== user.id) {
+      await notify({
+        recipient_id: userId, actor_id: user.id, type: "role_change",
+        title: on ? `Role added: ${role}` : `Role removed: ${role}`,
+        body: null, link: "/dashboard",
+      });
     }
     qc.invalidateQueries({ queryKey: ["admin-roles"] });
   };

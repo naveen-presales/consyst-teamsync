@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { notify, getVpAdminIds } from "@/lib/notify";
+import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
@@ -66,19 +66,48 @@ function OppDetail() {
   const opp = oppQ.data;
 
   const updateOpp = async (patch: any) => {
+    const prev = opp;
     const { error } = await supabase.from("opportunities").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
     const fields = Object.keys(patch).join(", ");
     await logActivity(id, user!.id, "edit", `Updated: ${fields}`);
+
+    // Notify on status change
+    if (patch.status && patch.status !== prev.status) {
+      const link = `/opportunities/${id}`;
+      const title = `Status changed: ${prev.project_name}`;
+      const body = `${prev.crm_number} — ${prev.status} → ${patch.status}`;
+      if (isVp || isAdmin) {
+        const archs = await getOppArchitectRecipients(id, prev.created_by, user!.id);
+        if (archs.length) {
+          await notify(archs.map((rid) => ({
+            recipient_id: rid, actor_id: user!.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: id,
+          })));
+        }
+      } else {
+        const vps = await getVpAdminIds(user!.id);
+        if (vps.length) {
+          await notify(vps.map((rid) => ({
+            recipient_id: rid, actor_id: user!.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: id,
+          })));
+        }
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
   const toggleArchitect = async (uid: string, on: boolean) => {
+    const profName = profilesQ.data?.find((p) => p.id === uid);
+    const who = profName?.full_name || profName?.email || "architect";
     if (on) {
       const { error } = await supabase.from("opportunity_architects").insert({ opportunity_id: id, user_id: uid });
       if (error) return toast.error(error.message);
+      await logActivity(id, user!.id, "architect_assigned", `Assigned ${who}`);
       if (uid !== user!.id) {
         await notify({
           recipient_id: uid, actor_id: user!.id, type: "opportunity_assigned",
@@ -90,8 +119,18 @@ function OppDetail() {
     } else {
       const { error } = await supabase.from("opportunity_architects").delete().eq("opportunity_id", id).eq("user_id", uid);
       if (error) return toast.error(error.message);
+      await logActivity(id, user!.id, "architect_unassigned", `Removed ${who}`);
+      if (uid !== user!.id) {
+        await notify({
+          recipient_id: uid, actor_id: user!.id, type: "opportunity_unassigned",
+          title: "Removed from opportunity",
+          body: `${opp.project_name} (${opp.crm_number})`,
+          link: `/opportunities/${id}`, opportunity_id: id,
+        });
+      }
     }
     qc.invalidateQueries({ queryKey: ["opp-assigned", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
   };
 
   const newDoc = async () => {
@@ -99,14 +138,19 @@ function OppDetail() {
     if (!name) return;
     const { data, error } = await supabase.from("documents").insert({ opportunity_id: id, name, content: "", created_by: user!.id }).select().single();
     if (error) return toast.error(error.message);
+    await logActivity(id, user!.id, "document_created", `Created document "${name}"`);
     qc.invalidateQueries({ queryKey: ["docs", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     setActiveDoc(data.id);
   };
 
   const deleteDoc = async (did: string) => {
     if (!confirm("Delete this document?")) return;
+    const docName = docsQ.data?.find((d) => d.id === did)?.name ?? "document";
     await supabase.from("documents").delete().eq("id", did);
+    await logActivity(id, user!.id, "document_deleted", `Deleted document "${docName}"`);
     qc.invalidateQueries({ queryKey: ["docs", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     if (activeDoc === did) setActiveDoc(null);
   };
 
@@ -292,17 +336,31 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
     const { error } = await supabase.from("opportunities").update(patch).eq("id", opp.id);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "phase_complete", `Marked ${PHASES[idx].title} complete`);
-    if (idx === 3) {
-      const vps = await getVpAdminIds(userId);
-      if (vps.length) {
-        await notify(vps.map((rid) => ({
-          recipient_id: rid, actor_id: userId, type: "opportunity_submitted",
-          title: "Opportunity submitted to sales",
-          body: `${opp.project_name} (${opp.crm_number}) — all phases complete`,
-          link: `/opportunities/${opp.id}`, opportunity_id: opp.id,
-        })));
-      }
+
+    const link = `/opportunities/${opp.id}`;
+    // Always notify VPs/admins on every phase completion
+    const vps = await getVpAdminIds(userId);
+    if (vps.length) {
+      const title = idx === 3 ? "Opportunity submitted to sales" : `Phase ${idx + 1} completed`;
+      const body = idx === 3
+        ? `${opp.project_name} (${opp.crm_number}) — all phases complete`
+        : `${opp.project_name} (${opp.crm_number}) — ${PHASES[idx].title}`;
+      await notify(vps.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: idx === 3 ? "opportunity_submitted" : "phase_completed",
+        title, body, link, opportunity_id: opp.id,
+      })));
     }
+    // If a VP/Admin marked it complete, also notify assigned architects + creator
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    if (archs.length) {
+      await notify(archs.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "phase_completed",
+        title: `Phase ${idx + 1} marked complete`,
+        body: `${opp.project_name} (${opp.crm_number}) — ${PHASES[idx].title}`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
@@ -419,6 +477,21 @@ function HoldDialog({ open, onOpenChange, opp, userId }: { open: boolean; onOpen
     setSaving(false);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "on_hold", `Placed on hold: ${reason.trim()}`);
+
+    // Notify the other side
+    const link = `/opportunities/${opp.id}`;
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    const vps = await getVpAdminIds(userId);
+    const recipients = Array.from(new Set([...archs, ...vps]));
+    if (recipients.length) {
+      await notify(recipients.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "opportunity_on_hold",
+        title: "Opportunity placed on hold",
+        body: `${opp.project_name} (${opp.crm_number}) — ${reason.trim()}`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
@@ -455,6 +528,20 @@ function ResumeButton({ opp, userId }: { opp: any; userId: string }) {
     }).eq("id", opp.id);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "resumed", "Resumed from hold");
+
+    const link = `/opportunities/${opp.id}`;
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    const vps = await getVpAdminIds(userId);
+    const recipients = Array.from(new Set([...archs, ...vps]));
+    if (recipients.length) {
+      await notify(recipients.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "opportunity_resumed",
+        title: "Opportunity resumed",
+        body: `${opp.project_name} (${opp.crm_number})`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
@@ -591,8 +678,32 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
     const { error } = await supabase.from("rating_answers").insert(rows);
     if (error) return toast.error(error.message);
     toast.success("Rating saved");
+
+    // Activity log + notify assigned architects/creator
+    const { data: oppMeta } = await supabase
+      .from("opportunities")
+      .select("project_name, crm_number, created_by")
+      .eq("id", oppId)
+      .single();
+    await supabase.from("opportunity_activity_log").insert({
+      opportunity_id: oppId, user_id: user.id, event_type: "rating_submitted",
+      message: myRating ? "Updated VP rating" : "Submitted VP rating",
+    });
+    if (oppMeta) {
+      const archs = await getOppArchitectRecipients(oppId, oppMeta.created_by, user.id);
+      if (archs.length) {
+        await notify(archs.map((rid) => ({
+          recipient_id: rid, actor_id: user.id, type: "rating_submitted",
+          title: myRating ? "VP rating updated" : "New VP rating",
+          body: `${oppMeta.project_name} (${oppMeta.crm_number})`,
+          link: `/opportunities/${oppId}`, opportunity_id: oppId,
+        })));
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ["opp-ratings", oppId] });
     qc.invalidateQueries({ queryKey: ["opp-rating-answers", oppId] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", oppId] });
   };
 
   const allAvg = useMemo(() => {
@@ -692,6 +803,17 @@ function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean;
       if (error) throw error;
       toast.success(mode === "ignore" ? "Breach ignored" : "Breach restored");
       await logActivity(opp.id, userId, mode === "ignore" ? "breach_ignored" : "breach_restored", reason.trim());
+
+      const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+      if (archs.length) {
+        await notify(archs.map((rid) => ({
+          recipient_id: rid, actor_id: userId,
+          type: mode === "ignore" ? "breach_ignored" : "breach_restored",
+          title: mode === "ignore" ? "Revision breach ignored" : "Revision breach restored",
+          body: `${opp.project_name} (${opp.crm_number}) — ${reason.trim()}`,
+          link: `/opportunities/${opp.id}`, opportunity_id: opp.id,
+        })));
+      }
       qc.invalidateQueries({ queryKey: ["opp", opp.id] });
       qc.invalidateQueries({ queryKey: ["breach-history", opp.id] });
       qc.invalidateQueries({ queryKey: ["opps"] });
