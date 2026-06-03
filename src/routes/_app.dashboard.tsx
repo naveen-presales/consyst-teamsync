@@ -162,7 +162,9 @@ function VpDashboard() {
         <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
         <Kpi icon={Timer} label="Avg turnaround" value={`${kpis.avgTurn}d`} />
         <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
-        <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
+        <button type="button" onClick={() => setBreachOpen(true)} className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+          <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
+        </button>
         <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
       </div>
 
