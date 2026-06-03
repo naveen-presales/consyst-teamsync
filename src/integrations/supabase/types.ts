@@ -96,6 +96,10 @@ export type Database = {
       }
       opportunities: {
         Row: {
+          breach_ignored: boolean
+          breach_ignored_at: string | null
+          breach_ignored_by: string | null
+          breach_ignored_reason: string | null
           completed_date: string | null
           created_at: string
           created_by: string | null
@@ -125,6 +129,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          breach_ignored?: boolean
+          breach_ignored_at?: string | null
+          breach_ignored_by?: string | null
+          breach_ignored_reason?: string | null
           completed_date?: string | null
           created_at?: string
           created_by?: string | null
@@ -154,6 +162,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          breach_ignored?: boolean
+          breach_ignored_at?: string | null
+          breach_ignored_by?: string | null
+          breach_ignored_reason?: string | null
           completed_date?: string | null
           created_at?: string
           created_by?: string | null
@@ -241,6 +253,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      opportunity_breach_history: {
+        Row: {
+          acted_at: string
+          acted_by: string
+          action: string
+          id: string
+          opportunity_id: string
+          reason: string
+          revision_count_at_action: number
+        }
+        Insert: {
+          acted_at?: string
+          acted_by: string
+          action: string
+          id?: string
+          opportunity_id: string
+          reason: string
+          revision_count_at_action: number
+        }
+        Update: {
+          acted_at?: string
+          acted_by?: string
+          action?: string
+          id?: string
+          opportunity_id?: string
+          reason?: string
+          revision_count_at_action?: number
+        }
+        Relationships: []
       }
       opportunity_requests: {
         Row: {
@@ -497,10 +539,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      ignore_revision_breach: {
+        Args: { _opp_id: string; _reason: string }
+        Returns: undefined
+      }
       is_approved: { Args: { _user_id: string }; Returns: boolean }
       is_assigned: {
         Args: { _opp_id: string; _user_id: string }
         Returns: boolean
+      }
+      restore_revision_breach: {
+        Args: { _opp_id: string; _reason: string }
+        Returns: undefined
       }
     }
     Enums: {
