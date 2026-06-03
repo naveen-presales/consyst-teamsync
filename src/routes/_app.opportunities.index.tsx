@@ -351,6 +351,11 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
       }
     }
 
+    await supabase.from("opportunity_activity_log").insert({
+      opportunity_id: opp.id, user_id: userId, event_type: "created",
+      message: `Opportunity created${assignTo ? assignTo === userId ? " and self-assigned" : " and architect assigned" : ""}`,
+    });
+
     setSaving(false);
     toast.success("Opportunity created");
     onCreated();
