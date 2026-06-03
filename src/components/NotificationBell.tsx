@@ -6,6 +6,7 @@ import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { purgeOldNotifications } from "@/lib/notify";
 
 type Notif = {
   id: string;
@@ -33,6 +34,7 @@ export function NotificationBell() {
 
   const load = async () => {
     if (!user) return;
+    await purgeOldNotifications(user.id);
     const { data } = await supabase
       .from("notifications")
       .select("id, type, title, body, link, read_at, created_at")
