@@ -351,7 +351,7 @@ function ArchitectDetailDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`px-3 py-2 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
@@ -546,7 +546,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                   <td className="py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="py-2.5 text-xs">{o.deadline ?? "—"}</td>
                   <td className="py-2.5"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`py-2.5 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                  <td className={`py-2.5 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
