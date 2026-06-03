@@ -125,14 +125,20 @@ function OppDetail() {
             <h1 className="text-2xl font-semibold tracking-tight">{opp.project_name}</h1>
             <p className="text-sm text-muted-foreground">{opp.customer_name} · CRM <span className="font-mono">{opp.crm_number}</span></p>
           </div>
-          <div className="flex items-center gap-2">
-            {opp.revision_count > 2 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {opp.revision_count > 2 && !opp.breach_ignored && (
               <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Revision breach</Badge>
+            )}
+            {opp.revision_count > 2 && opp.breach_ignored && (
+              <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Breach ignored</Badge>
             )}
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
           </div>
         </div>
+        {opp.revision_count > 2 && (
+          <BreachPanel opp={opp} canManage={isManager} userId={user!.id} />
+        )}
       </header>
 
       {opp.on_hold && (
@@ -635,3 +641,151 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
     </div>
   );
 }
+
+function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean; userId: string }) {
+  const qc = useQueryClient();
+  const [mode, setMode] = useState<null | "ignore" | "restore">(null);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const ignoredByQ = useQuery({
+    queryKey: ["profile-mini", opp.breach_ignored_by],
+    enabled: !!opp.breach_ignored_by,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("full_name, email").eq("id", opp.breach_ignored_by).single();
+      return data as { full_name: string | null; email: string | null } | null;
+    },
+  });
+
+  const historyQ = useQuery({
+    queryKey: ["breach-history", opp.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("opportunity_breach_history")
+        .select("id, action, reason, acted_at, acted_by, revision_count_at_action")
+        .eq("opportunity_id", opp.id)
+        .order("acted_at", { ascending: false });
+      return (data ?? []) as { id: string; action: string; reason: string; acted_at: string; acted_by: string; revision_count_at_action: number }[];
+    },
+  });
+
+  const actorIds = useMemo(() => Array.from(new Set((historyQ.data ?? []).map((h) => h.acted_by))), [historyQ.data]);
+  const actorsQ = useQuery({
+    queryKey: ["breach-actors", actorIds.join(",")],
+    enabled: actorIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", actorIds);
+      return (data ?? []) as { id: string; full_name: string | null; email: string | null }[];
+    },
+  });
+  const actorMap = new Map((actorsQ.data ?? []).map((a) => [a.id, a.full_name || a.email || "Unknown"]));
+
+  const submit = async () => {
+    if (reason.trim().length < 5) {
+      toast.error("Please provide a reason (at least 5 characters)");
+      return;
+    }
+    setBusy(true);
+    try {
+      const fn = mode === "ignore" ? "ignore_revision_breach" : "restore_revision_breach";
+      const { error } = await supabase.rpc(fn, { _opp_id: opp.id, _reason: reason.trim() });
+      if (error) throw error;
+      toast.success(mode === "ignore" ? "Breach ignored" : "Breach restored");
+      await logActivity(opp.id, userId, mode === "ignore" ? "breach_ignored" : "breach_restored", reason.trim());
+      qc.invalidateQueries({ queryKey: ["opp", opp.id] });
+      qc.invalidateQueries({ queryKey: ["breach-history", opp.id] });
+      qc.invalidateQueries({ queryKey: ["opps"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-opps"] });
+      setMode(null);
+      setReason("");
+    } catch (err: any) {
+      toast.error(err?.message || "Action failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className={`mt-4 p-4 ${opp.breach_ignored ? "border-muted bg-muted/30" : "border-destructive/40 bg-destructive/5"}`}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className={`h-5 w-5 mt-0.5 ${opp.breach_ignored ? "text-muted-foreground" : "text-destructive"}`} />
+          <div className="min-w-0">
+            <div className="text-sm font-medium">
+              {opp.breach_ignored ? "Revision breach ignored" : "Revision breach active"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {opp.revision_count} revisions (threshold: 2).
+              {opp.breach_ignored && opp.breach_ignored_at && (
+                <> Ignored by {ignoredByQ.data?.full_name || ignoredByQ.data?.email || "VP"} on {new Date(opp.breach_ignored_at).toLocaleString()}.</>
+              )}
+            </div>
+            {opp.breach_ignored && opp.breach_ignored_reason && (
+              <div className="text-xs mt-1.5 italic">"{opp.breach_ignored_reason}"</div>
+            )}
+          </div>
+        </div>
+        {canManage && (
+          opp.breach_ignored ? (
+            <Button size="sm" variant="outline" onClick={() => { setMode("restore"); setReason(""); }}>
+              <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore breach
+            </Button>
+          ) : (
+            <Button size="sm" variant="default" onClick={() => { setMode("ignore"); setReason(""); }}>
+              Ignore breach
+            </Button>
+          )
+        )}
+      </div>
+
+      {(historyQ.data?.length ?? 0) > 0 && (
+        <details className="mt-3">
+          <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">History ({historyQ.data!.length})</summary>
+          <ul className="mt-2 space-y-1.5">
+            {historyQ.data!.map((h) => (
+              <li key={h.id} className="text-xs border-l-2 border-border pl-2">
+                <span className="font-medium capitalize">{h.action}</span> by {actorMap.get(h.acted_by) || "Unknown"} · {new Date(h.acted_at).toLocaleString()} · rev {h.revision_count_at_action}
+                <div className="text-muted-foreground italic">"{h.reason}"</div>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      <Dialog open={!!mode} onOpenChange={(o) => !o && setMode(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{mode === "ignore" ? "Ignore revision breach" : "Restore revision breach"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {mode === "ignore"
+                ? "Provide a reason for ignoring this breach (e.g. customer-driven revisions). This will be retained in history for audit."
+                : "Provide a reason for restoring this breach so it counts against the architect again."}
+            </p>
+            <div>
+              <Label htmlFor="breach-reason" className="text-xs">Reason <span className="text-destructive">*</span></Label>
+              <Textarea
+                id="breach-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="e.g. Customer changed scope after Phase 3 sign-off"
+                rows={4}
+                maxLength={1000}
+                className="mt-1"
+              />
+              <div className="text-[10px] text-muted-foreground mt-1">{reason.length}/1000 · minimum 5 characters</div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMode(null)} disabled={busy}>Cancel</Button>
+            <Button onClick={submit} disabled={busy || reason.trim().length < 5}>
+              {busy ? "Saving…" : (mode === "ignore" ? "Ignore breach" : "Restore breach")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+

@@ -12,6 +12,7 @@ import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } fro
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { isActiveBreach, isAnyBreach, isIgnoredBreach } from "@/lib/breaches";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -25,6 +26,9 @@ type Opp = {
   opportunity_type: string;
   revision_count: number;
   status: string;
+  breach_ignored?: boolean | null;
+  breach_ignored_reason?: string | null;
+  breach_ignored_at?: string | null;
 };
 
 function DashboardPage() {
@@ -40,13 +44,14 @@ function VpDashboard() {
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
+  const [breachOpen, setBreachOpen] = useState(false);
 
   const oppsQ = useQuery({
     queryKey: ["dashboard-opps"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status");
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at");
       if (error) throw error;
       return data as Opp[];
     },
@@ -92,7 +97,7 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const onTime = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)).length;
     const completionRate = completed.length ? Math.round((onTime / completed.length) * 100) : 0;
-    const breaches = opps.filter((o) => o.revision_count > 2).length;
+    const breaches = opps.filter(isActiveBreach).length;
 
     // Avg rating per opp
     const byOpp: Record<string, number[]> = {};
@@ -157,7 +162,9 @@ function VpDashboard() {
         <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
         <Kpi icon={Timer} label="Avg turnaround" value={`${kpis.avgTurn}d`} />
         <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
-        <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
+        <button type="button" onClick={() => setBreachOpen(true)} className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+          <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
+        </button>
         <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
       </div>
 
@@ -221,7 +228,7 @@ function VpDashboard() {
                     if (o.status === "In Progress") b.inProg++;
                     else if (o.status === "Completed") b.completed++;
                     else b.pending++;
-                    if (o.revision_count > 2) b.breaches++;
+                    if (isActiveBreach(o)) b.breaches++;
                   });
                   const rows = Object.entries(byUser).map(([uid, c]) => ({
                     uid,
@@ -260,23 +267,25 @@ function VpDashboard() {
 
       {(isAdmin || isVp) && (
         <Card className="p-5 mt-4">
-          <h3 className="text-sm font-medium mb-3">Flagged opportunities</h3>
+          <h3 className="text-sm font-medium mb-3">Flagged opportunities (active)</h3>
           <div className="space-y-2">
-            {opps.filter((o) => o.revision_count > 2).map((o) => (
-              <div key={o.id} className="flex items-center justify-between text-sm border-b border-border last:border-0 py-2">
+            {opps.filter(isActiveBreach).map((o) => (
+              <Link key={o.id} to="/opportunities/$id" params={{ id: o.id }} className="flex items-center justify-between text-sm border-b border-border last:border-0 py-2 hover:bg-muted/30 -mx-2 px-2 rounded">
                 <div>
                   <div className="font-medium">{o.customer_name} — {o.project_name}</div>
                   <div className="text-xs text-muted-foreground">Revisions: {o.revision_count}</div>
                 </div>
-                <Badge variant="destructive">Breach</Badge>
-              </div>
+                <Badge variant="destructive">Active breach</Badge>
+              </Link>
             ))}
-            {opps.filter((o) => o.revision_count > 2).length === 0 && (
-              <div className="text-sm text-muted-foreground">No breaches.</div>
+            {opps.filter(isActiveBreach).length === 0 && (
+              <div className="text-sm text-muted-foreground">No active breaches.</div>
             )}
           </div>
         </Card>
       )}
+
+      <BreachDrilldownDialog open={breachOpen} onClose={() => setBreachOpen(false)} opps={opps} />
 
       <ArchitectDetailDialog
         userId={selectedArchitect}
@@ -301,7 +310,7 @@ function ArchitectDetailDialog({
     pending: opps.filter((o) => o.status === "Pending").length,
     inProg: opps.filter((o) => o.status === "In Progress").length,
     completed: opps.filter((o) => o.status === "Completed").length,
-    breaches: opps.filter((o) => o.revision_count > 2).length,
+    breaches: opps.filter(isActiveBreach).length,
   };
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -342,7 +351,7 @@ function ArchitectDetailDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`px-3 py-2 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
@@ -386,7 +395,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       if (ids.length === 0) return [] as Opp[];
       const { data } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status")
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at")
         .in("id", ids);
       return (data ?? []) as Opp[];
     },
@@ -537,7 +546,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                   <td className="py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="py-2.5 text-xs">{o.deadline ?? "—"}</td>
                   <td className="py-2.5"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`py-2.5 text-right ${o.revision_count > 2 ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                  <td className={`py-2.5 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
@@ -547,3 +556,79 @@ function ArchitectDashboard({ userId }: { userId: string }) {
     </div>
   );
 }
+
+function BreachDrilldownDialog({ open, onClose, opps }: { open: boolean; onClose: () => void; opps: Opp[] }) {
+  const [tab, setTab] = useState<"total" | "active" | "ignored">("active");
+  const total = opps.filter(isAnyBreach);
+  const active = opps.filter(isActiveBreach);
+  const ignored = opps.filter(isIgnoredBreach);
+  const list = tab === "total" ? total : tab === "active" ? active : ignored;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Revision Breaches</DialogTitle>
+          <p className="text-xs text-muted-foreground">Click a card to filter the list. Click an opportunity to open its details.</p>
+        </DialogHeader>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <BreachStatCard label="Total Breaches" value={total.length} active={tab === "total"} onClick={() => setTab("total")} />
+          <BreachStatCard label="Active Breaches" value={active.length} active={tab === "active"} danger onClick={() => setTab("active")} />
+          <BreachStatCard label="Ignored Breaches" value={ignored.length} active={tab === "ignored"} onClick={() => setTab("ignored")} />
+        </div>
+        <div className="max-h-96 overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-right px-3 py-2 font-medium">Rev</th>
+                <th className="text-left px-3 py-2 font-medium">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.length === 0 && (
+                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">No breaches in this category.</td></tr>
+              )}
+              {list.map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-3 py-2 text-right font-medium">{o.revision_count}</td>
+                  <td className="px-3 py-2">
+                    {o.breach_ignored ? (
+                      <span title={o.breach_ignored_reason ?? ""}>
+                        <Badge variant="secondary">Ignored</Badge>
+                      </span>
+                    ) : (
+                      <Badge variant="destructive">Active</Badge>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BreachStatCard({ label, value, active, danger, onClick }: { label: string; value: number; active: boolean; danger?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`text-left p-3 rounded-md border transition-colors ${active ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"}`}
+    >
+      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <div className={`text-lg font-semibold ${danger && value > 0 ? "text-destructive" : ""}`}>{value}</div>
+    </button>
+  );
+}
+
