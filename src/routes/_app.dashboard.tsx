@@ -310,7 +310,7 @@ function ArchitectDetailDialog({
     pending: opps.filter((o) => o.status === "Pending").length,
     inProg: opps.filter((o) => o.status === "In Progress").length,
     completed: opps.filter((o) => o.status === "Completed").length,
-    breaches: opps.filter((o) => o.revision_count > 2).length,
+    breaches: opps.filter(isActiveBreach).length,
   };
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
