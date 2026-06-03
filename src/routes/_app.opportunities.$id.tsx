@@ -336,17 +336,31 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
     const { error } = await supabase.from("opportunities").update(patch).eq("id", opp.id);
     if (error) return toast.error(error.message);
     await logActivity(opp.id, userId, "phase_complete", `Marked ${PHASES[idx].title} complete`);
-    if (idx === 3) {
-      const vps = await getVpAdminIds(userId);
-      if (vps.length) {
-        await notify(vps.map((rid) => ({
-          recipient_id: rid, actor_id: userId, type: "opportunity_submitted",
-          title: "Opportunity submitted to sales",
-          body: `${opp.project_name} (${opp.crm_number}) — all phases complete`,
-          link: `/opportunities/${opp.id}`, opportunity_id: opp.id,
-        })));
-      }
+
+    const link = `/opportunities/${opp.id}`;
+    // Always notify VPs/admins on every phase completion
+    const vps = await getVpAdminIds(userId);
+    if (vps.length) {
+      const title = idx === 3 ? "Opportunity submitted to sales" : `Phase ${idx + 1} completed`;
+      const body = idx === 3
+        ? `${opp.project_name} (${opp.crm_number}) — all phases complete`
+        : `${opp.project_name} (${opp.crm_number}) — ${PHASES[idx].title}`;
+      await notify(vps.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: idx === 3 ? "opportunity_submitted" : "phase_completed",
+        title, body, link, opportunity_id: opp.id,
+      })));
     }
+    // If a VP/Admin marked it complete, also notify assigned architects + creator
+    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
+    if (archs.length) {
+      await notify(archs.map((rid) => ({
+        recipient_id: rid, actor_id: userId, type: "phase_completed",
+        title: `Phase ${idx + 1} marked complete`,
+        body: `${opp.project_name} (${opp.crm_number}) — ${PHASES[idx].title}`,
+        link, opportunity_id: opp.id,
+      })));
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", opp.id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
