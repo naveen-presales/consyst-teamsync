@@ -95,8 +95,12 @@ function AdminUsers() {
                     <td className="px-4 py-3">
                       <div className="flex gap-3">
                         {(["admin", "architect", "vp"] as Role[]).map((r) => (
-                          <label key={r} className="flex items-center gap-1.5 text-xs">
-                            <Checkbox checked={roles.includes(r)} onCheckedChange={(v) => toggleRole(p.id, r, !!v)} />
+                          <label key={r} className={`flex items-center gap-1.5 text-xs ${!isAdmin ? "opacity-60" : ""}`}>
+                            <Checkbox
+                              checked={roles.includes(r)}
+                              disabled={!isAdmin}
+                              onCheckedChange={(v) => toggleRole(p.id, r, !!v)}
+                            />
                             {r}
                           </label>
                         ))}
