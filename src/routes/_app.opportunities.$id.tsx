@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { notify, getVpAdminIds } from "@/lib/notify";
+import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
@@ -66,19 +66,48 @@ function OppDetail() {
   const opp = oppQ.data;
 
   const updateOpp = async (patch: any) => {
+    const prev = opp;
     const { error } = await supabase.from("opportunities").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
     const fields = Object.keys(patch).join(", ");
     await logActivity(id, user!.id, "edit", `Updated: ${fields}`);
+
+    // Notify on status change
+    if (patch.status && patch.status !== prev.status) {
+      const link = `/opportunities/${id}`;
+      const title = `Status changed: ${prev.project_name}`;
+      const body = `${prev.crm_number} — ${prev.status} → ${patch.status}`;
+      if (isManagerRole(isVp, isAdmin)) {
+        const archs = await getOppArchitectRecipients(id, prev.created_by, user!.id);
+        if (archs.length) {
+          await notify(archs.map((rid) => ({
+            recipient_id: rid, actor_id: user!.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: id,
+          })));
+        }
+      } else {
+        const vps = await getVpAdminIds(user!.id);
+        if (vps.length) {
+          await notify(vps.map((rid) => ({
+            recipient_id: rid, actor_id: user!.id, type: "opportunity_status_change",
+            title, body, link, opportunity_id: id,
+          })));
+        }
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ["opp", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
   const toggleArchitect = async (uid: string, on: boolean) => {
+    const profName = profilesQ.data?.find((p) => p.id === uid);
+    const who = profName?.full_name || profName?.email || "architect";
     if (on) {
       const { error } = await supabase.from("opportunity_architects").insert({ opportunity_id: id, user_id: uid });
       if (error) return toast.error(error.message);
+      await logActivity(id, user!.id, "architect_assigned", `Assigned ${who}`);
       if (uid !== user!.id) {
         await notify({
           recipient_id: uid, actor_id: user!.id, type: "opportunity_assigned",
@@ -90,8 +119,18 @@ function OppDetail() {
     } else {
       const { error } = await supabase.from("opportunity_architects").delete().eq("opportunity_id", id).eq("user_id", uid);
       if (error) return toast.error(error.message);
+      await logActivity(id, user!.id, "architect_unassigned", `Removed ${who}`);
+      if (uid !== user!.id) {
+        await notify({
+          recipient_id: uid, actor_id: user!.id, type: "opportunity_unassigned",
+          title: "Removed from opportunity",
+          body: `${opp.project_name} (${opp.crm_number})`,
+          link: `/opportunities/${id}`, opportunity_id: id,
+        });
+      }
     }
     qc.invalidateQueries({ queryKey: ["opp-assigned", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
   };
 
   const newDoc = async () => {
@@ -99,14 +138,19 @@ function OppDetail() {
     if (!name) return;
     const { data, error } = await supabase.from("documents").insert({ opportunity_id: id, name, content: "", created_by: user!.id }).select().single();
     if (error) return toast.error(error.message);
+    await logActivity(id, user!.id, "document_created", `Created document "${name}"`);
     qc.invalidateQueries({ queryKey: ["docs", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     setActiveDoc(data.id);
   };
 
   const deleteDoc = async (did: string) => {
     if (!confirm("Delete this document?")) return;
+    const docName = docsQ.data?.find((d) => d.id === did)?.name ?? "document";
     await supabase.from("documents").delete().eq("id", did);
+    await logActivity(id, user!.id, "document_deleted", `Deleted document "${docName}"`);
     qc.invalidateQueries({ queryKey: ["docs", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     if (activeDoc === did) setActiveDoc(null);
   };
 
