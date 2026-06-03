@@ -77,7 +77,7 @@ function OppDetail() {
       const link = `/opportunities/${id}`;
       const title = `Status changed: ${prev.project_name}`;
       const body = `${prev.crm_number} — ${prev.status} → ${patch.status}`;
-      if (isManagerRole(isVp, isAdmin)) {
+      if (isVp || isAdmin) {
         const archs = await getOppArchitectRecipients(id, prev.created_by, user!.id);
         if (archs.length) {
           await notify(archs.map((rid) => ({
