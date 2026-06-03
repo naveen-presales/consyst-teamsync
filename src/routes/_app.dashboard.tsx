@@ -228,7 +228,7 @@ function VpDashboard() {
                     if (o.status === "In Progress") b.inProg++;
                     else if (o.status === "Completed") b.completed++;
                     else b.pending++;
-                    if (o.revision_count > 2) b.breaches++;
+                    if (isActiveBreach(o)) b.breaches++;
                   });
                   const rows = Object.entries(byUser).map(([uid, c]) => ({
                     uid,
