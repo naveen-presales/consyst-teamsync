@@ -678,8 +678,32 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
     const { error } = await supabase.from("rating_answers").insert(rows);
     if (error) return toast.error(error.message);
     toast.success("Rating saved");
+
+    // Activity log + notify assigned architects/creator
+    const { data: oppMeta } = await supabase
+      .from("opportunities")
+      .select("project_name, crm_number, created_by")
+      .eq("id", oppId)
+      .single();
+    await supabase.from("opportunity_activity_log").insert({
+      opportunity_id: oppId, user_id: user.id, event_type: "rating_submitted",
+      message: myRating ? "Updated VP rating" : "Submitted VP rating",
+    });
+    if (oppMeta) {
+      const archs = await getOppArchitectRecipients(oppId, oppMeta.created_by, user.id);
+      if (archs.length) {
+        await notify(archs.map((rid) => ({
+          recipient_id: rid, actor_id: user.id, type: "rating_submitted",
+          title: myRating ? "VP rating updated" : "New VP rating",
+          body: `${oppMeta.project_name} (${oppMeta.crm_number})`,
+          link: `/opportunities/${oppId}`, opportunity_id: oppId,
+        })));
+      }
+    }
+
     qc.invalidateQueries({ queryKey: ["opp-ratings", oppId] });
     qc.invalidateQueries({ queryKey: ["opp-rating-answers", oppId] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", oppId] });
   };
 
   const allAvg = useMemo(() => {
