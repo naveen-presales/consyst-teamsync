@@ -48,7 +48,10 @@ function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground text-center mt-5">
+        <p className="text-xs text-center mt-4">
+          <Link to="/forgot-password" className="text-accent underline">Forgot password?</Link>
+        </p>
+        <p className="text-xs text-muted-foreground text-center mt-3">
           No account? <Link to="/signup" className="text-accent underline">Request access</Link>
         </p>
       </Card>
