@@ -606,11 +606,23 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">My opportunities by status</h3>
+          <h3 className="text-sm font-medium mb-1">My opportunities by status</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a slice to drill in.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={80} label>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={80}
+                  label
+                  onClick={(d: any) => {
+                    const name = d?.name ?? d?.payload?.name;
+                    if (name) openStatus(name);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   {statusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
@@ -620,14 +632,21 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">By opportunity type</h3>
+          <h3 className="text-sm font-medium mb-1">By opportunity type</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a bar to drill in.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={typeData}>
+              <BarChart
+                data={typeData}
+                onClick={(state: any) => {
+                  const name = state?.activePayload?.[0]?.payload?.name;
+                  if (name) openType(name);
+                }}
+              >
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -636,14 +655,21 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       {trend.length > 0 && (
         <Card className="p-5 mt-4">
-          <h3 className="text-sm font-medium mb-4">My VP rating trend</h3>
+          <h3 className="text-sm font-medium mb-1">My VP rating trend</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a bar to open the rated opportunity.</p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trend}>
+              <BarChart
+                data={trend}
+                onClick={(state: any) => {
+                  const p = state?.activePayload?.[0]?.payload;
+                  if (p?.rid) openTrendDate(p.date, p.rid);
+                }}
+              >
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                 <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -685,6 +711,8 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </table>
         </div>
       </Card>
+
+      <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
     </div>
   );
 }
