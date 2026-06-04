@@ -383,6 +383,11 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
         <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
         <Field label="Region" className="col-span-2"><Input placeholder="e.g. North America, EMEA, Mumbai" value={form.region} onChange={(e) => set("region", e.target.value)} /></Field>
+        <Field label="End user"><Input placeholder="End user / customer org" value={form.end_user} onChange={(e) => set("end_user", e.target.value)} /></Field>
+        <Field label="Domain"><Input placeholder="e.g. Oil & Gas, Power" value={form.domain} onChange={(e) => set("domain", e.target.value)} /></Field>
+        <Field label="RFQ reading (hrs)"><Input type="number" step="0.25" min={0} value={form.rfq_reading_hours} onChange={(e) => set("rfq_reading_hours", e.target.value)} /></Field>
+        <Field label="Estimation (hrs)"><Input type="number" step="0.25" min={0} value={form.estimation_hours} onChange={(e) => set("estimation_hours", e.target.value)} /></Field>
+        <Field label="Opportunity cost" className="col-span-2"><Input type="number" step="0.01" min={0} placeholder="Estimated value" value={form.opportunity_cost} onChange={(e) => set("opportunity_cost", e.target.value)} /></Field>
         {canAssign && (
           <Field label="Assign architect (optional)" className="col-span-2">
             <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>
