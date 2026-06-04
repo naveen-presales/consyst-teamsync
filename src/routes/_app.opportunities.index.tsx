@@ -294,6 +294,8 @@ function Field({ label, children, className = "" }: { label: string; children: R
 function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; userId: string; onCreated: () => void }) {
   const [form, setForm] = useState({
     customer_name: "", project_name: "", crm_number: "", region: "",
+    end_user: "", domain: "",
+    rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
     received_date: "", start_date: "", deadline: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
