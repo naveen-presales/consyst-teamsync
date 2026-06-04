@@ -106,11 +106,15 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline: string | null
+          domain: string | null
+          end_user: string | null
+          estimation_hours: number | null
           final_bom: string | null
           hold_reason: string | null
           hold_started_at: string | null
           id: string
           on_hold: boolean
+          opportunity_cost: number | null
           opportunity_type: Database["public"]["Enums"]["opportunity_type"]
           phase1_completed_at: string | null
           phase2_completed_at: string | null
@@ -123,6 +127,7 @@ export type Database = {
           received_date: string | null
           region: string | null
           revision_count: number
+          rfq_reading_hours: number | null
           start_date: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
           system_details: string | null
@@ -139,11 +144,15 @@ export type Database = {
           crm_number: string
           customer_name: string
           deadline?: string | null
+          domain?: string | null
+          end_user?: string | null
+          estimation_hours?: number | null
           final_bom?: string | null
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
           on_hold?: boolean
+          opportunity_cost?: number | null
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
           phase1_completed_at?: string | null
           phase2_completed_at?: string | null
@@ -156,6 +165,7 @@ export type Database = {
           received_date?: string | null
           region?: string | null
           revision_count?: number
+          rfq_reading_hours?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           system_details?: string | null
@@ -172,11 +182,15 @@ export type Database = {
           crm_number?: string
           customer_name?: string
           deadline?: string | null
+          domain?: string | null
+          end_user?: string | null
+          estimation_hours?: number | null
           final_bom?: string | null
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
           on_hold?: boolean
+          opportunity_cost?: number | null
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
           phase1_completed_at?: string | null
           phase2_completed_at?: string | null
@@ -189,6 +203,7 @@ export type Database = {
           received_date?: string | null
           region?: string | null
           revision_count?: number
+          rfq_reading_hours?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           system_details?: string | null
