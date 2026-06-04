@@ -294,24 +294,16 @@ function OppDetail() {
           </Card>
 
           <Card className="p-5 mt-4">
-            <h3 className="text-sm font-medium mb-3">Assigned Architects</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {(profilesQ.data ?? []).map((p) => {
-                const on = assignedQ.data?.includes(p.id);
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => toggleArchitect(p.id, !on)}
-                    className={`text-left text-sm p-2.5 rounded-md border transition-colors ${on ? "border-accent bg-accent/10" : "border-border hover:bg-muted/50"}`}
-                  >
-                    <div className="font-medium truncate">{p.full_name || p.email}</div>
-                    <div className="text-xs text-muted-foreground truncate">{p.email}</div>
-                  </button>
-                );
-              })}
-            </div>
+            <h3 className="text-sm font-medium mb-3">Assigned Architect</h3>
+            <ArchitectAssignment
+              assignedIds={assignedQ.data ?? []}
+              profiles={profilesQ.data ?? []}
+              canManage={isManager}
+              onChange={changeArchitect}
+            />
           </Card>
         </TabsContent>
+
 
         <TabsContent value="docs" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
