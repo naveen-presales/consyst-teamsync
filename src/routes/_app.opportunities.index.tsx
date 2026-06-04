@@ -324,6 +324,9 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     const { architect_id, ...rest } = form;
     const payload: any = { ...rest, created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
+    ["rfq_reading_hours", "estimation_hours", "opportunity_cost"].forEach((k) => {
+      if (payload[k] != null) payload[k] = Number(payload[k]);
+    });
     const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id, project_name, customer_name, crm_number").single();
     if (error) {
       setSaving(false);
