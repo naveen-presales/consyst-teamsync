@@ -130,7 +130,11 @@ function VpDashboard() {
     const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
     const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
 
-    return { total: opps.length, avgTurn, completionRate, breaches, avgRating };
+    const avgBomRev = opps.length
+      ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
+      : 0;
+
+    return { total: opps.length, avgTurn, completionRate, breaches, avgRating, avgBomRev };
   }, [opps, completedOpps, onTimeOpps, byOppRating]);
 
   const typeData = useMemo(() => {
