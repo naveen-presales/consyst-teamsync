@@ -130,7 +130,11 @@ function VpDashboard() {
     const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
     const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
 
-    return { total: opps.length, avgTurn, completionRate, breaches, avgRating };
+    const avgBomRev = opps.length
+      ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
+      : 0;
+
+    return { total: opps.length, avgTurn, completionRate, breaches, avgRating, avgBomRev };
   }, [opps, completedOpps, onTimeOpps, byOppRating]);
 
   const typeData = useMemo(() => {
@@ -182,7 +186,7 @@ function VpDashboard() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "All opportunities", items: opps })}>
           <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
         </ClickableKpi>
@@ -215,6 +219,15 @@ function VpDashboard() {
           })}
         >
           <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "BOM revisions",
+            description: `Average ${kpis.avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
+            items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+          })}
+        >
+          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} flag={kpis.avgBomRev > 2} />
         </ClickableKpi>
       </div>
 

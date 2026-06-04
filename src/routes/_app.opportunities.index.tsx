@@ -294,6 +294,8 @@ function Field({ label, children, className = "" }: { label: string; children: R
 function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; userId: string; onCreated: () => void }) {
   const [form, setForm] = useState({
     customer_name: "", project_name: "", crm_number: "", region: "",
+    end_user: "", domain: "",
+    rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
     received_date: "", start_date: "", deadline: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
@@ -322,6 +324,9 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     const { architect_id, ...rest } = form;
     const payload: any = { ...rest, created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
+    ["rfq_reading_hours", "estimation_hours", "opportunity_cost"].forEach((k) => {
+      if (payload[k] != null) payload[k] = Number(payload[k]);
+    });
     const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id, project_name, customer_name, crm_number").single();
     if (error) {
       setSaving(false);
@@ -378,6 +383,11 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Project name" className="col-span-2"><Input required value={form.project_name} onChange={(e) => set("project_name", e.target.value)} /></Field>
         <Field label="CRM number" className="col-span-2"><Input required value={form.crm_number} onChange={(e) => set("crm_number", e.target.value)} /></Field>
         <Field label="Region" className="col-span-2"><Input placeholder="e.g. North America, EMEA, Mumbai" value={form.region} onChange={(e) => set("region", e.target.value)} /></Field>
+        <Field label="End user"><Input placeholder="End user / customer org" value={form.end_user} onChange={(e) => set("end_user", e.target.value)} /></Field>
+        <Field label="Domain"><Input placeholder="e.g. Oil & Gas, Power" value={form.domain} onChange={(e) => set("domain", e.target.value)} /></Field>
+        <Field label="RFQ reading (hrs)"><Input type="number" step="0.25" min={0} value={form.rfq_reading_hours} onChange={(e) => set("rfq_reading_hours", e.target.value)} /></Field>
+        <Field label="Estimation (hrs)"><Input type="number" step="0.25" min={0} value={form.estimation_hours} onChange={(e) => set("estimation_hours", e.target.value)} /></Field>
+        <Field label="Opportunity cost" className="col-span-2"><Input type="number" step="0.01" min={0} placeholder="Estimated value" value={form.opportunity_cost} onChange={(e) => set("opportunity_cost", e.target.value)} /></Field>
         {canAssign && (
           <Field label="Assign architect (optional)" className="col-span-2">
             <Select value={form.architect_id} onValueChange={(v) => set("architect_id", v)}>
@@ -411,7 +421,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Received"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
+        <Field label="Assigned date"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
         <DialogFooter className="col-span-2">
