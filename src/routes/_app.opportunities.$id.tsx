@@ -101,7 +101,7 @@ function OppDetail() {
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
-  const changeArchitect = async (newId: string) => {
+  const changeArchitect = async (newId: string): Promise<void> => {
     const profName = profilesQ.data?.find((p) => p.id === newId);
     const newName = profName?.full_name || profName?.email || "architect";
     const oldIds = assignedQ.data ?? [];
