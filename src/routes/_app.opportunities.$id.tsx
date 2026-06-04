@@ -856,7 +856,9 @@ function ArchitectAssignment({
 }
 
 
+function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean; userId: string }) {
   const qc = useQueryClient();
+
   const [mode, setMode] = useState<null | "ignore" | "restore">(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
