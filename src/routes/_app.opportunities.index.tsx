@@ -323,7 +323,14 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     const payload: any = { ...rest, created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
     const { data: opp, error } = await supabase.from("opportunities").insert(payload).select("id, project_name, customer_name, crm_number").single();
-    if (error) { setSaving(false); return toast.error(error.message); }
+    if (error) {
+      setSaving(false);
+      const msg = /duplicate key|unique/i.test(error.message)
+        ? `An opportunity with CRM number "${form.crm_number}" already exists.`
+        : error.message;
+      return toast.error(msg);
+    }
+
 
     const assignTo = canAssign ? architect_id : userId;
     if (assignTo) {
