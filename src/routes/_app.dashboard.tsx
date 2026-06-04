@@ -356,7 +356,10 @@ function VpDashboard() {
         </Card>
       )}
 
+      <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
+
       <BreachDrilldownDialog open={breachOpen} onClose={() => setBreachOpen(false)} opps={opps} />
+
 
       <ArchitectDetailDialog
         userId={selectedArchitect}
