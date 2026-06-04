@@ -276,20 +276,26 @@ function OppDetail() {
               </Select>
             </DetailField>
             <DetailField label="Revisions">
-              {isManager ? (
-                <Input type="number" min={0} defaultValue={opp.revision_count} onBlur={(e) => updateOpp({ revision_count: parseInt(e.target.value) || 0 })} />
-              ) : (
-                <Input type="number" value={opp.revision_count} disabled title="Only VP/Admin can edit revisions" />
-              )}
+              <Input
+                type="number"
+                value={opp.revision_count}
+                disabled
+                title="Revision count auto-increments only when a completed opportunity is sent back to Phase 3."
+              />
             </DetailField>
-            <DetailField label="Received"><Input type="date" defaultValue={opp.received_date ?? ""} onBlur={(e) => updateOpp({ received_date: e.target.value || null })} /></DetailField>
+            <DetailField label="Assigned date"><Input type="date" defaultValue={opp.received_date ?? ""} onBlur={(e) => updateOpp({ received_date: e.target.value || null })} /></DetailField>
             <DetailField label="Start"><Input type="date" defaultValue={opp.start_date ?? ""} onBlur={(e) => updateOpp({ start_date: e.target.value || null })} /></DetailField>
             <DetailField label="Deadline"><Input type="date" defaultValue={opp.deadline ?? ""} onBlur={(e) => updateOpp({ deadline: e.target.value || null })} /></DetailField>
             <DetailField label="Completed"><Input type="date" defaultValue={opp.completed_date ?? ""} onBlur={(e) => updateOpp({ completed_date: e.target.value || null })} /></DetailField>
             <DetailField label="Region"><Input defaultValue={opp.region ?? ""} placeholder="e.g. EMEA" onBlur={(e) => updateOpp({ region: e.target.value || null })} /></DetailField>
+            <DetailField label="End user"><Input defaultValue={opp.end_user ?? ""} placeholder="End user / customer org" onBlur={(e) => updateOpp({ end_user: e.target.value || null })} /></DetailField>
+            <DetailField label="Domain"><Input defaultValue={opp.domain ?? ""} placeholder="e.g. Oil & Gas, Power" onBlur={(e) => updateOpp({ domain: e.target.value || null })} /></DetailField>
+            <DetailField label="RFQ reading time (hours)"><Input type="number" step="0.25" min={0} defaultValue={opp.rfq_reading_hours ?? ""} onBlur={(e) => updateOpp({ rfq_reading_hours: e.target.value === "" ? null : Number(e.target.value) })} /></DetailField>
+            <DetailField label="Estimation time (hours)"><Input type="number" step="0.25" min={0} defaultValue={opp.estimation_hours ?? ""} onBlur={(e) => updateOpp({ estimation_hours: e.target.value === "" ? null : Number(e.target.value) })} /></DetailField>
+            <DetailField label="Opportunity cost"><Input type="number" step="0.01" min={0} defaultValue={opp.opportunity_cost ?? ""} placeholder="Estimated value" onBlur={(e) => updateOpp({ opportunity_cost: e.target.value === "" ? null : Number(e.target.value) })} /></DetailField>
             <DetailField label="Final BOM" className="md:col-span-2"><Input defaultValue={opp.final_bom ?? ""} placeholder="Paste BOM link or enter a number" onBlur={(e) => updateOpp({ final_bom: e.target.value || null })} /></DetailField>
-            <DetailField label="System Details" className="col-span-2 md:col-span-3">
-              <Textarea defaultValue={opp.system_details ?? ""} placeholder="Brief system details shown in the opportunities table" onBlur={(e) => updateOpp({ system_details: e.target.value || null })} />
+            <DetailField label="Solution proposed" className="col-span-2 md:col-span-3">
+              <Textarea defaultValue={opp.system_details ?? ""} placeholder="Brief description of the proposed solution" onBlur={(e) => updateOpp({ system_details: e.target.value || null })} />
             </DetailField>
           </Card>
 
