@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { signUpUser } from "@/lib/signup.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/signup")({ component: SignupPage });
 
 function SignupPage() {
   const navigate = useNavigate();
+  const signUp = useServerFn(signUpUser);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,23 +26,30 @@ function SignupPage() {
       return toast.error("invalid credentials");
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: fullName },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      const msg = /consyst\.biz|invalid credentials/i.test(error.message)
-        ? "invalid credentials"
-        : error.message;
-      return toast.error(msg);
+    try {
+      const res = await signUp({ data: { email: email.trim(), password, fullName } });
+      if (res.firstUser) {
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (signInErr) {
+          toast.error(signInErr.message);
+          setLoading(false);
+          return;
+        }
+        toast.success("Welcome, admin");
+        navigate({ to: "/dashboard" });
+      } else {
+        toast.success("Account created. Awaiting admin approval.");
+        navigate({ to: "/login" });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Sign up failed";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
-    toast.success("Account created. Awaiting admin approval.");
-    navigate({ to: "/dashboard" });
   };
 
   return (
