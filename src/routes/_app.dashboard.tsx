@@ -220,6 +220,15 @@ function VpDashboard() {
         >
           <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
         </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "BOM revisions",
+            description: `Average ${kpis.avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
+            items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+          })}
+        >
+          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} flag={kpis.avgBomRev > 2} />
+        </ClickableKpi>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
