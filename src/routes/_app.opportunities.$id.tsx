@@ -101,37 +101,76 @@ function OppDetail() {
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
-  const toggleArchitect = async (uid: string, on: boolean) => {
-    const profName = profilesQ.data?.find((p) => p.id === uid);
-    const who = profName?.full_name || profName?.email || "architect";
-    if (on) {
-      const { error } = await supabase.from("opportunity_architects").insert({ opportunity_id: id, user_id: uid });
-      if (error) return toast.error(error.message);
-      await logActivity(id, user!.id, "architect_assigned", `Assigned ${who}`);
-      if (uid !== user!.id) {
-        await notify({
-          recipient_id: uid, actor_id: user!.id, type: "opportunity_assigned",
-          title: "Opportunity assigned to you",
-          body: `${opp.project_name} (${opp.crm_number})`,
-          link: `/opportunities/${id}`, opportunity_id: id,
-        });
-      }
-    } else {
-      const { error } = await supabase.from("opportunity_architects").delete().eq("opportunity_id", id).eq("user_id", uid);
-      if (error) return toast.error(error.message);
-      await logActivity(id, user!.id, "architect_unassigned", `Removed ${who}`);
-      if (uid !== user!.id) {
-        await notify({
-          recipient_id: uid, actor_id: user!.id, type: "opportunity_unassigned",
-          title: "Removed from opportunity",
-          body: `${opp.project_name} (${opp.crm_number})`,
-          link: `/opportunities/${id}`, opportunity_id: id,
-        });
-      }
+  const changeArchitect = async (newId: string): Promise<void> => {
+    const profName = profilesQ.data?.find((p) => p.id === newId);
+    const newName = profName?.full_name || profName?.email || "architect";
+    const oldIds = assignedQ.data ?? [];
+
+    // Remove all current architects
+    if (oldIds.length) {
+      const { error: delErr } = await supabase
+        .from("opportunity_architects")
+        .delete()
+        .eq("opportunity_id", id);
+      if (delErr) { toast.error(delErr.message); return; }
     }
+
+    // Insert the new one
+    const { error: insErr } = await supabase
+      .from("opportunity_architects")
+      .insert({ opportunity_id: id, user_id: newId });
+    if (insErr) { toast.error(insErr.message); return; }
+
+    const oldNames = oldIds
+      .map((uid) => {
+        const p = profilesQ.data?.find((pp) => pp.id === uid);
+        return p?.full_name || p?.email || "Unknown";
+      })
+      .join(", ");
+    await logActivity(
+      id,
+      user!.id,
+      "architect_changed",
+      oldIds.length ? `Reassigned from ${oldNames} to ${newName}` : `Assigned ${newName}`,
+    );
+
+    const link = `/opportunities/${id}`;
+    const body = `${opp.project_name} (${opp.crm_number})`;
+    // Notify old architects (excluding the new one and the actor)
+    const toNotifyOld = oldIds.filter((uid) => uid !== newId && uid !== user!.id);
+    if (toNotifyOld.length) {
+      await notify(
+        toNotifyOld.map((rid) => ({
+          recipient_id: rid,
+          actor_id: user!.id,
+          type: "opportunity_unassigned",
+          title: "Removed from opportunity",
+          body,
+          link,
+          opportunity_id: id,
+        })),
+      );
+    }
+    // Notify new architect (if not the actor and not already assigned)
+    if (newId !== user!.id && !oldIds.includes(newId)) {
+      await notify({
+        recipient_id: newId,
+        actor_id: user!.id,
+        type: "opportunity_assigned",
+        title: "Opportunity assigned to you",
+        body,
+        link,
+        opportunity_id: id,
+      });
+    }
+
     qc.invalidateQueries({ queryKey: ["opp-assigned", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
+    qc.invalidateQueries({ queryKey: ["opps"] });
+    qc.invalidateQueries({ queryKey: ["opps-assigns"] });
+    toast.success("Architect updated");
   };
+
 
   const newDoc = async () => {
     const name = prompt("Document name:");
@@ -255,24 +294,16 @@ function OppDetail() {
           </Card>
 
           <Card className="p-5 mt-4">
-            <h3 className="text-sm font-medium mb-3">Assigned Architects</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {(profilesQ.data ?? []).map((p) => {
-                const on = assignedQ.data?.includes(p.id);
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => toggleArchitect(p.id, !on)}
-                    className={`text-left text-sm p-2.5 rounded-md border transition-colors ${on ? "border-accent bg-accent/10" : "border-border hover:bg-muted/50"}`}
-                  >
-                    <div className="font-medium truncate">{p.full_name || p.email}</div>
-                    <div className="text-xs text-muted-foreground truncate">{p.email}</div>
-                  </button>
-                );
-              })}
-            </div>
+            <h3 className="text-sm font-medium mb-3">Assigned Architect</h3>
+            <ArchitectAssignment
+              assignedIds={assignedQ.data ?? []}
+              profiles={profilesQ.data ?? []}
+              canManage={isManager}
+              onChange={changeArchitect}
+            />
           </Card>
         </TabsContent>
+
 
         <TabsContent value="docs" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
@@ -753,8 +784,81 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
   );
 }
 
+function ArchitectAssignment({
+  assignedIds, profiles, canManage, onChange,
+}: {
+  assignedIds: string[];
+  profiles: { id: string; full_name: string | null; email: string | null }[];
+  canManage: boolean;
+  onChange: (newId: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [pick, setPick] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const current = assignedIds[0]
+    ? profiles.find((p) => p.id === assignedIds[0]) ?? null
+    : null;
+
+  const submit = async () => {
+    if (!pick || pick === assignedIds[0]) return setEditing(false);
+    setSaving(true);
+    await onChange(pick);
+    setSaving(false);
+    setEditing(false);
+    setPick("");
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          {current ? (
+            <>
+              <div className="font-medium text-sm truncate">{current.full_name || current.email}</div>
+              <div className="text-xs text-muted-foreground truncate">{current.email}</div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">No architect assigned.</div>
+          )}
+        </div>
+        {canManage && (
+          <Button size="sm" variant="outline" onClick={() => { setPick(assignedIds[0] ?? ""); setEditing(true); }}>
+            {current ? "Change architect" : "Assign architect"}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <Select value={pick} onValueChange={setPick}>
+        <SelectTrigger><SelectValue placeholder="Select an architect…" /></SelectTrigger>
+        <SelectContent>
+          {profiles.map((p) => (
+            <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={submit} disabled={saving || !pick}>
+          {saving ? "Saving…" : "Save"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setPick(""); }} disabled={saving}>
+          Cancel
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        The new architect will be notified, and the previous architect will be notified that they are no longer assigned.
+      </p>
+    </div>
+  );
+}
+
+
 function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean; userId: string }) {
   const qc = useQueryClient();
+
   const [mode, setMode] = useState<null | "ignore" | "restore">(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);

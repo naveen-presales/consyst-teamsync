@@ -45,6 +45,11 @@ function VpDashboard() {
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
   const [breachOpen, setBreachOpen] = useState(false);
+  const [drill, setDrill] = useState<null | {
+    title: string;
+    description?: string;
+    items: Opp[];
+  }>(null);
 
   const oppsQ = useQuery({
     queryKey: ["dashboard-opps"],
@@ -89,28 +94,44 @@ function VpDashboard() {
     return list;
   }, [oppsQ.data, type, status]);
 
-  const kpis = useMemo(() => {
-    const completed = opps.filter((o) => o.status === "Completed");
-    const turnaround = completed
-      .filter((o) => o.start_date && o.completed_date)
-      .map((o) => differenceInCalendarDays(new Date(o.completed_date!), new Date(o.start_date!)));
-    const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
-    const onTime = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)).length;
-    const completionRate = completed.length ? Math.round((onTime / completed.length) * 100) : 0;
-    const breaches = opps.filter(isActiveBreach).length;
+  const completedOpps = useMemo(() => opps.filter((o) => o.status === "Completed"), [opps]);
+  const onTimeOpps = useMemo(
+    () => completedOpps.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)),
+    [completedOpps],
+  );
+  const lateOpps = useMemo(
+    () => completedOpps.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) > new Date(o.deadline)),
+    [completedOpps],
+  );
 
-    // Avg rating per opp
+  const byOppRating = useMemo(() => {
     const byOpp: Record<string, number[]> = {};
     (ratingsQ.data ?? []).forEach((a) => {
       const oid = a.ratings?.opportunity_id;
       if (!oid) return;
       (byOpp[oid] ||= []).push(a.score);
     });
-    const oppAvgs = Object.values(byOpp).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
+    return byOpp;
+  }, [ratingsQ.data]);
+
+  const ratedOpps = useMemo(
+    () => opps.filter((o) => byOppRating[o.id]?.length),
+    [opps, byOppRating],
+  );
+
+  const kpis = useMemo(() => {
+    const turnaround = completedOpps
+      .filter((o) => o.start_date && o.completed_date)
+      .map((o) => differenceInCalendarDays(new Date(o.completed_date!), new Date(o.start_date!)));
+    const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
+    const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
+    const breaches = opps.filter(isActiveBreach).length;
+
+    const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
     const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
 
     return { total: opps.length, avgTurn, completionRate, breaches, avgRating };
-  }, [opps, ratingsQ.data]);
+  }, [opps, completedOpps, onTimeOpps, byOppRating]);
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -119,12 +140,15 @@ function VpDashboard() {
   }, [opps]);
 
   const workload = useMemo(() => {
-    const byUser: Record<string, number> = {};
+    const byUser: Record<string, { count: number; uid: string }> = {};
     (assignsQ.data ?? []).forEach((a) => {
-      if (opps.find((o) => o.id === a.opportunity_id)) byUser[a.user_id] = (byUser[a.user_id] || 0) + 1;
+      if (opps.find((o) => o.id === a.opportunity_id)) {
+        const v = (byUser[a.user_id] ||= { count: 0, uid: a.user_id });
+        v.count += 1;
+      }
     });
     const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
-    return Object.entries(byUser).map(([id, count]) => ({ name: profMap.get(id) || "Unknown", count })).sort((a, b) => b.count - a.count);
+    return Object.values(byUser).map((b) => ({ name: profMap.get(b.uid) || "Unknown", count: b.count, uid: b.uid })).sort((a, b) => b.count - a.count);
   }, [assignsQ.data, profilesQ.data, opps]);
 
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
@@ -133,7 +157,7 @@ function VpDashboard() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Performance across all opportunities.</p>
+        <p className="text-sm text-muted-foreground">Performance across all opportunities. Click any tile or chart for details.</p>
       </header>
 
       <div className="flex gap-3 mb-6">
@@ -159,22 +183,61 @@ function VpDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-        <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
-        <Kpi icon={Timer} label="Avg turnaround" value={`${kpis.avgTurn}d`} />
-        <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
-        <button type="button" onClick={() => setBreachOpen(true)} className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+        <ClickableKpi onClick={() => setDrill({ title: "All opportunities", items: opps })}>
+          <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Completed opportunities — turnaround",
+            description: `Average ${kpis.avgTurn} day(s) from start to completion.`,
+            items: completedOpps,
+          })}
+        >
+          <Kpi icon={Timer} label="Avg turnaround" value={`${kpis.avgTurn}d`} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "On-time completions",
+            description: `${onTimeOpps.length} on-time, ${lateOpps.length} late of ${completedOpps.length} completed.`,
+            items: completedOpps,
+          })}
+        >
+          <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
+        </ClickableKpi>
+        <ClickableKpi onClick={() => setBreachOpen(true)}>
           <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
-        </button>
-        <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Rated opportunities",
+            description: `Average score ${kpis.avgRating || "—"} across ${ratedOpps.length} opportunity(s).`,
+            items: ratedOpps,
+          })}
+        >
+          <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
+        </ClickableKpi>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">Opportunity types</h3>
+          <h3 className="text-sm font-medium mb-1">Opportunity types</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a slice to drill into that type.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={typeData} dataKey="value" nameKey="name" outerRadius={80} label>
+                <Pie
+                  data={typeData}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={80}
+                  label
+                  onClick={(d: any) => {
+                    const name = d?.name ?? d?.payload?.name;
+                    if (!name) return;
+                    setDrill({ title: `Type: ${name}`, items: opps.filter((o) => o.opportunity_type === name) });
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   {typeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
@@ -184,19 +247,27 @@ function VpDashboard() {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">Architect workload</h3>
+          <h3 className="text-sm font-medium mb-1">Architect workload</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a bar to see that architect's opportunities.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={workload}>
+              <BarChart
+                data={workload}
+                onClick={(state: any) => {
+                  const uid = state?.activePayload?.[0]?.payload?.uid;
+                  if (uid) setSelectedArchitect(uid);
+                }}
+              >
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
       </div>
+
 
       {(isAdmin || isVp) && (
         <Card className="p-5 mt-4">
@@ -285,7 +356,10 @@ function VpDashboard() {
         </Card>
       )}
 
+      <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
+
       <BreachDrilldownDialog open={breachOpen} onClose={() => setBreachOpen(false)} opps={opps} />
+
 
       <ArchitectDetailDialog
         userId={selectedArchitect}
@@ -631,4 +705,67 @@ function BreachStatCard({ label, value, active, danger, onClick }: { label: stri
     </button>
   );
 }
+
+function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg transition-transform hover:-translate-y-0.5"
+    >
+      {children}
+    </button>
+  );
+}
+
+function OppDrilldownDialog({
+  drill, onClose,
+}: {
+  drill: { title: string; description?: string; items: Opp[] } | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{drill?.title ?? ""}</DialogTitle>
+          {drill?.description && <p className="text-xs text-muted-foreground">{drill.description}</p>}
+        </DialogHeader>
+        <div className="max-h-[28rem] overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-left px-3 py-2 font-medium">Status</th>
+                <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                <th className="text-right px-3 py-2 font-medium">Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(drill?.items ?? []).length === 0 && (
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
+              )}
+              {(drill?.items ?? []).map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
+                  <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
