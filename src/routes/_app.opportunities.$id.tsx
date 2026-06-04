@@ -119,7 +119,7 @@ function OppDetail() {
     const { error: insErr } = await supabase
       .from("opportunity_architects")
       .insert({ opportunity_id: id, user_id: newId });
-    if (insErr) return toast.error(insErr.message);
+    if (insErr) { toast.error(insErr.message); return; }
 
     const oldNames = oldIds
       .map((uid) => {
