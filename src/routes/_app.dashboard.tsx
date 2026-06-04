@@ -502,11 +502,14 @@ function ArchitectDashboard({ userId }: { userId: string }) {
     },
   });
 
+  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[] }>(null);
+
   const opps = oppsQ.data ?? [];
   const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
   const inProgress = opps.filter((o) => o.status === "In Progress");
   const pending = opps.filter((o) => o.status === "Pending");
   const onHold = opps.filter((o) => o.status === "On Hold");
+  const breaches = opps.filter(isActiveBreach);
 
   // Avg rating per rating (avg of answers), then avg across ratings
   const byRating: Record<string, number[]> = {};
@@ -514,12 +517,17 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const ratingAvgs = Object.values(byRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
   const avgRating = ratingAvgs.length ? Math.round((ratingAvgs.reduce((a, b) => a + b, 0) / ratingAvgs.length) * 10) / 10 : 0;
 
+  const ratedOppIds = new Set(
+    (ratingsQ.data ?? []).map((a) => a.ratings?.opportunity_id).filter(Boolean) as string[],
+  );
+  const ratedOpps = opps.filter((o) => ratedOppIds.has(o.id));
+
   const turnaround = completed
     .filter((o) => o.start_date && o.completed_date)
     .map((o) => differenceInCalendarDays(new Date(o.completed_date!), new Date(o.start_date!)));
   const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
-  const onTime = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline)).length;
-  const onTimeRate = completed.length ? Math.round((onTime / completed.length) * 100) : 0;
+  const onTimeOpps = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline));
+  const onTimeRate = completed.length ? Math.round((onTimeOpps.length / completed.length) * 100) : 0;
 
   const statusData = [
     { name: "Pending", value: pending.length },
@@ -536,7 +544,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const trend = Object.entries(byRating)
     .map(([rid, arr]) => {
       const meta = (ratingsQ.data ?? []).find((x) => x.rating_id === rid)?.ratings;
-      return { date: meta?.created_at ?? "", avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 };
+      return { date: meta?.created_at ?? "", avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10, rid };
     })
     .filter((d) => d.date)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -544,28 +552,77 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
+  const openStatus = (name: string) => {
+    const items =
+      name === "Pending" ? pending :
+      name === "In Progress" ? inProgress :
+      name === "On Hold" ? onHold :
+      name === "Completed" ? completed : [];
+    setDrill({ title: `Status: ${name}`, items });
+  };
+
+  const openType = (name: string) => {
+    setDrill({ title: `Type: ${name}`, items: opps.filter((o) => o.opportunity_type === name) });
+  };
+
+  const openTrendDate = (date: string, rid: string) => {
+    const oid = (ratingsQ.data ?? []).find((x) => x.rating_id === rid)?.ratings?.opportunity_id;
+    const items = oid ? opps.filter((o) => o.id === oid) : [];
+    setDrill({ title: `Rating on ${date}`, items });
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">My Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Your personal performance and workload.</p>
+        <p className="text-sm text-muted-foreground">Your personal performance and workload. Click any tile or chart for details.</p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-        <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
-        <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
-        <Kpi icon={Briefcase} label="Active workload" value={inProgress.length + pending.length} />
-        <Kpi icon={Timer} label="Avg turnaround" value={`${avgTurn}d`} />
-        <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+        <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
+          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
+        </ClickableKpi>
+        <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
+          <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
+        </ClickableKpi>
+        <ClickableKpi onClick={() => setDrill({ title: "Active workload", description: "Pending + In Progress", items: [...pending, ...inProgress] })}>
+          <Kpi icon={Briefcase} label="Active workload" value={inProgress.length + pending.length} />
+        </ClickableKpi>
+        <ClickableKpi onClick={() => setDrill({ title: "Completed — turnaround", description: `Average ${avgTurn} day(s) from start to completion.`, items: completed })}>
+          <Kpi icon={Timer} label="Avg turnaround" value={`${avgTurn}d`} />
+        </ClickableKpi>
+        <ClickableKpi onClick={() => setDrill({ title: "On-time completions", description: `${onTimeOpps.length} on-time of ${completed.length} completed.`, items: completed })}>
+          <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
+        </ClickableKpi>
       </div>
+
+      {breaches.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <ClickableKpi onClick={() => setDrill({ title: "My active revision breaches", items: breaches })}>
+            <Kpi icon={AlertTriangle} label="Active breaches" value={breaches.length} flag />
+          </ClickableKpi>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">My opportunities by status</h3>
+          <h3 className="text-sm font-medium mb-1">My opportunities by status</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a slice to drill in.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={80} label>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={80}
+                  label
+                  onClick={(d: any) => {
+                    const name = d?.name ?? d?.payload?.name;
+                    if (name) openStatus(name);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   {statusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
@@ -575,14 +632,21 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-4">By opportunity type</h3>
+          <h3 className="text-sm font-medium mb-1">By opportunity type</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a bar to drill in.</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={typeData}>
+              <BarChart
+                data={typeData}
+                onClick={(state: any) => {
+                  const name = state?.activePayload?.[0]?.payload?.name;
+                  if (name) openType(name);
+                }}
+              >
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -591,14 +655,21 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       {trend.length > 0 && (
         <Card className="p-5 mt-4">
-          <h3 className="text-sm font-medium mb-4">My VP rating trend</h3>
+          <h3 className="text-sm font-medium mb-1">My VP rating trend</h3>
+          <p className="text-xs text-muted-foreground mb-3">Click a bar to open the rated opportunity.</p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trend}>
+              <BarChart
+                data={trend}
+                onClick={(state: any) => {
+                  const p = state?.activePayload?.[0]?.payload;
+                  if (p?.rid) openTrendDate(p.date, p.rid);
+                }}
+              >
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                 <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -640,6 +711,8 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </table>
         </div>
       </Card>
+
+      <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
     </div>
   );
 }
