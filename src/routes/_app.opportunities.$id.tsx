@@ -784,7 +784,78 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
   );
 }
 
-function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean; userId: string }) {
+function ArchitectAssignment({
+  assignedIds, profiles, canManage, onChange,
+}: {
+  assignedIds: string[];
+  profiles: { id: string; full_name: string | null; email: string | null }[];
+  canManage: boolean;
+  onChange: (newId: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [pick, setPick] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const current = assignedIds[0]
+    ? profiles.find((p) => p.id === assignedIds[0]) ?? null
+    : null;
+
+  const submit = async () => {
+    if (!pick || pick === assignedIds[0]) return setEditing(false);
+    setSaving(true);
+    await onChange(pick);
+    setSaving(false);
+    setEditing(false);
+    setPick("");
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          {current ? (
+            <>
+              <div className="font-medium text-sm truncate">{current.full_name || current.email}</div>
+              <div className="text-xs text-muted-foreground truncate">{current.email}</div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">No architect assigned.</div>
+          )}
+        </div>
+        {canManage && (
+          <Button size="sm" variant="outline" onClick={() => { setPick(assignedIds[0] ?? ""); setEditing(true); }}>
+            {current ? "Change architect" : "Assign architect"}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <Select value={pick} onValueChange={setPick}>
+        <SelectTrigger><SelectValue placeholder="Select an architect…" /></SelectTrigger>
+        <SelectContent>
+          {profiles.map((p) => (
+            <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={submit} disabled={saving || !pick}>
+          {saving ? "Saving…" : "Save"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setPick(""); }} disabled={saving}>
+          Cancel
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        The new architect will be notified, and the previous architect will be notified that they are no longer assigned.
+      </p>
+    </div>
+  );
+}
+
+
   const qc = useQueryClient();
   const [mode, setMode] = useState<null | "ignore" | "restore">(null);
   const [reason, setReason] = useState("");
