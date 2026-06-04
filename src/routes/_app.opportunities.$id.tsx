@@ -112,7 +112,7 @@ function OppDetail() {
         .from("opportunity_architects")
         .delete()
         .eq("opportunity_id", id);
-      if (delErr) return toast.error(delErr.message);
+      if (delErr) { toast.error(delErr.message); return; }
     }
 
     // Insert the new one
