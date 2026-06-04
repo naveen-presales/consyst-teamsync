@@ -101,37 +101,76 @@ function OppDetail() {
     qc.invalidateQueries({ queryKey: ["opps"] });
   };
 
-  const toggleArchitect = async (uid: string, on: boolean) => {
-    const profName = profilesQ.data?.find((p) => p.id === uid);
-    const who = profName?.full_name || profName?.email || "architect";
-    if (on) {
-      const { error } = await supabase.from("opportunity_architects").insert({ opportunity_id: id, user_id: uid });
-      if (error) return toast.error(error.message);
-      await logActivity(id, user!.id, "architect_assigned", `Assigned ${who}`);
-      if (uid !== user!.id) {
-        await notify({
-          recipient_id: uid, actor_id: user!.id, type: "opportunity_assigned",
-          title: "Opportunity assigned to you",
-          body: `${opp.project_name} (${opp.crm_number})`,
-          link: `/opportunities/${id}`, opportunity_id: id,
-        });
-      }
-    } else {
-      const { error } = await supabase.from("opportunity_architects").delete().eq("opportunity_id", id).eq("user_id", uid);
-      if (error) return toast.error(error.message);
-      await logActivity(id, user!.id, "architect_unassigned", `Removed ${who}`);
-      if (uid !== user!.id) {
-        await notify({
-          recipient_id: uid, actor_id: user!.id, type: "opportunity_unassigned",
-          title: "Removed from opportunity",
-          body: `${opp.project_name} (${opp.crm_number})`,
-          link: `/opportunities/${id}`, opportunity_id: id,
-        });
-      }
+  const changeArchitect = async (newId: string) => {
+    const profName = profilesQ.data?.find((p) => p.id === newId);
+    const newName = profName?.full_name || profName?.email || "architect";
+    const oldIds = assignedQ.data ?? [];
+
+    // Remove all current architects
+    if (oldIds.length) {
+      const { error: delErr } = await supabase
+        .from("opportunity_architects")
+        .delete()
+        .eq("opportunity_id", id);
+      if (delErr) return toast.error(delErr.message);
     }
+
+    // Insert the new one
+    const { error: insErr } = await supabase
+      .from("opportunity_architects")
+      .insert({ opportunity_id: id, user_id: newId });
+    if (insErr) return toast.error(insErr.message);
+
+    const oldNames = oldIds
+      .map((uid) => {
+        const p = profilesQ.data?.find((pp) => pp.id === uid);
+        return p?.full_name || p?.email || "Unknown";
+      })
+      .join(", ");
+    await logActivity(
+      id,
+      user!.id,
+      "architect_changed",
+      oldIds.length ? `Reassigned from ${oldNames} to ${newName}` : `Assigned ${newName}`,
+    );
+
+    const link = `/opportunities/${id}`;
+    const body = `${opp.project_name} (${opp.crm_number})`;
+    // Notify old architects (excluding the new one and the actor)
+    const toNotifyOld = oldIds.filter((uid) => uid !== newId && uid !== user!.id);
+    if (toNotifyOld.length) {
+      await notify(
+        toNotifyOld.map((rid) => ({
+          recipient_id: rid,
+          actor_id: user!.id,
+          type: "opportunity_unassigned",
+          title: "Removed from opportunity",
+          body,
+          link,
+          opportunity_id: id,
+        })),
+      );
+    }
+    // Notify new architect (if not the actor and not already assigned)
+    if (newId !== user!.id && !oldIds.includes(newId)) {
+      await notify({
+        recipient_id: newId,
+        actor_id: user!.id,
+        type: "opportunity_assigned",
+        title: "Opportunity assigned to you",
+        body,
+        link,
+        opportunity_id: id,
+      });
+    }
+
     qc.invalidateQueries({ queryKey: ["opp-assigned", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
+    qc.invalidateQueries({ queryKey: ["opps"] });
+    qc.invalidateQueries({ queryKey: ["opps-assigns"] });
+    toast.success("Architect updated");
   };
+
 
   const newDoc = async () => {
     const name = prompt("Document name:");
