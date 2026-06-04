@@ -706,3 +706,66 @@ function BreachStatCard({ label, value, active, danger, onClick }: { label: stri
   );
 }
 
+function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg transition-transform hover:-translate-y-0.5"
+    >
+      {children}
+    </button>
+  );
+}
+
+function OppDrilldownDialog({
+  drill, onClose,
+}: {
+  drill: { title: string; description?: string; items: Opp[] } | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{drill?.title ?? ""}</DialogTitle>
+          {drill?.description && <p className="text-xs text-muted-foreground">{drill.description}</p>}
+        </DialogHeader>
+        <div className="max-h-[28rem] overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-left px-3 py-2 font-medium">Status</th>
+                <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                <th className="text-right px-3 py-2 font-medium">Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(drill?.items ?? []).length === 0 && (
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
+              )}
+              {(drill?.items ?? []).map((o) => (
+                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
+                      <div className="font-medium">{o.customer_name}</div>
+                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
+                  <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
