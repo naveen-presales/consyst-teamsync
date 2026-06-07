@@ -291,7 +291,6 @@ function VpDashboard() {
                   <th className="text-right py-2 font-medium">Active</th>
                   <th className="text-right py-2 font-medium">In Progress</th>
                   <th className="text-right py-2 font-medium">Completed</th>
-                  <th className="text-right py-2 font-medium">Breaches</th>
                   <th className="text-right py-2 font-medium">Total</th>
                   <th className="w-6" />
                 </tr>
@@ -300,15 +299,14 @@ function VpDashboard() {
                 {(() => {
                   const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p]));
                   const oppMap = new Map(opps.map((o) => [o.id, o]));
-                  const byUser: Record<string, { inProg: number; completed: number; pending: number; breaches: number }> = {};
+                  const byUser: Record<string, { inProg: number; completed: number; pending: number }> = {};
                   (assignsQ.data ?? []).forEach((a) => {
                     const o = oppMap.get(a.opportunity_id);
                     if (!o) return;
-                    const b = (byUser[a.user_id] ||= { inProg: 0, completed: 0, pending: 0, breaches: 0 });
+                    const b = (byUser[a.user_id] ||= { inProg: 0, completed: 0, pending: 0 });
                     if (o.status === "In Progress") b.inProg++;
                     else if (o.status === "Completed") b.completed++;
                     else b.pending++;
-                    if (isActiveBreach(o)) b.breaches++;
                   });
                   const rows = Object.entries(byUser).map(([uid, c]) => ({
                     uid,
@@ -320,7 +318,7 @@ function VpDashboard() {
                   })).sort((a, b) => b.active - a.active);
 
                   if (rows.length === 0) {
-                    return <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
+                    return <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
                   }
                   return rows.map((r) => (
                     <tr
@@ -333,7 +331,6 @@ function VpDashboard() {
                       <td className="py-2.5 text-right">{r.active}</td>
                       <td className="py-2.5 text-right">{r.inProg}</td>
                       <td className="py-2.5 text-right">{r.completed}</td>
-                      <td className={`py-2.5 text-right ${r.breaches > 0 ? "text-destructive font-medium" : ""}`}>{r.breaches}</td>
                       <td className="py-2.5 text-right font-semibold">{r.total}</td>
                       <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
                     </tr>
