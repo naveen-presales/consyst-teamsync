@@ -318,7 +318,10 @@ function OppDetail() {
               </div>
             </Card>
             <Card className="p-5">
-              {activeDoc ? <DocEditor key={activeDoc} doc={docsQ.data!.find((d) => d.id === activeDoc)!} oppId={id} /> : <div className="text-sm text-muted-foreground">Select or create a document.</div>}
+              {(() => {
+                const active = activeDoc ? docsQ.data?.find((d) => d.id === activeDoc) : null;
+                return active ? <DocEditor key={active.id} doc={active} oppId={id} /> : <div className="text-sm text-muted-foreground">Select or create a document.</div>;
+              })()}
             </Card>
           </div>
         </TabsContent>
