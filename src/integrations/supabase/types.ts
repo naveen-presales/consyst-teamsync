@@ -63,7 +63,6 @@ export type Database = {
           read_at: string | null
           recipient_id: string
           title: string
-          todo_id: string | null
           type: string
         }
         Insert: {
@@ -76,7 +75,6 @@ export type Database = {
           read_at?: string | null
           recipient_id: string
           title: string
-          todo_id?: string | null
           type: string
         }
         Update: {
@@ -89,7 +87,6 @@ export type Database = {
           read_at?: string | null
           recipient_id?: string
           title?: string
-          todo_id?: string | null
           type?: string
         }
         Relationships: []
@@ -477,45 +474,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      todos: {
-        Row: {
-          assigned_by: string | null
-          completed_at: string | null
-          created_at: string
-          description: string | null
-          due_at: string | null
-          id: string
-          status: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          assigned_by?: string | null
-          completed_at?: string | null
-          created_at?: string
-          description?: string | null
-          due_at?: string | null
-          id?: string
-          status?: string
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          assigned_by?: string | null
-          completed_at?: string | null
-          created_at?: string
-          description?: string | null
-          due_at?: string | null
-          id?: string
-          status?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       user_roles: {
         Row: {
