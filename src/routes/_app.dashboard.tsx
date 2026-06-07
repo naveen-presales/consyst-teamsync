@@ -649,12 +649,11 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                 <th className="text-left py-2 font-medium">Type</th>
                 <th className="text-left py-2 font-medium">Deadline</th>
                 <th className="text-left py-2 font-medium">Status</th>
-                <th className="text-right py-2 font-medium">Rev</th>
               </tr>
             </thead>
             <tbody>
               {opps.length === 0 && (
-                <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">No opportunities yet.</td></tr>
+                <tr><td colSpan={4} className="py-6 text-center text-muted-foreground">No opportunities yet.</td></tr>
               )}
               {opps.map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
@@ -667,13 +666,14 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                   <td className="py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="py-2.5 text-xs">{o.deadline ?? "—"}</td>
                   <td className="py-2.5"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`py-2.5 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+
+      <UpcomingDeadlines opps={opps} assigns={[]} profiles={[]} selfName="You" />
 
       <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
     </div>
