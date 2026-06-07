@@ -209,19 +209,10 @@ function OppDetail() {
             <p className="text-sm text-muted-foreground">{opp.customer_name} · CRM <span className="font-mono">{opp.crm_number}</span></p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {opp.revision_count > 2 && !opp.breach_ignored && (
-              <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Revision breach</Badge>
-            )}
-            {opp.revision_count > 2 && opp.breach_ignored && (
-              <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Breach ignored</Badge>
-            )}
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
           </div>
         </div>
-        {opp.revision_count > 2 && (
-          <BreachPanel opp={opp} canManage={isManager} userId={user!.id} />
-        )}
       </header>
 
       {opp.on_hold && (
@@ -754,12 +745,12 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
       <Card className="p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium">Average rating</h3>
-          <div className={`flex items-center gap-1 ${allAvg > 0 && allAvg < 4 ? "text-destructive" : ""}`}>
+          <div className={`flex items-center gap-1 ${allAvg > 0 && allAvg < 8 ? "text-destructive" : ""}`}>
             <Star className="h-4 w-4" />
             <span className="text-2xl font-semibold">{allAvg || "—"}</span>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">{ratingsQ.data?.length || 0} VP review(s). Threshold: 4.0</div>
+        <div className="text-xs text-muted-foreground">{ratingsQ.data?.length || 0} VP review(s). Threshold: 8.0 / 10</div>
       </Card>
 
       {canRate ? (
@@ -770,7 +761,7 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
               <div key={q.id}>
                 <Label className="text-xs">{q.text}</Label>
                 <div className="flex gap-1 mt-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                     <button key={n} type="button" onClick={() => setScores((s) => ({ ...s, [q.id]: n }))}
                       className={`h-8 w-8 rounded text-sm font-medium border ${scores[q.id] === n ? "bg-accent text-accent-foreground border-accent" : "border-border hover:bg-muted"}`}>
                       {n}

@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -153,7 +153,6 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium w-44">Progress</th>
-                <th className="text-left px-4 py-2.5 font-medium">Rev</th>
                 <th className="text-left px-4 py-2.5 font-medium w-40">Status</th>
               </tr>
             </thead>
@@ -195,20 +194,13 @@ function OppsPage() {
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    {o.revision_count > 2 ? (
-                      <span className="inline-flex items-center gap-1 text-destructive font-medium">
-                        <AlertTriangle className="h-3.5 w-3.5" />{o.revision_count}
-                      </span>
-                    ) : o.revision_count}
-                  </td>
-                  <td className="px-4 py-2.5">
                     <StatusSelect opp={o} />
                   </td>
                 </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
