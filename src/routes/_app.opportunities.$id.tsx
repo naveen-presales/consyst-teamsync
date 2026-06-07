@@ -745,12 +745,12 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
       <Card className="p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium">Average rating</h3>
-          <div className={`flex items-center gap-1 ${allAvg > 0 && allAvg < 4 ? "text-destructive" : ""}`}>
+          <div className={`flex items-center gap-1 ${allAvg > 0 && allAvg < 8 ? "text-destructive" : ""}`}>
             <Star className="h-4 w-4" />
             <span className="text-2xl font-semibold">{allAvg || "—"}</span>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">{ratingsQ.data?.length || 0} VP review(s). Threshold: 4.0</div>
+        <div className="text-xs text-muted-foreground">{ratingsQ.data?.length || 0} VP review(s). Threshold: 8.0 / 10</div>
       </Card>
 
       {canRate ? (
