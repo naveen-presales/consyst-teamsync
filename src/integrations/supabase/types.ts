@@ -52,6 +52,123 @@ export type Database = {
           },
         ]
       }
+      goal_progress: {
+        Row: {
+          created_at: string
+          created_by: string
+          goal_id: string
+          id: string
+          note: string | null
+          period_month: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          goal_id: string
+          id?: string
+          note?: string | null
+          period_month: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          goal_id?: string
+          id?: string
+          note?: string | null
+          period_month?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_progress_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string
+          duration: string | null
+          id: string
+          measurement_type: Database["public"]["Enums"]["goal_measurement"]
+          operator: Database["public"]["Enums"]["goal_operator"]
+          owner_id: string | null
+          scope: Database["public"]["Enums"]["goal_scope"]
+          start_date: string
+          target_metric: string | null
+          target_value: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date: string
+          duration?: string | null
+          id?: string
+          measurement_type?: Database["public"]["Enums"]["goal_measurement"]
+          operator?: Database["public"]["Enums"]["goal_operator"]
+          owner_id?: string | null
+          scope: Database["public"]["Enums"]["goal_scope"]
+          start_date: string
+          target_metric?: string | null
+          target_value: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string
+          duration?: string | null
+          id?: string
+          measurement_type?: Database["public"]["Enums"]["goal_measurement"]
+          operator?: Database["public"]["Enums"]["goal_operator"]
+          owner_id?: string | null
+          scope?: Database["public"]["Enums"]["goal_scope"]
+          start_date?: string
+          target_metric?: string | null
+          target_value?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -529,6 +646,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "architect" | "vp"
+      goal_measurement: "numeric" | "percentage" | "currency" | "boolean"
+      goal_operator: "gte" | "gt" | "eq" | "lte" | "lt"
+      goal_scope: "team" | "department" | "individual"
       opportunity_status:
         | "Pending"
         | "In Progress"
@@ -668,6 +788,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "architect", "vp"],
+      goal_measurement: ["numeric", "percentage", "currency", "boolean"],
+      goal_operator: ["gte", "gt", "eq", "lte", "lt"],
+      goal_scope: ["team", "department", "individual"],
       opportunity_status: [
         "Pending",
         "In Progress",
