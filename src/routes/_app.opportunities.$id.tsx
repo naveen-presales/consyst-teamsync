@@ -761,7 +761,7 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
               <div key={q.id}>
                 <Label className="text-xs">{q.text}</Label>
                 <div className="flex gap-1 mt-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                     <button key={n} type="button" onClick={() => setScores((s) => ({ ...s, [q.id]: n }))}
                       className={`h-8 w-8 rounded text-sm font-medium border ${scores[q.id] === n ? "bg-accent text-accent-foreground border-accent" : "border-border hover:bg-muted"}`}>
                       {n}
