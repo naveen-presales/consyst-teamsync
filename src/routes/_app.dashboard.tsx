@@ -214,7 +214,7 @@ function VpDashboard() {
             items: ratedOpps,
           })}
         >
-          <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
+          <Kpi icon={Star} label="Avg VP rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi
           onClick={() => setDrill({
