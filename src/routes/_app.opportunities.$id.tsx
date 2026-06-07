@@ -209,19 +209,10 @@ function OppDetail() {
             <p className="text-sm text-muted-foreground">{opp.customer_name} · CRM <span className="font-mono">{opp.crm_number}</span></p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {opp.revision_count > 2 && !opp.breach_ignored && (
-              <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Revision breach</Badge>
-            )}
-            {opp.revision_count > 2 && opp.breach_ignored && (
-              <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Breach ignored</Badge>
-            )}
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
           </div>
         </div>
-        {opp.revision_count > 2 && (
-          <BreachPanel opp={opp} canManage={isManager} userId={user!.id} />
-        )}
       </header>
 
       {opp.on_hold && (
