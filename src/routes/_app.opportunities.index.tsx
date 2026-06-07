@@ -194,20 +194,13 @@ function OppsPage() {
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    {o.revision_count > 2 ? (
-                      <span className="inline-flex items-center gap-1 text-destructive font-medium">
-                        <AlertTriangle className="h-3.5 w-3.5" />{o.revision_count}
-                      </span>
-                    ) : o.revision_count}
-                  </td>
-                  <td className="px-4 py-2.5">
                     <StatusSelect opp={o} />
                   </td>
                 </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
