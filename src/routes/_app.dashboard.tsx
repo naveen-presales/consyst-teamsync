@@ -373,7 +373,6 @@ function ArchitectDetailDialog({
     pending: opps.filter((o) => o.status === "Pending").length,
     inProg: opps.filter((o) => o.status === "In Progress").length,
     completed: opps.filter((o) => o.status === "Completed").length,
-    breaches: opps.filter(isActiveBreach).length,
   };
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -382,11 +381,10 @@ function ArchitectDetailDialog({
           <DialogTitle>{profile?.full_name || profile?.email || "Architect"}</DialogTitle>
           <p className="text-xs text-muted-foreground">{profile?.email}</p>
         </DialogHeader>
-        <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <Card className="p-3"><div className="text-[11px] text-muted-foreground">Pending</div><div className="text-lg font-semibold">{counts.pending}</div></Card>
           <Card className="p-3"><div className="text-[11px] text-muted-foreground">In Progress</div><div className="text-lg font-semibold">{counts.inProg}</div></Card>
           <Card className="p-3"><div className="text-[11px] text-muted-foreground">Completed</div><div className="text-lg font-semibold">{counts.completed}</div></Card>
-          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Breaches</div><div className={`text-lg font-semibold ${counts.breaches > 0 ? "text-destructive" : ""}`}>{counts.breaches}</div></Card>
         </div>
         <div className="max-h-96 overflow-y-auto border border-border rounded-md">
           <table className="w-full text-sm">
@@ -396,12 +394,11 @@ function ArchitectDetailDialog({
                 <th className="text-left px-3 py-2 font-medium">Type</th>
                 <th className="text-left px-3 py-2 font-medium">Deadline</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
-                <th className="text-right px-3 py-2 font-medium">Rev</th>
               </tr>
             </thead>
             <tbody>
               {opps.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">No opportunities.</td></tr>
+                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">No opportunities.</td></tr>
               )}
               {opps.map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
@@ -414,7 +411,6 @@ function ArchitectDetailDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
-                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
