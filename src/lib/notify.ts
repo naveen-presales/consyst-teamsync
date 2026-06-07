@@ -8,7 +8,7 @@ export type NotifyInput = {
   body?: string | null;
   link?: string | null;
   opportunity_id?: string | null;
-  todo_id?: string | null;
+  
 };
 
 export async function notify(input: NotifyInput | NotifyInput[]) {
