@@ -770,12 +770,11 @@ function OppDrilldownDialog({
                 <th className="text-left px-3 py-2 font-medium">Type</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
                 <th className="text-left px-3 py-2 font-medium">Deadline</th>
-                <th className="text-right px-3 py-2 font-medium">Rev</th>
               </tr>
             </thead>
             <tbody>
               {(drill?.items ?? []).length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
+                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
               )}
               {(drill?.items ?? []).map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
@@ -788,7 +787,6 @@ function OppDrilldownDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
-                  <td className={`px-3 py-2 text-right ${isActiveBreach(o) ? "text-destructive font-medium" : ""}`}>{o.revision_count}</td>
                 </tr>
               ))}
             </tbody>
