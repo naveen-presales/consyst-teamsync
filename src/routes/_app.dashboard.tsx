@@ -680,78 +680,60 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   );
 }
 
-function BreachDrilldownDialog({ open, onClose, opps }: { open: boolean; onClose: () => void; opps: Opp[] }) {
-  const [tab, setTab] = useState<"total" | "active" | "ignored">("active");
-  const total = opps.filter(isAnyBreach);
-  const active = opps.filter(isActiveBreach);
-  const ignored = opps.filter(isIgnoredBreach);
-  const list = tab === "total" ? total : tab === "active" ? active : ignored;
+function UpcomingDeadlines({
+  opps, assigns, profiles, selfName,
+}: {
+  opps: Opp[];
+  assigns: { opportunity_id: string; user_id: string }[];
+  profiles: { id: string; full_name: string | null; email: string | null }[];
+  selfName?: string;
+}) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() + 4);
+
+  const upcoming = opps
+    .filter((o) => o.deadline && o.status !== "Completed" && o.status !== "Closed Won" && o.status !== "Closed Lost")
+    .filter((o) => {
+      const d = new Date(o.deadline!);
+      return d >= today && d <= cutoff;
+    })
+    .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1));
+
+  const profMap = new Map(profiles.map((p) => [p.id, p.full_name || p.email || "Unknown"]));
+  const archsFor = (oid: string) => {
+    if (selfName && assigns.length === 0) return selfName;
+    const names = assigns.filter((a) => a.opportunity_id === oid).map((a) => profMap.get(a.user_id) || "Unknown");
+    return names.length ? names.join(", ") : "Unassigned";
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Revision Breaches</DialogTitle>
-          <p className="text-xs text-muted-foreground">Click a card to filter the list. Click an opportunity to open its details.</p>
-        </DialogHeader>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <BreachStatCard label="Total Breaches" value={total.length} active={tab === "total"} onClick={() => setTab("total")} />
-          <BreachStatCard label="Active Breaches" value={active.length} active={tab === "active"} danger onClick={() => setTab("active")} />
-          <BreachStatCard label="Ignored Breaches" value={ignored.length} active={tab === "ignored"} onClick={() => setTab("ignored")} />
-        </div>
-        <div className="max-h-96 overflow-y-auto border border-border rounded-md">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
-              <tr>
-                <th className="text-left px-3 py-2 font-medium">Customer / Project</th>
-                <th className="text-left px-3 py-2 font-medium">Type</th>
-                <th className="text-right px-3 py-2 font-medium">Rev</th>
-                <th className="text-left px-3 py-2 font-medium">State</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">No breaches in this category.</td></tr>
-              )}
-              {list.map((o) => (
-                <tr key={o.id} className="border-t border-border hover:bg-muted/30">
-                  <td className="px-3 py-2">
-                    <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
-                      <div className="font-medium">{o.customer_name}</div>
-                      <div className="text-xs text-muted-foreground">{o.project_name}</div>
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
-                  <td className="px-3 py-2 text-right font-medium">{o.revision_count}</td>
-                  <td className="px-3 py-2">
-                    {o.breach_ignored ? (
-                      <span title={o.breach_ignored_reason ?? ""}>
-                        <Badge variant="secondary">Ignored</Badge>
-                      </span>
-                    ) : (
-                      <Badge variant="destructive">Active</Badge>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function BreachStatCard({ label, value, active, danger, onClick }: { label: string; value: number; active: boolean; danger?: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`text-left p-3 rounded-md border transition-colors ${active ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"}`}
-    >
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className={`text-lg font-semibold ${danger && value > 0 ? "text-destructive" : ""}`}>{value}</div>
-    </button>
+    <Card className="p-5 mt-4">
+      <h3 className="text-sm font-medium mb-1">Upcoming deadlines</h3>
+      <p className="text-xs text-muted-foreground mb-3">Opportunities due within the next 4 days.</p>
+      <div className="space-y-1">
+        {upcoming.length === 0 && (
+          <div className="text-sm text-muted-foreground">No deadlines in the next 4 days.</div>
+        )}
+        {upcoming.map((o) => (
+          <Link
+            key={o.id}
+            to="/opportunities/$id"
+            params={{ id: o.id }}
+            className="flex items-center justify-between gap-3 text-sm border-b border-border last:border-0 py-2 hover:bg-muted/30 -mx-2 px-2 rounded"
+          >
+            <div className="min-w-0">
+              <div className="font-medium truncate">{o.project_name}</div>
+              <div className="text-xs text-muted-foreground truncate">{archsFor(o.id)}</div>
+            </div>
+            <div className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+              {format(new Date(o.deadline!), "MMM d, yyyy")}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </Card>
   );
 }
 
