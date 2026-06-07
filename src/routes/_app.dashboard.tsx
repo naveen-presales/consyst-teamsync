@@ -44,7 +44,7 @@ function VpDashboard() {
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
-  const [breachOpen, setBreachOpen] = useState(false);
+  
   const [drill, setDrill] = useState<null | {
     title: string;
     description?: string;
