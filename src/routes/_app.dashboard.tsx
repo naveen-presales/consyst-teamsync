@@ -549,9 +549,9 @@ function ArchitectDashboard({ userId }: { userId: string }) {
         <p className="text-sm text-muted-foreground">Your personal performance and workload. Click any tile or chart for details.</p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
-          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
+          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
           <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
@@ -566,14 +566,6 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
         </ClickableKpi>
       </div>
-
-      {breaches.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <ClickableKpi onClick={() => setDrill({ title: "My active revision breaches", items: breaches })}>
-            <Kpi icon={AlertTriangle} label="Active breaches" value={breaches.length} flag />
-          </ClickableKpi>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
