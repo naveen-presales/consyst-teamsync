@@ -178,7 +178,7 @@ function OppDetail() {
     const { data, error } = await supabase.from("documents").insert({ opportunity_id: id, name, content: "", created_by: user!.id }).select().single();
     if (error) return toast.error(error.message);
     await logActivity(id, user!.id, "document_created", `Created document "${name}"`);
-    qc.invalidateQueries({ queryKey: ["docs", id] });
+    await qc.invalidateQueries({ queryKey: ["docs", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     setActiveDoc(data.id);
   };
