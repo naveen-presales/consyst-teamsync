@@ -125,7 +125,6 @@ function VpDashboard() {
       .map((o) => differenceInCalendarDays(new Date(o.completed_date!), new Date(o.start_date!)));
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
-    const breaches = opps.filter(isActiveBreach).length;
 
     const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
     const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
@@ -134,7 +133,7 @@ function VpDashboard() {
       ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
       : 0;
 
-    return { total: opps.length, avgTurn, completionRate, breaches, avgRating, avgBomRev };
+    return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev };
   }, [opps, completedOpps, onTimeOpps, byOppRating]);
 
   const typeData = useMemo(() => {
