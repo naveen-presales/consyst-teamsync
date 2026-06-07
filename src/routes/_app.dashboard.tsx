@@ -342,30 +342,13 @@ function VpDashboard() {
         </Card>
       )}
 
-      {(isAdmin || isVp) && (
-        <Card className="p-5 mt-4">
-          <h3 className="text-sm font-medium mb-3">Flagged opportunities (active)</h3>
-          <div className="space-y-2">
-            {opps.filter(isActiveBreach).map((o) => (
-              <Link key={o.id} to="/opportunities/$id" params={{ id: o.id }} className="flex items-center justify-between text-sm border-b border-border last:border-0 py-2 hover:bg-muted/30 -mx-2 px-2 rounded">
-                <div>
-                  <div className="font-medium">{o.customer_name} — {o.project_name}</div>
-                  <div className="text-xs text-muted-foreground">Revisions: {o.revision_count}</div>
-                </div>
-                <Badge variant="destructive">Active breach</Badge>
-              </Link>
-            ))}
-            {opps.filter(isActiveBreach).length === 0 && (
-              <div className="text-sm text-muted-foreground">No active breaches.</div>
-            )}
-          </div>
-        </Card>
-      )}
+      <UpcomingDeadlines
+        opps={opps}
+        assigns={assignsQ.data ?? []}
+        profiles={profilesQ.data ?? []}
+      />
 
       <OppDrilldownDialog drill={drill} onClose={() => setDrill(null)} />
-
-      <BreachDrilldownDialog open={breachOpen} onClose={() => setBreachOpen(false)} opps={opps} />
-
 
       <ArchitectDetailDialog
         userId={selectedArchitect}
