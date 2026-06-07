@@ -223,7 +223,7 @@ function VpDashboard() {
             items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
           })}
         >
-          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} flag={kpis.avgBomRev > 2} />
+          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} />
         </ClickableKpi>
       </div>
 
