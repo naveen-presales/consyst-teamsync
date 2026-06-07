@@ -19,9 +19,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
+import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
 import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
+import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminQuestionsRouteImport } from './routes/_app.admin.questions'
+import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -72,9 +75,19 @@ const AppOpportunitiesIndexRoute = AppOpportunitiesIndexRouteImport.update({
   path: '/opportunities/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGoalsIndexRoute = AppGoalsIndexRouteImport.update({
+  id: '/goals/',
+  path: '/goals/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
   id: '/opportunities/$id',
   path: '/opportunities/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGoalsScopeRoute = AppGoalsScopeRouteImport.update({
+  id: '/goals/$scope',
+  path: '/goals/$scope',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
@@ -87,6 +100,12 @@ const AppAdminQuestionsRoute = AppAdminQuestionsRouteImport.update({
   path: '/admin/questions',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGoalsArchitectsUserIdRoute =
+  AppGoalsArchitectsUserIdRouteImport.update({
+    id: '/goals/architects/$userId',
+    path: '/goals/architects/$userId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -99,8 +118,11 @@ export interface FileRoutesByFullPath {
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/goals/': typeof AppGoalsIndexRoute
   '/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -113,8 +135,11 @@ export interface FileRoutesByTo {
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/goals': typeof AppGoalsIndexRoute
   '/opportunities': typeof AppOpportunitiesIndexRoute
+  '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -129,8 +154,11 @@ export interface FileRoutesById {
   '/_app/ratings': typeof AppRatingsRoute
   '/_app/admin/questions': typeof AppAdminQuestionsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
+  '/_app/goals/$scope': typeof AppGoalsScopeRoute
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/_app/goals/': typeof AppGoalsIndexRoute
   '/_app/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/_app/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -145,8 +173,11 @@ export interface FileRouteTypes {
     | '/ratings'
     | '/admin/questions'
     | '/admin/users'
+    | '/goals/$scope'
     | '/opportunities/$id'
+    | '/goals/'
     | '/opportunities/'
+    | '/goals/architects/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -159,8 +190,11 @@ export interface FileRouteTypes {
     | '/ratings'
     | '/admin/questions'
     | '/admin/users'
+    | '/goals/$scope'
     | '/opportunities/$id'
+    | '/goals'
     | '/opportunities'
+    | '/goals/architects/$userId'
   id:
     | '__root__'
     | '/'
@@ -174,8 +208,11 @@ export interface FileRouteTypes {
     | '/_app/ratings'
     | '/_app/admin/questions'
     | '/_app/admin/users'
+    | '/_app/goals/$scope'
     | '/_app/opportunities/$id'
+    | '/_app/goals/'
     | '/_app/opportunities/'
+    | '/_app/goals/architects/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -260,11 +297,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOpportunitiesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/goals/': {
+      id: '/_app/goals/'
+      path: '/goals'
+      fullPath: '/goals/'
+      preLoaderRoute: typeof AppGoalsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/opportunities/$id': {
       id: '/_app/opportunities/$id'
       path: '/opportunities/$id'
       fullPath: '/opportunities/$id'
       preLoaderRoute: typeof AppOpportunitiesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/goals/$scope': {
+      id: '/_app/goals/$scope'
+      path: '/goals/$scope'
+      fullPath: '/goals/$scope'
+      preLoaderRoute: typeof AppGoalsScopeRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/users': {
@@ -281,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminQuestionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/goals/architects/$userId': {
+      id: '/_app/goals/architects/$userId'
+      path: '/goals/architects/$userId'
+      fullPath: '/goals/architects/$userId'
+      preLoaderRoute: typeof AppGoalsArchitectsUserIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -289,8 +347,11 @@ interface AppRouteChildren {
   AppRatingsRoute: typeof AppRatingsRoute
   AppAdminQuestionsRoute: typeof AppAdminQuestionsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
+  AppGoalsScopeRoute: typeof AppGoalsScopeRoute
   AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
+  AppGoalsIndexRoute: typeof AppGoalsIndexRoute
   AppOpportunitiesIndexRoute: typeof AppOpportunitiesIndexRoute
+  AppGoalsArchitectsUserIdRoute: typeof AppGoalsArchitectsUserIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -298,8 +359,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppRatingsRoute: AppRatingsRoute,
   AppAdminQuestionsRoute: AppAdminQuestionsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
+  AppGoalsScopeRoute: AppGoalsScopeRoute,
   AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
+  AppGoalsIndexRoute: AppGoalsIndexRoute,
   AppOpportunitiesIndexRoute: AppOpportunitiesIndexRoute,
+  AppGoalsArchitectsUserIdRoute: AppGoalsArchitectsUserIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -316,3 +380,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
