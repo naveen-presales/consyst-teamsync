@@ -481,7 +481,6 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const inProgress = opps.filter((o) => o.status === "In Progress");
   const pending = opps.filter((o) => o.status === "Pending");
   const onHold = opps.filter((o) => o.status === "On Hold");
-  const breaches = opps.filter(isActiveBreach);
 
   // Avg rating per rating (avg of answers), then avg across ratings
   const byRating: Record<string, number[]> = {};
