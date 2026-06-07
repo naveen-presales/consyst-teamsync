@@ -207,9 +207,6 @@ function VpDashboard() {
         >
           <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
         </ClickableKpi>
-        <ClickableKpi onClick={() => setBreachOpen(true)}>
-          <Kpi icon={AlertTriangle} label="Revision breaches" value={kpis.breaches} flag={kpis.breaches > 0} />
-        </ClickableKpi>
         <ClickableKpi
           onClick={() => setDrill({
             title: "Rated opportunities",
