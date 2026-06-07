@@ -12,7 +12,7 @@ import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } fro
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { format } from "date-fns";
+
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
