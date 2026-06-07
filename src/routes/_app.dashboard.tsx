@@ -630,7 +630,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                 }}
               >
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
