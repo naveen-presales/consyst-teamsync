@@ -178,7 +178,7 @@ function OppDetail() {
     const { data, error } = await supabase.from("documents").insert({ opportunity_id: id, name, content: "", created_by: user!.id }).select().single();
     if (error) return toast.error(error.message);
     await logActivity(id, user!.id, "document_created", `Created document "${name}"`);
-    qc.invalidateQueries({ queryKey: ["docs", id] });
+    await qc.invalidateQueries({ queryKey: ["docs", id] });
     qc.invalidateQueries({ queryKey: ["opp-activity", id] });
     setActiveDoc(data.id);
   };
@@ -318,7 +318,10 @@ function OppDetail() {
               </div>
             </Card>
             <Card className="p-5">
-              {activeDoc ? <DocEditor key={activeDoc} doc={docsQ.data!.find((d) => d.id === activeDoc)!} oppId={id} /> : <div className="text-sm text-muted-foreground">Select or create a document.</div>}
+              {(() => {
+                const active = activeDoc ? docsQ.data?.find((d) => d.id === activeDoc) : null;
+                return active ? <DocEditor key={active.id} doc={active} oppId={id} /> : <div className="text-sm text-muted-foreground">Select or create a document.</div>;
+              })()}
             </Card>
           </div>
         </TabsContent>
