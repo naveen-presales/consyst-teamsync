@@ -19,23 +19,15 @@ function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data: exists, error: rpcErr } = await supabase.rpc("email_exists", {
-        _email: email.trim(),
-      });
-      if (rpcErr) throw rpcErr;
-      if (!exists) {
-        toast.error("No account found for this email.");
-        return;
-      }
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      // Always attempt reset; never reveal whether the email is registered.
+      await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) throw error;
-      setSent(true);
-      toast.success("Reset link sent. It expires in 3 minutes.");
-    } catch (err: any) {
-      toast.error(err.message ?? "Failed to send reset email");
+    } catch {
+      // Swallow errors to avoid account enumeration.
     } finally {
+      setSent(true);
+      toast.success("If an account exists for that email, a reset link has been sent.");
       setLoading(false);
     }
   };
