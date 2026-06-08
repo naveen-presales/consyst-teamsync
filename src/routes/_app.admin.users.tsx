@@ -19,14 +19,16 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_app/admin/users")({ component: AdminUsers });
 
 function AdminUsers() {
-  const { isAdmin, isVp, user } = useAuth();
+  const { isAdmin, isVp, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const deleteUserFn = useServerFn(deleteUser);
 
-  useEffect(() => { if (!isAdmin && !isVp) navigate({ to: "/dashboard" }); }, [isAdmin, isVp]);
+  const authorized = isAdmin || isVp;
+  useEffect(() => { if (!loading && !authorized) navigate({ to: "/dashboard", replace: true }); }, [loading, authorized, navigate]);
+  if (loading || !authorized) return null;
 
   const profilesQ = useQuery({
     queryKey: ["admin-profiles"],
