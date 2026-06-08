@@ -59,7 +59,7 @@ function SignupPage() {
           <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
           <div className="text-center">
             <div className="font-semibold leading-tight">Request access</div>
-            <div className="text-xs text-muted-foreground">First user becomes admin</div>
+            <div className="text-xs text-muted-foreground">First user becomes VP</div>
           </div>
         </div>
         <form onSubmit={onSubmit} className="space-y-3">
