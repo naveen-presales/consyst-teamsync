@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.email_exists(text) FROM anon, authenticated, PUBLIC;
