@@ -38,7 +38,7 @@ function SignupPage() {
           setLoading(false);
           return;
         }
-        toast.success("Welcome, admin");
+        toast.success("Welcome, VP");
         navigate({ to: "/dashboard" });
       } else {
         toast.success("Account created. Awaiting admin approval.");
