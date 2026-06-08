@@ -12,12 +12,13 @@ import { Trash2, Plus } from "lucide-react";
 export const Route = createFileRoute("/_app/admin/questions")({ component: AdminQuestions });
 
 function AdminQuestions() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [text, setText] = useState("");
 
-  useEffect(() => { if (!isAdmin) navigate({ to: "/dashboard" }); }, [isAdmin]);
+  useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [loading, isAdmin, navigate]);
+  if (loading || !isAdmin) return null;
 
   const qsQ = useQuery({
     queryKey: ["admin-rq"],
