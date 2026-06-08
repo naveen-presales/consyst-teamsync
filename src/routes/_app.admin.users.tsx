@@ -19,7 +19,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_app/admin/users")({ component: AdminUsers });
 
 function AdminUsers() {
-  const { isAdmin, isVp, loading } = useAuth();
+  const { isAdmin, isVp, loading, user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; label: string } | null>(null);
