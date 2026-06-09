@@ -45,7 +45,9 @@ function VpDashboard() {
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
-  
+  const [teamRatingOpen, setTeamRatingOpen] = useState(false);
+  const [questionDrill, setQuestionDrill] = useState<null | { id: string; text: string }>(null);
+
   const [drill, setDrill] = useState<null | {
     title: string;
     description?: string;
