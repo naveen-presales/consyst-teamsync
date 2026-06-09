@@ -130,6 +130,31 @@ function VpDashboard() {
     [opps, byOppRating],
   );
 
+  // Architect → avg rating (avg of their opportunity averages)
+  const architectRatings = useMemo(() => {
+    const assignByOpp = new Map<string, string[]>();
+    (assignsQ.data ?? []).forEach((a) => {
+      const arr = assignByOpp.get(a.opportunity_id) ?? [];
+      arr.push(a.user_id);
+      assignByOpp.set(a.opportunity_id, arr);
+    });
+    const byUser: Record<string, number[]> = {};
+    Object.entries(byOppRating).forEach(([oid, scores]) => {
+      const oppAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      (assignByOpp.get(oid) ?? []).forEach((uid) => {
+        (byUser[uid] ||= []).push(oppAvg);
+      });
+    });
+    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p]));
+    return Object.entries(byUser).map(([uid, arr]) => ({
+      uid,
+      name: profMap.get(uid)?.full_name || profMap.get(uid)?.email || "Unknown",
+      email: profMap.get(uid)?.email ?? "",
+      avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10,
+      reviews: arr.length,
+    })).sort((a, b) => b.avg - a.avg);
+  }, [byOppRating, assignsQ.data, profilesQ.data]);
+
   const kpis = useMemo(() => {
     const turnaround = completedOpps
       .filter((o) => o.start_date && o.completed_date)
@@ -137,15 +162,17 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
 
-    const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
-    const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
+    // Avg team rating = mean across architects (each architect counted once)
+    const avgRating = architectRatings.length
+      ? Math.round((architectRatings.reduce((s, a) => s + a.avg, 0) / architectRatings.length) * 10) / 10
+      : 0;
 
     const avgBomRev = opps.length
       ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
       : 0;
 
     return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev };
-  }, [opps, completedOpps, onTimeOpps, byOppRating]);
+  }, [opps, completedOpps, onTimeOpps, architectRatings]);
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -153,17 +180,21 @@ function VpDashboard() {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [opps]);
 
-  const workload = useMemo(() => {
-    const byUser: Record<string, { count: number; uid: string }> = {};
-    (assignsQ.data ?? []).forEach((a) => {
-      if (opps.find((o) => o.id === a.opportunity_id)) {
-        const v = (byUser[a.user_id] ||= { count: 0, uid: a.user_id });
-        v.count += 1;
-      }
+  // Radar: avg team score per active rating question
+  const radarData = useMemo(() => {
+    const oppIds = new Set(opps.map((o) => o.id));
+    const byQ: Record<string, number[]> = {};
+    (ratingsQ.data ?? []).forEach((a) => {
+      if (!oppIds.has(a.ratings?.opportunity_id)) return;
+      (byQ[a.question_id] ||= []).push(a.score);
     });
-    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
-    return Object.values(byUser).map((b) => ({ name: profMap.get(b.uid) || "Unknown", count: b.count, uid: b.uid })).sort((a, b) => b.count - a.count);
-  }, [assignsQ.data, profilesQ.data, opps]);
+    return (questionsQ.data ?? []).map((q) => {
+      const arr = byQ[q.id] ?? [];
+      const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+      const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
+      return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
+    });
+  }, [questionsQ.data, ratingsQ.data, opps]);
 
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
