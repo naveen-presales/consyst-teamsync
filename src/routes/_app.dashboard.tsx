@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { differenceInCalendarDays, format } from "date-fns";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } from "lucide-react";
