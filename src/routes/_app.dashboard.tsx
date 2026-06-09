@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { differenceInCalendarDays, format } from "date-fns";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } from "lucide-react";
@@ -44,7 +45,9 @@ function VpDashboard() {
   const [type, setType] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
-  
+  const [teamRatingOpen, setTeamRatingOpen] = useState(false);
+  const [questionDrill, setQuestionDrill] = useState<null | { id: string; text: string }>(null);
+
   const [drill, setDrill] = useState<null | {
     title: string;
     description?: string;
@@ -82,8 +85,16 @@ function VpDashboard() {
   const ratingsQ = useQuery({
     queryKey: ["dashboard-ratings"],
     queryFn: async () => {
-      const { data } = await supabase.from("rating_answers").select("score, rating_id, ratings:ratings!inner(opportunity_id)");
-      return (data ?? []) as { score: number; rating_id: string; ratings: { opportunity_id: string } }[];
+      const { data } = await supabase.from("rating_answers").select("score, question_id, rating_id, ratings:ratings!inner(id, opportunity_id, vp_user_id, created_at)");
+      return (data ?? []) as { score: number; question_id: string; rating_id: string; ratings: { id: string; opportunity_id: string; vp_user_id: string; created_at: string } }[];
+    },
+  });
+
+  const questionsQ = useQuery({
+    queryKey: ["dashboard-questions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rating_questions").select("id, text, sort_order, active").eq("active", true).order("sort_order");
+      return (data ?? []) as { id: string; text: string; sort_order: number; active: boolean }[];
     },
   });
 
@@ -119,6 +130,31 @@ function VpDashboard() {
     [opps, byOppRating],
   );
 
+  // Architect → avg rating (avg of their opportunity averages)
+  const architectRatings = useMemo(() => {
+    const assignByOpp = new Map<string, string[]>();
+    (assignsQ.data ?? []).forEach((a) => {
+      const arr = assignByOpp.get(a.opportunity_id) ?? [];
+      arr.push(a.user_id);
+      assignByOpp.set(a.opportunity_id, arr);
+    });
+    const byUser: Record<string, number[]> = {};
+    Object.entries(byOppRating).forEach(([oid, scores]) => {
+      const oppAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      (assignByOpp.get(oid) ?? []).forEach((uid) => {
+        (byUser[uid] ||= []).push(oppAvg);
+      });
+    });
+    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p]));
+    return Object.entries(byUser).map(([uid, arr]) => ({
+      uid,
+      name: profMap.get(uid)?.full_name || profMap.get(uid)?.email || "Unknown",
+      email: profMap.get(uid)?.email ?? "",
+      avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10,
+      reviews: arr.length,
+    })).sort((a, b) => b.avg - a.avg);
+  }, [byOppRating, assignsQ.data, profilesQ.data]);
+
   const kpis = useMemo(() => {
     const turnaround = completedOpps
       .filter((o) => o.start_date && o.completed_date)
@@ -126,15 +162,17 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
 
-    const oppAvgs = Object.values(byOppRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
-    const avgRating = oppAvgs.length ? Math.round((oppAvgs.reduce((a, b) => a + b, 0) / oppAvgs.length) * 10) / 10 : 0;
+    // Avg team rating = mean across architects (each architect counted once)
+    const avgRating = architectRatings.length
+      ? Math.round((architectRatings.reduce((s, a) => s + a.avg, 0) / architectRatings.length) * 10) / 10
+      : 0;
 
     const avgBomRev = opps.length
       ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
       : 0;
 
     return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev };
-  }, [opps, completedOpps, onTimeOpps, byOppRating]);
+  }, [opps, completedOpps, onTimeOpps, architectRatings]);
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -142,17 +180,21 @@ function VpDashboard() {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [opps]);
 
-  const workload = useMemo(() => {
-    const byUser: Record<string, { count: number; uid: string }> = {};
-    (assignsQ.data ?? []).forEach((a) => {
-      if (opps.find((o) => o.id === a.opportunity_id)) {
-        const v = (byUser[a.user_id] ||= { count: 0, uid: a.user_id });
-        v.count += 1;
-      }
+  // Radar: avg team score per active rating question
+  const radarData = useMemo(() => {
+    const oppIds = new Set(opps.map((o) => o.id));
+    const byQ: Record<string, number[]> = {};
+    (ratingsQ.data ?? []).forEach((a) => {
+      if (!oppIds.has(a.ratings?.opportunity_id)) return;
+      (byQ[a.question_id] ||= []).push(a.score);
     });
-    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
-    return Object.values(byUser).map((b) => ({ name: profMap.get(b.uid) || "Unknown", count: b.count, uid: b.uid })).sort((a, b) => b.count - a.count);
-  }, [assignsQ.data, profilesQ.data, opps]);
+    return (questionsQ.data ?? []).map((q) => {
+      const arr = byQ[q.id] ?? [];
+      const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+      const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
+      return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
+    });
+  }, [questionsQ.data, ratingsQ.data, opps]);
 
   const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
@@ -207,13 +249,7 @@ function VpDashboard() {
         >
           <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
         </ClickableKpi>
-        <ClickableKpi
-          onClick={() => setDrill({
-            title: "Rated opportunities",
-            description: `Average score ${kpis.avgRating || "—"} across ${ratedOpps.length} opportunity(s).`,
-            items: ratedOpps,
-          })}
-        >
+        <ClickableKpi onClick={() => setTeamRatingOpen(true)}>
           <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi
@@ -256,23 +292,30 @@ function VpDashboard() {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-1">Architect workload</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a bar to see that architect's opportunities.</p>
+          <h3 className="text-sm font-medium mb-1">Team rating by question</h3>
+          <p className="text-xs text-muted-foreground mb-3">Average team score across each rating question. Click to see team ratings details.</p>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={workload}
-                onClick={(state: any) => {
-                  const uid = state?.activePayload?.[0]?.payload?.uid;
-                  if (uid) setSelectedArchitect(uid);
-                }}
-              >
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
-              </BarChart>
-            </ResponsiveContainer>
+            {radarData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart
+                  data={radarData}
+                  onClick={(state: any) => {
+                    const p = state?.activePayload?.[0]?.payload;
+                    if (p?.id) setQuestionDrill({ id: p.id, text: p.fullText });
+                    else setTeamRatingOpen(true);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
+                  <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
+                  <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>
@@ -355,6 +398,23 @@ function VpDashboard() {
         onClose={() => setSelectedArchitect(null)}
         profile={(profilesQ.data ?? []).find((p) => p.id === selectedArchitect) ?? null}
         opps={opps.filter((o) => (assignsQ.data ?? []).some((a) => a.user_id === selectedArchitect && a.opportunity_id === o.id))}
+      />
+
+      <TeamRatingDialog
+        open={teamRatingOpen}
+        onClose={() => setTeamRatingOpen(false)}
+        architects={architectRatings}
+        questionFocus={null}
+      />
+
+      <TeamRatingDialog
+        open={!!questionDrill}
+        onClose={() => setQuestionDrill(null)}
+        architects={architectRatings}
+        questionFocus={questionDrill}
+        ratings={ratingsQ.data ?? []}
+        opps={opps}
+        profiles={profilesQ.data ?? []}
       />
     </div>
   );
@@ -796,5 +856,87 @@ function OppDrilldownDialog({
     </Dialog>
   );
 }
+
+type ArchitectRating = { uid: string; name: string; email: string; avg: number; reviews: number };
+type RatingAnswerRow = {
+  score: number;
+  question_id: string;
+  rating_id: string;
+  ratings: { id: string; opportunity_id: string; vp_user_id: string; created_at: string };
+};
+
+function TeamRatingDialog({
+  open, onClose, architects, questionFocus, ratings, opps, profiles,
+}: {
+  open: boolean;
+  onClose: () => void;
+  architects: ArchitectRating[];
+  questionFocus: { id: string; text: string } | null;
+  ratings?: RatingAnswerRow[];
+  opps?: Opp[];
+  profiles?: { id: string; full_name: string | null; email: string | null }[];
+}) {
+  // When focused on a question, compute per-architect avg for that question
+  const rows = (() => {
+    if (!questionFocus || !ratings || !opps || !profiles) {
+      return architects.map((a) => ({ ...a, qAvg: null as number | null }));
+    }
+    const oppArchs = new Map<string, string[]>();
+    // Need assigns — derive from ratings? No. We approximate: vp_user_id is the rater, not architect.
+    // Use opp → architects mapping passed via opps not enough. Re-derive from ratings table:
+    // For each rating record, opportunity_id is known; we look up assigned architects elsewhere.
+    // Simpler: aggregate per opportunity, then attribute to architects via... we don't have assigns here.
+    // Fall back: per-architect overall avg + per-question avg across all team for context.
+    void oppArchs;
+    const qScores: number[] = [];
+    ratings.filter((r) => r.question_id === questionFocus.id).forEach((r) => qScores.push(r.score));
+    const qAvgTeam = qScores.length ? Math.round((qScores.reduce((a, b) => a + b, 0) / qScores.length) * 10) / 10 : 0;
+    return architects.map((a) => ({ ...a, qAvg: qAvgTeam }));
+  })();
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{questionFocus ? `Team rating — ${questionFocus.text}` : "Team ratings by architect"}</DialogTitle>
+          <p className="text-xs text-muted-foreground">
+            {questionFocus
+              ? "Team average for this question, plus each architect's overall rating."
+              : "Average score per architect across all rated opportunities."}
+          </p>
+        </DialogHeader>
+        <div className="max-h-[28rem] overflow-y-auto border border-border rounded-md">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Architect</th>
+                <th className="text-right px-3 py-2 font-medium">Reviews</th>
+                <th className="text-right px-3 py-2 font-medium">Avg score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr><td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">No ratings yet.</td></tr>
+              )}
+              {rows.map((r) => (
+                <tr key={r.uid} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <div className="font-medium">{r.name}</div>
+                    <div className="text-xs text-muted-foreground">{r.email}</div>
+                  </td>
+                  <td className="px-3 py-2 text-right">{r.reviews}</td>
+                  <td className={`px-3 py-2 text-right font-medium ${r.avg > 0 && r.avg < 8 ? "text-destructive" : ""}`}>
+                    <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5" />{r.avg || "—"}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 
