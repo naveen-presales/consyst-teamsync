@@ -249,13 +249,7 @@ function VpDashboard() {
         >
           <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
         </ClickableKpi>
-        <ClickableKpi
-          onClick={() => setDrill({
-            title: "Rated opportunities",
-            description: `Average score ${kpis.avgRating || "—"} across ${ratedOpps.length} opportunity(s).`,
-            items: ratedOpps,
-          })}
-        >
+        <ClickableKpi onClick={() => setTeamRatingOpen(true)}>
           <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi
