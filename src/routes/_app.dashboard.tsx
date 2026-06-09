@@ -85,8 +85,16 @@ function VpDashboard() {
   const ratingsQ = useQuery({
     queryKey: ["dashboard-ratings"],
     queryFn: async () => {
-      const { data } = await supabase.from("rating_answers").select("score, rating_id, ratings:ratings!inner(opportunity_id)");
-      return (data ?? []) as { score: number; rating_id: string; ratings: { opportunity_id: string } }[];
+      const { data } = await supabase.from("rating_answers").select("score, question_id, rating_id, ratings:ratings!inner(id, opportunity_id, vp_user_id, created_at)");
+      return (data ?? []) as { score: number; question_id: string; rating_id: string; ratings: { id: string; opportunity_id: string; vp_user_id: string; created_at: string } }[];
+    },
+  });
+
+  const questionsQ = useQuery({
+    queryKey: ["dashboard-questions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rating_questions").select("id, text, sort_order, active").eq("active", true).order("sort_order");
+      return (data ?? []) as { id: string; text: string; sort_order: number; active: boolean }[];
     },
   });
 
