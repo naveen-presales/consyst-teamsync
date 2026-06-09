@@ -299,16 +299,17 @@ function VpDashboard() {
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData} onClick={() => setTeamRatingOpen(true)} style={{ cursor: "pointer" }}>
+                <RadarChart
+                  data={radarData}
+                  onClick={(state: any) => {
+                    const p = state?.activePayload?.[0]?.payload;
+                    if (p?.id) setQuestionDrill({ id: p.id, text: p.fullText });
+                    else setTeamRatingOpen(true);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   <PolarGrid />
-                  <PolarAngleAxis
-                    dataKey="question"
-                    tick={{ fontSize: 10 }}
-                    onClick={(_e: any, idx: number) => {
-                      const q = radarData[idx];
-                      if (q) setQuestionDrill({ id: q.id, text: q.fullText });
-                    }}
-                  />
+                  <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
                   <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
