@@ -398,6 +398,23 @@ function VpDashboard() {
         profile={(profilesQ.data ?? []).find((p) => p.id === selectedArchitect) ?? null}
         opps={opps.filter((o) => (assignsQ.data ?? []).some((a) => a.user_id === selectedArchitect && a.opportunity_id === o.id))}
       />
+
+      <TeamRatingDialog
+        open={teamRatingOpen}
+        onClose={() => setTeamRatingOpen(false)}
+        architects={architectRatings}
+        questionFocus={null}
+      />
+
+      <TeamRatingDialog
+        open={!!questionDrill}
+        onClose={() => setQuestionDrill(null)}
+        architects={architectRatings}
+        questionFocus={questionDrill}
+        ratings={ratingsQ.data ?? []}
+        opps={opps}
+        profiles={profilesQ.data ?? []}
+      />
     </div>
   );
 }
