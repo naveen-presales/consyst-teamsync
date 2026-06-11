@@ -204,7 +204,7 @@ function OppsPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>
