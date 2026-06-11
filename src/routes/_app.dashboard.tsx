@@ -592,6 +592,15 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const onTimeOpps = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline));
   const onTimeRate = completed.length ? Math.round((onTimeOpps.length / completed.length) * 100) : 0;
 
+  const avgBomRev = opps.length
+    ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
+    : 0;
+  const rfqArr = opps.filter((o) => o.rfq_reading_hours != null).map((o) => Number(o.rfq_reading_hours));
+  const estArr = opps.filter((o) => o.estimation_hours != null).map((o) => Number(o.estimation_hours));
+  const avgRfq = rfqArr.length ? Math.round((rfqArr.reduce((a, b) => a + b, 0) / rfqArr.length) * 10) / 10 : 0;
+  const avgEst = estArr.length ? Math.round((estArr.reduce((a, b) => a + b, 0) / estArr.length) * 10) / 10 : 0;
+
+
   const statusData = [
     { name: "Pending", value: pending.length },
     { name: "In Progress", value: inProgress.length },
