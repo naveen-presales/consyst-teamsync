@@ -566,7 +566,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
     },
   });
 
-  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[] }>(null);
+  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" }>(null);
 
   const opps = oppsQ.data ?? [];
   const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
