@@ -30,7 +30,10 @@ type Opp = {
   breach_ignored?: boolean | null;
   breach_ignored_reason?: string | null;
   breach_ignored_at?: string | null;
+  rfq_reading_hours?: number | null;
+  estimation_hours?: number | null;
 };
+
 
 function DashboardPage() {
   const { isAdmin, isVp, isArchitect, user } = useAuth();
