@@ -238,7 +238,7 @@ function VpDashboard() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "All opportunities", items: opps })}>
           <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
         </ClickableKpi>
@@ -268,14 +268,35 @@ function VpDashboard() {
             title: "BOM revisions",
             description: `Average ${kpis.avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
             items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+            showRevision: true,
           })}
         >
           <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} />
         </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg RFQ reading time",
+            description: `Average ${kpis.avgRfq} hr(s) across ${kpis.rfqCount} opportunity(s).`,
+            items: [...opps].filter((o) => o.rfq_reading_hours != null).sort((a, b) => Number(b.rfq_reading_hours) - Number(a.rfq_reading_hours)),
+            showHours: "rfq",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg RFQ reading (hrs)" value={kpis.avgRfq} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg estimation time",
+            description: `Average ${kpis.avgEst} hr(s) across ${kpis.estCount} opportunity(s).`,
+            items: [...opps].filter((o) => o.estimation_hours != null).sort((a, b) => Number(b.estimation_hours) - Number(a.estimation_hours)),
+            showHours: "estimation",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg estimation (hrs)" value={kpis.avgEst} />
+        </ClickableKpi>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="p-5 lg:col-span-1">
           <h3 className="text-sm font-medium mb-1">Opportunity types</h3>
           <p className="text-xs text-muted-foreground mb-3">Click a slice to drill into that type.</p>
           <div className="h-64">
@@ -285,7 +306,7 @@ function VpDashboard() {
                   data={typeData}
                   dataKey="value"
                   nameKey="name"
-                  outerRadius={80}
+                  outerRadius={60}
                   label
                   onClick={(d: any) => {
                     const name = d?.name ?? d?.payload?.name;
@@ -302,10 +323,10 @@ function VpDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="p-5">
+        <Card className="p-5 lg:col-span-2">
           <h3 className="text-sm font-medium mb-1">Team rating by question</h3>
           <p className="text-xs text-muted-foreground mb-3">Average team score across each rating question. Click to see team ratings details.</p>
-          <div className="h-64">
+          <div className="h-80">
             {radarData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
             ) : (
@@ -321,7 +342,7 @@ function VpDashboard() {
                 >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
                 </RadarChart>
