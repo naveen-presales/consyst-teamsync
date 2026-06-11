@@ -151,10 +151,12 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">System Details</th>
                 {canAssign && <th className="text-left px-4 py-2.5 font-medium">Architect</th>}
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
+                <th className="text-right px-4 py-2.5 font-medium">Rev</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium w-44">Progress</th>
                 <th className="text-left px-4 py-2.5 font-medium w-40">Status</th>
               </tr>
+
             </thead>
             <tbody>
               {filtered.map((o) => {
@@ -176,7 +178,9 @@ function OppsPage() {
                     </td>
                   )}
                   <td className="px-4 py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{o.revision_count ?? 0}</td>
                   <td className="px-4 py-2.5">{o.deadline ?? "—"}</td>
+
                   <td className="px-4 py-2.5">
                     {o.on_hold ? (
                       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30">
@@ -200,7 +204,7 @@ function OppsPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 10 : 9} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
             </tbody>
           </table>

@@ -30,7 +30,10 @@ type Opp = {
   breach_ignored?: boolean | null;
   breach_ignored_reason?: string | null;
   breach_ignored_at?: string | null;
+  rfq_reading_hours?: number | null;
+  estimation_hours?: number | null;
 };
+
 
 function DashboardPage() {
   const { isAdmin, isVp, isArchitect, user } = useAuth();
@@ -52,6 +55,8 @@ function VpDashboard() {
     title: string;
     description?: string;
     items: Opp[];
+    showRevision?: boolean;
+    showHours?: "rfq" | "estimation";
   }>(null);
 
   const oppsQ = useQuery({
@@ -59,11 +64,12 @@ function VpDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at");
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours");
       if (error) throw error;
       return data as Opp[];
     },
   });
+
 
   const assignsQ = useQuery({
     queryKey: ["dashboard-assigns"],
@@ -162,7 +168,6 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
 
-    // Avg team rating = mean across architects (each architect counted once)
     const avgRating = architectRatings.length
       ? Math.round((architectRatings.reduce((s, a) => s + a.avg, 0) / architectRatings.length) * 10) / 10
       : 0;
@@ -171,8 +176,14 @@ function VpDashboard() {
       ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
       : 0;
 
-    return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev };
+    const rfqArr = opps.filter((o) => o.rfq_reading_hours != null).map((o) => Number(o.rfq_reading_hours));
+    const estArr = opps.filter((o) => o.estimation_hours != null).map((o) => Number(o.estimation_hours));
+    const avgRfq = rfqArr.length ? Math.round((rfqArr.reduce((a, b) => a + b, 0) / rfqArr.length) * 10) / 10 : 0;
+    const avgEst = estArr.length ? Math.round((estArr.reduce((a, b) => a + b, 0) / estArr.length) * 10) / 10 : 0;
+
+    return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev, avgRfq, avgEst, rfqCount: rfqArr.length, estCount: estArr.length };
   }, [opps, completedOpps, onTimeOpps, architectRatings]);
+
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -227,7 +238,7 @@ function VpDashboard() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "All opportunities", items: opps })}>
           <Kpi icon={Briefcase} label="Opportunities" value={kpis.total} />
         </ClickableKpi>
@@ -257,14 +268,35 @@ function VpDashboard() {
             title: "BOM revisions",
             description: `Average ${kpis.avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
             items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+            showRevision: true,
           })}
         >
           <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={kpis.avgBomRev} />
         </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg RFQ reading time",
+            description: `Average ${kpis.avgRfq} hr(s) across ${kpis.rfqCount} opportunity(s).`,
+            items: [...opps].filter((o) => o.rfq_reading_hours != null).sort((a, b) => Number(b.rfq_reading_hours) - Number(a.rfq_reading_hours)),
+            showHours: "rfq",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg RFQ reading (hrs)" value={kpis.avgRfq} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg estimation time",
+            description: `Average ${kpis.avgEst} hr(s) across ${kpis.estCount} opportunity(s).`,
+            items: [...opps].filter((o) => o.estimation_hours != null).sort((a, b) => Number(b.estimation_hours) - Number(a.estimation_hours)),
+            showHours: "estimation",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg estimation (hrs)" value={kpis.avgEst} />
+        </ClickableKpi>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="p-5 lg:col-span-1">
           <h3 className="text-sm font-medium mb-1">Opportunity types</h3>
           <p className="text-xs text-muted-foreground mb-3">Click a slice to drill into that type.</p>
           <div className="h-64">
@@ -274,7 +306,7 @@ function VpDashboard() {
                   data={typeData}
                   dataKey="value"
                   nameKey="name"
-                  outerRadius={80}
+                  outerRadius={60}
                   label
                   onClick={(d: any) => {
                     const name = d?.name ?? d?.payload?.name;
@@ -291,10 +323,10 @@ function VpDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="p-5">
+        <Card className="p-5 lg:col-span-2">
           <h3 className="text-sm font-medium mb-1">Team rating by question</h3>
           <p className="text-xs text-muted-foreground mb-3">Average team score across each rating question. Click to see team ratings details.</p>
-          <div className="h-64">
+          <div className="h-80">
             {radarData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
             ) : (
@@ -310,7 +342,7 @@ function VpDashboard() {
                 >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} tickCount={6} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
                 </RadarChart>
@@ -514,7 +546,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       if (ids.length === 0) return [] as Opp[];
       const { data } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at")
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours")
         .in("id", ids);
       return (data ?? []) as Opp[];
     },
@@ -534,7 +566,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
     },
   });
 
-  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[] }>(null);
+  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" }>(null);
 
   const opps = oppsQ.data ?? [];
   const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
@@ -559,6 +591,15 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
   const onTimeOpps = completed.filter((o) => o.deadline && o.completed_date && new Date(o.completed_date) <= new Date(o.deadline));
   const onTimeRate = completed.length ? Math.round((onTimeOpps.length / completed.length) * 100) : 0;
+
+  const avgBomRev = opps.length
+    ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
+    : 0;
+  const rfqArr = opps.filter((o) => o.rfq_reading_hours != null).map((o) => Number(o.rfq_reading_hours));
+  const estArr = opps.filter((o) => o.estimation_hours != null).map((o) => Number(o.estimation_hours));
+  const avgRfq = rfqArr.length ? Math.round((rfqArr.reduce((a, b) => a + b, 0) / rfqArr.length) * 10) / 10 : 0;
+  const avgEst = estArr.length ? Math.round((estArr.reduce((a, b) => a + b, 0) / estArr.length) * 10) / 10 : 0;
+
 
   const statusData = [
     { name: "Pending", value: pending.length },
@@ -609,7 +650,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
         <p className="text-sm text-muted-foreground">Your personal performance and workload. Click any tile or chart for details.</p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
           <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
         </ClickableKpi>
@@ -625,7 +666,38 @@ function ArchitectDashboard({ userId }: { userId: string }) {
         <ClickableKpi onClick={() => setDrill({ title: "On-time completions", description: `${onTimeOpps.length} on-time of ${completed.length} completed.`, items: completed })}>
           <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
         </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "BOM revisions",
+            description: `Average ${avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
+            items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+            showRevision: true,
+          })}
+        >
+          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={avgBomRev} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg RFQ reading time",
+            description: `Average ${avgRfq} hr(s) across ${rfqArr.length} opportunity(s).`,
+            items: opps.filter((o) => o.rfq_reading_hours != null).sort((a, b) => Number(b.rfq_reading_hours) - Number(a.rfq_reading_hours)),
+            showHours: "rfq",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg RFQ reading (hrs)" value={avgRfq} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg estimation time",
+            description: `Average ${avgEst} hr(s) across ${estArr.length} opportunity(s).`,
+            items: opps.filter((o) => o.estimation_hours != null).sort((a, b) => Number(b.estimation_hours) - Number(a.estimation_hours)),
+            showHours: "estimation",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg estimation (hrs)" value={avgEst} />
+        </ClickableKpi>
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
@@ -812,9 +884,13 @@ function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClic
 function OppDrilldownDialog({
   drill, onClose,
 }: {
-  drill: { title: string; description?: string; items: Opp[] } | null;
+  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" } | null;
   onClose: () => void;
 }) {
+  const showRev = !!drill?.showRevision;
+  const showHours = drill?.showHours;
+  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0);
+  const colSpan = 4 + extraCols;
   return (
     <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-3xl">
@@ -830,11 +906,14 @@ function OppDrilldownDialog({
                 <th className="text-left px-3 py-2 font-medium">Type</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
                 <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                {showRev && <th className="text-right px-3 py-2 font-medium">Revisions</th>}
+                {showHours === "rfq" && <th className="text-right px-3 py-2 font-medium">RFQ (hrs)</th>}
+                {showHours === "estimation" && <th className="text-right px-3 py-2 font-medium">Estimation (hrs)</th>}
               </tr>
             </thead>
             <tbody>
               {(drill?.items ?? []).length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
+                <tr><td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
               )}
               {(drill?.items ?? []).map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
@@ -847,6 +926,9 @@ function OppDrilldownDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  {showRev && <td className="px-3 py-2 text-right tabular-nums">{o.revision_count ?? 0}</td>}
+                  {showHours === "rfq" && <td className="px-3 py-2 text-right tabular-nums">{o.rfq_reading_hours ?? "—"}</td>}
+                  {showHours === "estimation" && <td className="px-3 py-2 text-right tabular-nums">{o.estimation_hours ?? "—"}</td>}
                 </tr>
               ))}
             </tbody>
@@ -856,6 +938,7 @@ function OppDrilldownDialog({
     </Dialog>
   );
 }
+
 
 type ArchitectRating = { uid: string; name: string; email: string; avg: number; reviews: number };
 type RatingAnswerRow = {
