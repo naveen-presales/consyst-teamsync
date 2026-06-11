@@ -650,7 +650,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
         <p className="text-sm text-muted-foreground">Your personal performance and workload. Click any tile or chart for details.</p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
           <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
         </ClickableKpi>
@@ -666,7 +666,38 @@ function ArchitectDashboard({ userId }: { userId: string }) {
         <ClickableKpi onClick={() => setDrill({ title: "On-time completions", description: `${onTimeOpps.length} on-time of ${completed.length} completed.`, items: completed })}>
           <Kpi icon={AlertTriangle} label="On-time rate" value={`${onTimeRate}%`} />
         </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "BOM revisions",
+            description: `Average ${avgBomRev} revision(s) per opportunity across ${opps.length} record(s).`,
+            items: [...opps].sort((a, b) => (b.revision_count || 0) - (a.revision_count || 0)),
+            showRevision: true,
+          })}
+        >
+          <Kpi icon={AlertTriangle} label="Avg BOM revisions" value={avgBomRev} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg RFQ reading time",
+            description: `Average ${avgRfq} hr(s) across ${rfqArr.length} opportunity(s).`,
+            items: opps.filter((o) => o.rfq_reading_hours != null).sort((a, b) => Number(b.rfq_reading_hours) - Number(a.rfq_reading_hours)),
+            showHours: "rfq",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg RFQ reading (hrs)" value={avgRfq} />
+        </ClickableKpi>
+        <ClickableKpi
+          onClick={() => setDrill({
+            title: "Avg estimation time",
+            description: `Average ${avgEst} hr(s) across ${estArr.length} opportunity(s).`,
+            items: opps.filter((o) => o.estimation_hours != null).sort((a, b) => Number(b.estimation_hours) - Number(a.estimation_hours)),
+            showHours: "estimation",
+          })}
+        >
+          <Kpi icon={Timer} label="Avg estimation (hrs)" value={avgEst} />
+        </ClickableKpi>
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
