@@ -55,6 +55,8 @@ function VpDashboard() {
     title: string;
     description?: string;
     items: Opp[];
+    showRevision?: boolean;
+    showHours?: "rfq" | "estimation";
   }>(null);
 
   const oppsQ = useQuery({
@@ -62,11 +64,12 @@ function VpDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at");
+        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours");
       if (error) throw error;
       return data as Opp[];
     },
   });
+
 
   const assignsQ = useQuery({
     queryKey: ["dashboard-assigns"],
