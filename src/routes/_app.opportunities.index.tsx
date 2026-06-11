@@ -151,10 +151,12 @@ function OppsPage() {
                 <th className="text-left px-4 py-2.5 font-medium">System Details</th>
                 {canAssign && <th className="text-left px-4 py-2.5 font-medium">Architect</th>}
                 <th className="text-left px-4 py-2.5 font-medium">Type</th>
+                <th className="text-right px-4 py-2.5 font-medium">Rev</th>
                 <th className="text-left px-4 py-2.5 font-medium">Deadline</th>
                 <th className="text-left px-4 py-2.5 font-medium w-44">Progress</th>
                 <th className="text-left px-4 py-2.5 font-medium w-40">Status</th>
               </tr>
+
             </thead>
             <tbody>
               {filtered.map((o) => {
