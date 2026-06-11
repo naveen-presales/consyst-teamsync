@@ -844,9 +844,13 @@ function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClic
 function OppDrilldownDialog({
   drill, onClose,
 }: {
-  drill: { title: string; description?: string; items: Opp[] } | null;
+  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" } | null;
   onClose: () => void;
 }) {
+  const showRev = !!drill?.showRevision;
+  const showHours = drill?.showHours;
+  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0);
+  const colSpan = 4 + extraCols;
   return (
     <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-3xl">
@@ -862,11 +866,14 @@ function OppDrilldownDialog({
                 <th className="text-left px-3 py-2 font-medium">Type</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
                 <th className="text-left px-3 py-2 font-medium">Deadline</th>
+                {showRev && <th className="text-right px-3 py-2 font-medium">Revisions</th>}
+                {showHours === "rfq" && <th className="text-right px-3 py-2 font-medium">RFQ (hrs)</th>}
+                {showHours === "estimation" && <th className="text-right px-3 py-2 font-medium">Estimation (hrs)</th>}
               </tr>
             </thead>
             <tbody>
               {(drill?.items ?? []).length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
+                <tr><td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">Nothing here yet.</td></tr>
               )}
               {(drill?.items ?? []).map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
@@ -879,6 +886,9 @@ function OppDrilldownDialog({
                   <td className="px-3 py-2"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
                   <td className="px-3 py-2"><Badge variant={o.status === "Completed" ? "default" : "secondary"}>{o.status}</Badge></td>
                   <td className="px-3 py-2 text-xs">{o.deadline ?? "—"}</td>
+                  {showRev && <td className="px-3 py-2 text-right tabular-nums">{o.revision_count ?? 0}</td>}
+                  {showHours === "rfq" && <td className="px-3 py-2 text-right tabular-nums">{o.rfq_reading_hours ?? "—"}</td>}
+                  {showHours === "estimation" && <td className="px-3 py-2 text-right tabular-nums">{o.estimation_hours ?? "—"}</td>}
                 </tr>
               ))}
             </tbody>
@@ -888,6 +898,7 @@ function OppDrilldownDialog({
     </Dialog>
   );
 }
+
 
 type ArchitectRating = { uid: string; name: string; email: string; avg: number; reviews: number };
 type RatingAnswerRow = {
