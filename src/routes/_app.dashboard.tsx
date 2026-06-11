@@ -342,7 +342,7 @@ function VpDashboard() {
                 >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} tickCount={6} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
                 </RadarChart>
