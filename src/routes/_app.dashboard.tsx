@@ -168,7 +168,6 @@ function VpDashboard() {
     const avgTurn = turnaround.length ? Math.round((turnaround.reduce((a, b) => a + b, 0) / turnaround.length) * 10) / 10 : 0;
     const completionRate = completedOpps.length ? Math.round((onTimeOpps.length / completedOpps.length) * 100) : 0;
 
-    // Avg team rating = mean across architects (each architect counted once)
     const avgRating = architectRatings.length
       ? Math.round((architectRatings.reduce((s, a) => s + a.avg, 0) / architectRatings.length) * 10) / 10
       : 0;
@@ -177,8 +176,14 @@ function VpDashboard() {
       ? Math.round((opps.reduce((a, o) => a + (o.revision_count || 0), 0) / opps.length) * 10) / 10
       : 0;
 
-    return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev };
+    const rfqArr = opps.filter((o) => o.rfq_reading_hours != null).map((o) => Number(o.rfq_reading_hours));
+    const estArr = opps.filter((o) => o.estimation_hours != null).map((o) => Number(o.estimation_hours));
+    const avgRfq = rfqArr.length ? Math.round((rfqArr.reduce((a, b) => a + b, 0) / rfqArr.length) * 10) / 10 : 0;
+    const avgEst = estArr.length ? Math.round((estArr.reduce((a, b) => a + b, 0) / estArr.length) * 10) / 10 : 0;
+
+    return { total: opps.length, avgTurn, completionRate, avgRating, avgBomRev, avgRfq, avgEst, rfqCount: rfqArr.length, estCount: estArr.length };
   }, [opps, completedOpps, onTimeOpps, architectRatings]);
+
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = {};
