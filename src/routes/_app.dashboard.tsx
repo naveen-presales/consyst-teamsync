@@ -671,14 +671,14 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
+        <ClickableKpi onClick={() => setDrill({ title: "My VP rating — completed opportunities", description: `Average ${avgRating || "—"} across ${completedRatedAvgs.length} rated of ${completed.length} completed opportunity(s).`, items: completed, ratingByOpp })}>
           <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
           <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
         </ClickableKpi>
-        <ClickableKpi onClick={() => setDrill({ title: "Active workload", description: "Pending + In Progress", items: [...pending, ...inProgress] })}>
-          <Kpi icon={Briefcase} label="Active workload" value={inProgress.length + pending.length} />
+        <ClickableKpi onClick={() => setDrill({ title: "Active workload", description: "All opportunities not yet completed.", items: activeWorkload })}>
+          <Kpi icon={Briefcase} label="Active workload" value={activeWorkload.length} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed — turnaround", description: `Average ${avgTurn} day(s) from start to completion.`, items: completed })}>
           <Kpi icon={Timer} label="Avg turnaround" value={`${avgTurn}d`} />
