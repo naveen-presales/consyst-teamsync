@@ -913,12 +913,13 @@ function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClic
 function OppDrilldownDialog({
   drill, onClose,
 }: {
-  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" } | null;
+  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation"; ratingByOpp?: Record<string, number> } | null;
   onClose: () => void;
 }) {
   const showRev = !!drill?.showRevision;
   const showHours = drill?.showHours;
-  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0);
+  const showRating = !!drill?.ratingByOpp;
+  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0) + (showRating ? 1 : 0);
   const colSpan = 4 + extraCols;
   return (
     <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -938,6 +939,7 @@ function OppDrilldownDialog({
                 {showRev && <th className="text-right px-3 py-2 font-medium">Revisions</th>}
                 {showHours === "rfq" && <th className="text-right px-3 py-2 font-medium">RFQ (hrs)</th>}
                 {showHours === "estimation" && <th className="text-right px-3 py-2 font-medium">Estimation (hrs)</th>}
+                {showRating && <th className="text-right px-3 py-2 font-medium">VP Rating</th>}
               </tr>
             </thead>
             <tbody>
@@ -958,6 +960,13 @@ function OppDrilldownDialog({
                   {showRev && <td className="px-3 py-2 text-right tabular-nums">{o.revision_count ?? 0}</td>}
                   {showHours === "rfq" && <td className="px-3 py-2 text-right tabular-nums">{o.rfq_reading_hours ?? "—"}</td>}
                   {showHours === "estimation" && <td className="px-3 py-2 text-right tabular-nums">{o.estimation_hours ?? "—"}</td>}
+                  {showRating && (
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {drill?.ratingByOpp?.[o.id] != null ? (
+                        <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5" />{drill!.ratingByOpp![o.id]}</span>
+                      ) : ""}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
