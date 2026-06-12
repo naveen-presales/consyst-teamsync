@@ -632,6 +632,16 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   opps.forEach((o) => (typeCounts[o.opportunity_type] = (typeCounts[o.opportunity_type] || 0) + 1));
   const typeData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
 
+  // Radar: architect's avg score per active question across all their opportunities
+  const byQ: Record<string, number[]> = {};
+  (ratingsQ.data ?? []).forEach((a) => { (byQ[a.question_id] ||= []).push(a.score); });
+  const radarData = (questionsQ.data ?? []).map((q) => {
+    const arr = byQ[q.id] ?? [];
+    const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+    const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
+    return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
+  });
+
   // Rating trend over time (per rating, avg)
   const trend = Object.entries(byRating)
     .map(([rid, arr]) => {
