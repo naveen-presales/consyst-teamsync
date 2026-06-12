@@ -757,23 +757,22 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-1">By opportunity type</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a bar to drill in.</p>
+          <h3 className="text-sm font-medium mb-1">My rating by question</h3>
+          <p className="text-xs text-muted-foreground mb-3">Your average score across each active rating question. Updates automatically when questions change.</p>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={typeData}
-                onClick={(state: any) => {
-                  const name = state?.activePayload?.[0]?.payload?.name;
-                  if (name) openType(name);
-                }}
-              >
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
-              </BarChart>
-            </ResponsiveContainer>
+            {radarData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={{ fontSize: 10 }} />
+                  <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
+                  <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>
