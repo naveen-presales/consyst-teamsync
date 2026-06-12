@@ -560,30 +560,50 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       if (ids.length === 0) return [];
       const { data } = await supabase
         .from("rating_answers")
-        .select("score, rating_id, ratings:ratings!inner(opportunity_id, created_at)")
+        .select("score, question_id, rating_id, ratings:ratings!inner(opportunity_id, created_at)")
         .in("ratings.opportunity_id", ids);
-      return (data ?? []) as { score: number; rating_id: string; ratings: { opportunity_id: string; created_at: string } }[];
+      return (data ?? []) as { score: number; question_id: string; rating_id: string; ratings: { opportunity_id: string; created_at: string } }[];
     },
   });
 
-  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" }>(null);
+  const questionsQ = useQuery({
+    queryKey: ["arch-questions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rating_questions").select("id, text, sort_order, active").eq("active", true).order("sort_order");
+      return (data ?? []) as { id: string; text: string; sort_order: number; active: boolean }[];
+    },
+  });
+
+  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation"; ratingByOpp?: Record<string, number> }>(null);
 
   const opps = oppsQ.data ?? [];
-  const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
+  const completed = opps.filter((o) => o.status === "Completed");
   const inProgress = opps.filter((o) => o.status === "In Progress");
   const pending = opps.filter((o) => o.status === "Pending");
   const onHold = opps.filter((o) => o.status === "On Hold");
+  const activeWorkload = opps.filter((o) => o.status !== "Completed");
 
-  // Avg rating per rating (avg of answers), then avg across ratings
+  // Avg rating per rating (avg of answers)
   const byRating: Record<string, number[]> = {};
   (ratingsQ.data ?? []).forEach((a) => { (byRating[a.rating_id] ||= []).push(a.score); });
-  const ratingAvgs = Object.values(byRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
-  const avgRating = ratingAvgs.length ? Math.round((ratingAvgs.reduce((a, b) => a + b, 0) / ratingAvgs.length) * 10) / 10 : 0;
 
-  const ratedOppIds = new Set(
-    (ratingsQ.data ?? []).map((a) => a.ratings?.opportunity_id).filter(Boolean) as string[],
-  );
-  const ratedOpps = opps.filter((o) => ratedOppIds.has(o.id));
+  // Per-opp average (across all rating records & answers for that opp)
+  const byOppScores: Record<string, number[]> = {};
+  (ratingsQ.data ?? []).forEach((a) => {
+    const oid = a.ratings?.opportunity_id;
+    if (!oid) return;
+    (byOppScores[oid] ||= []).push(a.score);
+  });
+  const ratingByOpp: Record<string, number> = {};
+  Object.entries(byOppScores).forEach(([oid, arr]) => {
+    ratingByOpp[oid] = Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10;
+  });
+
+  // VP rating: avg across COMPLETED opps that have at least one rating
+  const completedRatedAvgs = completed.map((o) => ratingByOpp[o.id]).filter((v) => v != null) as number[];
+  const avgRating = completedRatedAvgs.length
+    ? Math.round((completedRatedAvgs.reduce((a, b) => a + b, 0) / completedRatedAvgs.length) * 10) / 10
+    : 0;
 
   const turnaround = completed
     .filter((o) => o.start_date && o.completed_date)
@@ -611,6 +631,16 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const typeCounts: Record<string, number> = {};
   opps.forEach((o) => (typeCounts[o.opportunity_type] = (typeCounts[o.opportunity_type] || 0) + 1));
   const typeData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
+
+  // Radar: architect's avg score per active question across all their opportunities
+  const byQ: Record<string, number[]> = {};
+  (ratingsQ.data ?? []).forEach((a) => { (byQ[a.question_id] ||= []).push(a.score); });
+  const radarData = (questionsQ.data ?? []).map((q) => {
+    const arr = byQ[q.id] ?? [];
+    const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+    const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
+    return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
+  });
 
   // Rating trend over time (per rating, avg)
   const trend = Object.entries(byRating)
@@ -651,14 +681,14 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <ClickableKpi onClick={() => setDrill({ title: "My rated opportunities", description: `Average score ${avgRating || "—"} across ${ratedOpps.length} opportunity(s).`, items: ratedOpps })}>
+        <ClickableKpi onClick={() => setDrill({ title: "My VP rating — completed opportunities", description: `Average ${avgRating || "—"} across ${completedRatedAvgs.length} rated of ${completed.length} completed opportunity(s).`, items: completed, ratingByOpp })}>
           <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
           <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
         </ClickableKpi>
-        <ClickableKpi onClick={() => setDrill({ title: "Active workload", description: "Pending + In Progress", items: [...pending, ...inProgress] })}>
-          <Kpi icon={Briefcase} label="Active workload" value={inProgress.length + pending.length} />
+        <ClickableKpi onClick={() => setDrill({ title: "Active workload", description: "All opportunities not yet completed.", items: activeWorkload })}>
+          <Kpi icon={Briefcase} label="Active workload" value={activeWorkload.length} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed — turnaround", description: `Average ${avgTurn} day(s) from start to completion.`, items: completed })}>
           <Kpi icon={Timer} label="Avg turnaround" value={`${avgTurn}d`} />
@@ -727,23 +757,22 @@ function ArchitectDashboard({ userId }: { userId: string }) {
           </div>
         </Card>
         <Card className="p-5">
-          <h3 className="text-sm font-medium mb-1">By opportunity type</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a bar to drill in.</p>
+          <h3 className="text-sm font-medium mb-1">My rating by question</h3>
+          <p className="text-xs text-muted-foreground mb-3">Your average score across each active rating question. Updates automatically when questions change.</p>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={typeData}
-                onClick={(state: any) => {
-                  const name = state?.activePayload?.[0]?.payload?.name;
-                  if (name) openType(name);
-                }}
-              >
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
-              </BarChart>
-            </ResponsiveContainer>
+            {radarData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No rating questions yet.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 10]} tickCount={6} tick={{ fontSize: 10 }} />
+                  <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
+                  <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>
@@ -884,12 +913,13 @@ function ClickableKpi({ children, onClick }: { children: React.ReactNode; onClic
 function OppDrilldownDialog({
   drill, onClose,
 }: {
-  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" } | null;
+  drill: { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation"; ratingByOpp?: Record<string, number> } | null;
   onClose: () => void;
 }) {
   const showRev = !!drill?.showRevision;
   const showHours = drill?.showHours;
-  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0);
+  const showRating = !!drill?.ratingByOpp;
+  const extraCols = (showRev ? 1 : 0) + (showHours ? 1 : 0) + (showRating ? 1 : 0);
   const colSpan = 4 + extraCols;
   return (
     <Dialog open={!!drill} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -909,6 +939,7 @@ function OppDrilldownDialog({
                 {showRev && <th className="text-right px-3 py-2 font-medium">Revisions</th>}
                 {showHours === "rfq" && <th className="text-right px-3 py-2 font-medium">RFQ (hrs)</th>}
                 {showHours === "estimation" && <th className="text-right px-3 py-2 font-medium">Estimation (hrs)</th>}
+                {showRating && <th className="text-right px-3 py-2 font-medium">VP Rating</th>}
               </tr>
             </thead>
             <tbody>
@@ -929,6 +960,13 @@ function OppDrilldownDialog({
                   {showRev && <td className="px-3 py-2 text-right tabular-nums">{o.revision_count ?? 0}</td>}
                   {showHours === "rfq" && <td className="px-3 py-2 text-right tabular-nums">{o.rfq_reading_hours ?? "—"}</td>}
                   {showHours === "estimation" && <td className="px-3 py-2 text-right tabular-nums">{o.estimation_hours ?? "—"}</td>}
+                  {showRating && (
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {drill?.ratingByOpp?.[o.id] != null ? (
+                        <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5" />{drill!.ratingByOpp![o.id]}</span>
+                      ) : ""}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
