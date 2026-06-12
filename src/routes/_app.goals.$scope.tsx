@@ -207,7 +207,7 @@ function ScopePage() {
             goal={g}
             progress={(progressQ.data ?? []).filter((p) => p.goal_id === g.id)}
             owner={(ownersQ.data ?? []).find((o) => o.id === g.owner_id) ?? null}
-            canManage={canManage && (validScope !== "individual" || g.owner_id === user?.id)}
+            canManage={canManage && g.created_by === user?.id}
             onEdit={() => setEditing(g)}
             onDeleted={() => {
               qc.invalidateQueries({ queryKey: ["goals"] });
