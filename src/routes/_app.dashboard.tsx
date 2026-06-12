@@ -560,30 +560,50 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       if (ids.length === 0) return [];
       const { data } = await supabase
         .from("rating_answers")
-        .select("score, rating_id, ratings:ratings!inner(opportunity_id, created_at)")
+        .select("score, question_id, rating_id, ratings:ratings!inner(opportunity_id, created_at)")
         .in("ratings.opportunity_id", ids);
-      return (data ?? []) as { score: number; rating_id: string; ratings: { opportunity_id: string; created_at: string } }[];
+      return (data ?? []) as { score: number; question_id: string; rating_id: string; ratings: { opportunity_id: string; created_at: string } }[];
     },
   });
 
-  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation" }>(null);
+  const questionsQ = useQuery({
+    queryKey: ["arch-questions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rating_questions").select("id, text, sort_order, active").eq("active", true).order("sort_order");
+      return (data ?? []) as { id: string; text: string; sort_order: number; active: boolean }[];
+    },
+  });
+
+  const [drill, setDrill] = useState<null | { title: string; description?: string; items: Opp[]; showRevision?: boolean; showHours?: "rfq" | "estimation"; ratingByOpp?: Record<string, number> }>(null);
 
   const opps = oppsQ.data ?? [];
-  const completed = opps.filter((o) => o.status === "Completed" || o.status === "Submitted to Sales");
+  const completed = opps.filter((o) => o.status === "Completed");
   const inProgress = opps.filter((o) => o.status === "In Progress");
   const pending = opps.filter((o) => o.status === "Pending");
   const onHold = opps.filter((o) => o.status === "On Hold");
+  const activeWorkload = opps.filter((o) => o.status !== "Completed");
 
-  // Avg rating per rating (avg of answers), then avg across ratings
+  // Avg rating per rating (avg of answers)
   const byRating: Record<string, number[]> = {};
   (ratingsQ.data ?? []).forEach((a) => { (byRating[a.rating_id] ||= []).push(a.score); });
-  const ratingAvgs = Object.values(byRating).map((arr) => arr.reduce((a, b) => a + b, 0) / arr.length);
-  const avgRating = ratingAvgs.length ? Math.round((ratingAvgs.reduce((a, b) => a + b, 0) / ratingAvgs.length) * 10) / 10 : 0;
 
-  const ratedOppIds = new Set(
-    (ratingsQ.data ?? []).map((a) => a.ratings?.opportunity_id).filter(Boolean) as string[],
-  );
-  const ratedOpps = opps.filter((o) => ratedOppIds.has(o.id));
+  // Per-opp average (across all rating records & answers for that opp)
+  const byOppScores: Record<string, number[]> = {};
+  (ratingsQ.data ?? []).forEach((a) => {
+    const oid = a.ratings?.opportunity_id;
+    if (!oid) return;
+    (byOppScores[oid] ||= []).push(a.score);
+  });
+  const ratingByOpp: Record<string, number> = {};
+  Object.entries(byOppScores).forEach(([oid, arr]) => {
+    ratingByOpp[oid] = Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10;
+  });
+
+  // VP rating: avg across COMPLETED opps that have at least one rating
+  const completedRatedAvgs = completed.map((o) => ratingByOpp[o.id]).filter((v) => v != null) as number[];
+  const avgRating = completedRatedAvgs.length
+    ? Math.round((completedRatedAvgs.reduce((a, b) => a + b, 0) / completedRatedAvgs.length) * 10) / 10
+    : 0;
 
   const turnaround = completed
     .filter((o) => o.start_date && o.completed_date)
