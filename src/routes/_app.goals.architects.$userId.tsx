@@ -6,25 +6,44 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { useMemo } from "react";
+import {
+  format,
+  parseISO,
+  startOfMonth,
+  addMonths,
+  isBefore,
+  isEqual,
+} from "date-fns";
 
 export const Route = createFileRoute("/_app/goals/architects/$userId")({
   component: ArchitectGoalsPage,
 });
 
+type Measurement = "numeric" | "percentage" | "currency" | "boolean";
+type Operator = "gte" | "gt" | "eq" | "lte" | "lt";
+
 type Goal = {
   id: string;
   title: string;
   description: string | null;
-  measurement_type: "numeric" | "percentage" | "currency" | "boolean";
-  operator: "gte" | "gt" | "eq" | "lte" | "lt";
+  target_metric: string | null;
+  measurement_type: Measurement;
+  operator: Operator;
   target_value: number;
   due_date: string;
   start_date: string;
+  duration: string | null;
 };
-type Progress = { goal_id: string; period_month: string; value: number };
+type Progress = {
+  id: string;
+  goal_id: string;
+  period_month: string;
+  value: number;
+  note: string | null;
+};
 
-const OP: Record<Goal["operator"], string> = {
+const OP: Record<Operator, string> = {
   gte: "≥",
   gt: ">",
   eq: "=",
@@ -32,7 +51,14 @@ const OP: Record<Goal["operator"], string> = {
   lt: "<",
 };
 
-function fmt(v: number, m: Goal["measurement_type"]) {
+const MEAS_LABEL: Record<Measurement, string> = {
+  numeric: "Numeric",
+  percentage: "Percentage",
+  currency: "Currency",
+  boolean: "Yes/No",
+};
+
+function fmt(v: number, m: Measurement) {
   if (m === "percentage") return `${v}%`;
   if (m === "currency") return `$${v.toLocaleString()}`;
   if (m === "boolean") return v ? "Yes" : "No";
@@ -75,7 +101,7 @@ function ArchitectGoalsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("goal_progress")
-        .select("goal_id, period_month, value")
+        .select("*")
         .in("goal_id", ids);
       return (data ?? []) as Progress[];
     },
@@ -112,45 +138,96 @@ function ArchitectGoalsPage() {
         </Card>
       )}
 
-      <div className="space-y-3">
-        {(goalsQ.data ?? []).map((g) => {
-          const entries = (progressQ.data ?? [])
-            .filter((p) => p.goal_id === g.id)
-            .sort((a, b) => (a.period_month < b.period_month ? 1 : -1));
-          const latest = entries[0];
-          return (
-            <Card key={g.id} className="p-4 border-l-4 border-l-primary">
-              <div className="flex flex-wrap items-start gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{g.title}</h3>
-                    <Badge variant="secondary">{g.measurement_type}</Badge>
-                  </div>
-                  {g.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{g.description}</p>
-                  )}
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground">Target</div>
-                  <div className="font-semibold text-primary">
-                    {OP[g.operator]} {fmt(g.target_value, g.measurement_type)}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground">Deadline</div>
-                  <div className="font-semibold">{format(parseISO(g.due_date), "d MMM yy")}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground">Latest</div>
-                  <div className="font-semibold">
-                    {latest ? fmt(latest.value, g.measurement_type) : "—"}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+      <div className="space-y-4">
+        {(goalsQ.data ?? []).map((g) => (
+          <ReadOnlyGoalCard
+            key={g.id}
+            goal={g}
+            progress={(progressQ.data ?? []).filter((p) => p.goal_id === g.id)}
+          />
+        ))}
       </div>
     </div>
+  );
+}
+
+function ReadOnlyGoalCard({ goal, progress }: { goal: Goal; progress: Progress[] }) {
+  const months = useMemo(() => {
+    const start = startOfMonth(parseISO(goal.start_date));
+    const end = startOfMonth(parseISO(goal.due_date));
+    const out: Date[] = [];
+    let cur = start;
+    while (isBefore(cur, end) || isEqual(cur, end)) {
+      out.push(cur);
+      cur = addMonths(cur, 1);
+      if (out.length > 36) break;
+    }
+    return out;
+  }, [goal.start_date, goal.due_date]);
+
+  const latest = progress
+    .slice()
+    .sort((a, b) => (a.period_month < b.period_month ? 1 : -1))[0];
+
+  return (
+    <Card className="overflow-hidden border-l-4 border-l-primary">
+      <div className="p-5">
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-lg">{goal.title}</h3>
+              <Badge variant="secondary">{MEAS_LABEL[goal.measurement_type]}</Badge>
+            </div>
+            {goal.description && (
+              <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
+            )}
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground">Target</div>
+            <div className="text-primary font-semibold">
+              {OP[goal.operator]} {fmt(goal.target_value, goal.measurement_type)}
+            </div>
+            {goal.target_metric && (
+              <div className="text-xs text-muted-foreground">{goal.target_metric}</div>
+            )}
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground">Deadline</div>
+            <div className="font-semibold">{format(parseISO(goal.due_date), "d MMM yy")}</div>
+            {goal.duration && (
+              <Badge variant="outline" className="mt-1 text-[10px]">
+                {goal.duration}
+              </Badge>
+            )}
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground">Latest</div>
+            <div className="font-semibold">
+              {latest ? fmt(latest.value, goal.measurement_type) : "—"}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="border-t bg-muted/30 p-5">
+        <div className="text-sm font-semibold mb-3">Monthly Progress</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {months.map((m) => {
+            const iso = format(m, "yyyy-MM-dd");
+            const entry = progress.find((p) => p.period_month === iso);
+            return (
+              <div key={iso} className="text-center">
+                <div className="text-[11px] text-muted-foreground">{format(m, "MMM yyyy")}</div>
+                <div
+                  className="mt-1 w-full h-10 rounded-md border bg-background text-sm font-medium grid place-items-center"
+                  title={entry?.note ?? ""}
+                >
+                  {entry ? fmt(entry.value, goal.measurement_type) : "—"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
   );
 }
