@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -67,7 +67,13 @@ function fmt(v: number, m: Measurement) {
 
 function ArchitectGoalsPage() {
   const { userId } = useParams({ from: "/_app/goals/architects/$userId" });
-  const { isVp, isAdmin } = useAuth();
+  const { isVp, isAdmin, user } = useAuth();
+
+  // If the VP/admin is looking at their OWN profile, send them to the
+  // editable individual goals page so multi-role users keep edit access.
+  if (user?.id === userId) {
+    return <Navigate to="/goals/$scope" params={{ scope: "individual" }} replace />;
+  }
 
   const profileQ = useQuery({
     queryKey: ["architect-profile", userId],
