@@ -67,7 +67,13 @@ function fmt(v: number, m: Measurement) {
 
 function ArchitectGoalsPage() {
   const { userId } = useParams({ from: "/_app/goals/architects/$userId" });
-  const { isVp, isAdmin } = useAuth();
+  const { isVp, isAdmin, user } = useAuth();
+
+  // If the VP/admin is looking at their OWN profile, send them to the
+  // editable individual goals page so multi-role users keep edit access.
+  if (user?.id === userId) {
+    return <Navigate to="/goals/$scope" params={{ scope: "individual" }} replace />;
+  }
 
   const profileQ = useQuery({
     queryKey: ["architect-profile", userId],
