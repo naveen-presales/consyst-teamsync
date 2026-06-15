@@ -12,7 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth, type Role } from "@/lib/auth";
-import { deleteUser } from "@/lib/users.functions";
+import { confirmApprovedUsers, deleteUser, setUserAccessStatus } from "@/lib/users.functions";
 import { notify } from "@/lib/notify";
 import { toast } from "sonner";
 
@@ -25,9 +25,15 @@ function AdminUsers() {
   const [pendingDelete, setPendingDelete] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const deleteUserFn = useServerFn(deleteUser);
+  const setUserAccessStatusFn = useServerFn(setUserAccessStatus);
+  const confirmApprovedUsersFn = useServerFn(confirmApprovedUsers);
 
   const authorized = isAdmin || isVp;
   useEffect(() => { if (!loading && !authorized) navigate({ to: "/dashboard", replace: true }); }, [loading, authorized, navigate]);
+  useEffect(() => {
+    if (!authorized) return;
+    confirmApprovedUsersFn().catch(() => undefined);
+  }, [authorized, confirmApprovedUsersFn]);
   if (loading || !authorized) return null;
 
   const profilesQ = useQuery({
@@ -46,9 +52,12 @@ function AdminUsers() {
   });
 
   const setStatus = async (id: string, status: "approved" | "rejected" | "pending") => {
-    const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Updated");
+    try {
+      await setUserAccessStatusFn({ data: { userId: id, status } });
+      toast.success(status === "approved" ? "Approved and sign-in enabled" : "Updated");
+    } catch (err: any) {
+      return toast.error(err?.message || "Failed to update access");
+    }
     if (user && id !== user.id) {
       await notify({
         recipient_id: id, actor_id: user.id, type: "account_status",
