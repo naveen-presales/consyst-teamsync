@@ -24,6 +24,7 @@ function AdminUsers() {
   const qc = useQueryClient();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmedApproved, setConfirmedApproved] = useState(false);
   const deleteUserFn = useServerFn(deleteUser);
   const setUserAccessStatusFn = useServerFn(setUserAccessStatus);
   const confirmApprovedUsersFn = useServerFn(confirmApprovedUsers);
@@ -31,9 +32,10 @@ function AdminUsers() {
   const authorized = isAdmin || isVp;
   useEffect(() => { if (!loading && !authorized) navigate({ to: "/dashboard", replace: true }); }, [loading, authorized, navigate]);
   useEffect(() => {
-    if (!authorized) return;
+    if (!authorized || confirmedApproved) return;
+    setConfirmedApproved(true);
     confirmApprovedUsersFn().catch(() => undefined);
-  }, [authorized, confirmApprovedUsersFn]);
+  }, [authorized, confirmedApproved, confirmApprovedUsersFn]);
   if (loading || !authorized) return null;
 
   const profilesQ = useQuery({
