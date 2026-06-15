@@ -7,6 +7,10 @@ const AccessStatusSchema = z.object({
   status: z.enum(["approved", "rejected", "pending"]),
 });
 
+const ApprovedEmailSchema = z.object({
+  email: z.string().email().max(255),
+});
+
 async function assertCanManageUsers(context: { supabase: any; userId: string }) {
   const { data: roles, error: rolesErr } = await context.supabase
     .from("user_roles")
@@ -60,6 +64,28 @@ export const confirmApprovedUsers = createServerFn({ method: "POST" })
     }
 
     return { ok: true, confirmed: profiles?.length ?? 0 };
+  });
+
+export const confirmApprovedUserByEmail = createServerFn({ method: "POST" })
+  .inputValidator((input) => ApprovedEmailSchema.parse(input))
+  .handler(async ({ data }) => {
+    const email = data.email.trim().toLowerCase();
+    if (!/^[^\s@]+@consyst\.biz$/i.test(email)) return { ok: true };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profile, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, status")
+      .ilike("email", email)
+      .maybeSingle();
+    if (error || profile?.status !== "approved") return { ok: true };
+
+    const { error: confirmErr } = await supabaseAdmin.auth.admin.updateUserById(profile.id, {
+      email_confirm: true,
+    });
+    if (confirmErr) throw new Error(confirmErr.message);
+
+    return { ok: true };
   });
 
 export const deleteUser = createServerFn({ method: "POST" })
