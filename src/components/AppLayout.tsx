@@ -13,6 +13,7 @@ import {
   Sun,
   Moon,
   Menu,
+  Activity,
 } from "lucide-react";
 import consystLogo from "@/assets/consyst-logo.png";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ interface NavItem {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, isVp, signOut, refresh } = useAuth();
+  const { profile, isAdmin, isVp, isSales, signOut, refresh } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -47,6 +48,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { to: "/ratings", label: "Ratings", icon: Star, show: isVp || isAdmin },
     { to: "/admin/users", label: "Users", icon: Users, show: isAdmin || isVp },
     { to: "/admin/questions", label: "Rating questions", icon: ListChecks, show: isAdmin },
+    { to: "/status", label: "Status", icon: Activity, show: isVp || isSales },
   ];
 
   const navContent = (onNav?: () => void) => (
