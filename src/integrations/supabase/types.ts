@@ -210,6 +210,7 @@ export type Database = {
       }
       opportunities: {
         Row: {
+          approx_submission_date: string | null
           breach_ignored: boolean
           breach_ignored_at: string | null
           breach_ignored_by: string | null
@@ -248,6 +249,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approx_submission_date?: string | null
           breach_ignored?: boolean
           breach_ignored_at?: string | null
           breach_ignored_by?: string | null
@@ -286,6 +288,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approx_submission_date?: string | null
           breach_ignored?: boolean
           breach_ignored_at?: string | null
           breach_ignored_by?: string | null
@@ -623,6 +626,18 @@ export type Database = {
         Returns: string
       }
       email_exists: { Args: { _email: string }; Returns: boolean }
+      get_status_board: {
+        Args: never
+        Returns: {
+          approx_submission_date: string
+          crm_number: string
+          customer_name: string
+          id: string
+          opportunity_type: string
+          project_name: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
