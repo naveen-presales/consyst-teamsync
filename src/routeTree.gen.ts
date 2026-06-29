@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PendingRouteImport } from './routes/pending'
@@ -26,6 +27,11 @@ import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminQuestionsRouteImport } from './routes/_app.admin.questions'
 import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/status': typeof StatusRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/status': typeof StatusRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/pending': typeof PendingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/status': typeof StatusRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/ratings': typeof AppRatingsRoute
   '/_app/admin/questions': typeof AppAdminQuestionsRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/signup'
+    | '/status'
     | '/dashboard'
     | '/ratings'
     | '/admin/questions'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/signup'
+    | '/status'
     | '/dashboard'
     | '/ratings'
     | '/admin/questions'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/reset-password'
     | '/signup'
+    | '/status'
     | '/_app/dashboard'
     | '/_app/ratings'
     | '/_app/admin/questions'
@@ -223,10 +235,18 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  StatusRoute: typeof StatusRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  StatusRoute: StatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
