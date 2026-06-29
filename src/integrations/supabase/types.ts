@@ -645,7 +645,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "architect" | "vp" | "sales"
+      app_role: "admin" | "architect" | "vp"
       goal_measurement: "numeric" | "percentage" | "currency" | "boolean"
       goal_operator: "gte" | "gt" | "eq" | "lte" | "lt"
       goal_scope: "team" | "department" | "individual"
@@ -787,7 +787,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "architect", "vp", "sales"],
+      app_role: ["admin", "architect", "vp"],
       goal_measurement: ["numeric", "percentage", "currency", "boolean"],
       goal_operator: ["gte", "gt", "eq", "lte", "lt"],
       goal_scope: ["team", "department", "individual"],
