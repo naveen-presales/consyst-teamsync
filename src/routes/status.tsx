@@ -56,8 +56,8 @@ function StatusPage() {
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
           <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
           <div className="min-w-0">
-            <div className="text-sm font-semibold leading-tight">Opportunity Status</div>
-            <div className="text-[11px] text-muted-foreground">Public read-only view</div>
+            <div className="text-sm font-semibold leading-tight">TeamSync</div>
+            <div className="text-[11px] text-muted-foreground">Opportunity Status</div>
           </div>
         </div>
       </header>
