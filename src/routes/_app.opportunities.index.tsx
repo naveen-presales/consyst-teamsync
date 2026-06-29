@@ -110,7 +110,7 @@ function OppsPage() {
               variant="outline"
               size="sm"
               onClick={async () => {
-                const url = `${window.location.origin}/status`;
+                const url = `https://consyst-teamsync.lovable.app/status`;
                 try {
                   await navigator.clipboard.writeText(url);
                   toast.success("Public status link copied", { description: url });
