@@ -1,31 +1,19 @@
-## Goal
-The first person to sign up should become Admin and be signed in immediately after clicking "Create account" — no email verification, no "awaiting approval" screen. All subsequent signups keep the current behavior (pending approval, email confirmation as configured).
+## Fix public Status link sharing
 
-## Current state
-- The DB trigger `handle_new_user` already promotes the first profile to `role=admin` and `status=approved`. Good.
-- `src/routes/signup.tsx` calls `supabase.auth.signUp(...)`. If email confirmation is enabled on the project, the call returns no session, so even the first user can't sign in until they click the confirmation email. The UI also unconditionally shows "Awaiting admin approval".
+**Problem:** The VP's "Share status link" button copies `window.location.origin + /status`. When the VP is using the preview URL (`id-preview--…lovable.app`), that origin is gated by Lovable workspace sign-in, so recipients are prompted to log in. The `/status` route itself is already public on the published site.
 
-## Approach
-Add a server function that handles signup with first-user detection:
+### Changes
 
-1. **New server function** `src/lib/signup.functions.ts` → `signUpUser({ email, password, fullName })`:
-   - Validates `@consyst.biz` domain server-side (closes the existing client-only gate).
-   - Uses `supabaseAdmin` to check if `profiles` is empty.
-   - If empty (first user): `supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name } })` so the account is confirmed instantly. Returns `{ firstUser: true }`.
-   - Otherwise: normal `supabase.auth.signUp(...)` flow (or admin create with `email_confirm:false`). Returns `{ firstUser: false }`.
-   - The existing `handle_new_user` trigger still runs and assigns admin/approved vs architect/pending correctly.
+1. **`src/routes/_app.opportunities.index.tsx`** — Share button
+   - Always copy the published-site URL for `/status`, not `window.location.origin`.
+   - Use the project's stable published domain: `https://consyst-teamsync.lovable.app/status`.
+   - (Optional small touch: also show the URL in the toast so the VP can verify.)
 
-2. **Update `src/routes/signup.tsx`**:
-   - Call the new server fn instead of `supabase.auth.signUp` directly.
-   - If `firstUser === true`: immediately call `supabase.auth.signInWithPassword({ email, password })` on the client (so the session lands in localStorage), then `navigate({ to: "/dashboard" })`. Toast: "Welcome, admin".
-   - Otherwise: keep current "Awaiting admin approval" toast and send to `/login`.
+2. **`src/routes/status.tsx`** — Header rebrand
+   - Replace the small "Opportunity Status / Public read-only view" block with:
+     - App name line: **TeamSync**
+     - Title line: **Opportunity Status**
+   - Remove the "Public read-only view" tag entirely.
+   - Keep the Consyst logo, search, count, and table exactly as they are.
 
-3. **No DB migration needed** — `handle_new_user` already does the right thing.
-
-## Files touched
-- `src/lib/signup.functions.ts` (new)
-- `src/routes/signup.tsx` (swap submit handler)
-
-## Out of scope
-- No changes to login, approval queue, or the architect signup flow.
-- Not changing global `auto_confirm_email` setting (would affect every user).
+No backend, RLS, or routing changes — `/status` is already a top-level public route backed by the `get_status_board` RPC with `anon` execute. Only the share-link origin and the page header copy change.
