@@ -309,7 +309,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     customer_name: "", project_name: "", crm_number: "", region: "",
     end_user: "", domain: "",
     rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
-    received_date: "", start_date: "", deadline: "",
+    received_date: "", start_date: "", deadline: "", approx_submission_date: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
   });
