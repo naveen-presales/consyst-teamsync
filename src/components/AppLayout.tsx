@@ -49,6 +49,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { to: "/admin/users", label: "Users", icon: Users, show: isAdmin || isVp },
     { to: "/admin/questions", label: "Rating questions", icon: ListChecks, show: isAdmin },
     { to: "/status", label: "Status", icon: Activity, show: true },
+  ];
+
 
   const navContent = (onNav?: () => void) => (
     <>
