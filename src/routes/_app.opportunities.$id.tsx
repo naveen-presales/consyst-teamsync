@@ -277,6 +277,7 @@ function OppDetail() {
             <DetailField label="Assigned date"><Input type="date" defaultValue={opp.received_date ?? ""} onBlur={(e) => updateOpp({ received_date: e.target.value || null })} /></DetailField>
             <DetailField label="Start"><Input type="date" defaultValue={opp.start_date ?? ""} onBlur={(e) => updateOpp({ start_date: e.target.value || null })} /></DetailField>
             <DetailField label="Deadline"><Input type="date" defaultValue={opp.deadline ?? ""} onBlur={(e) => updateOpp({ deadline: e.target.value || null })} /></DetailField>
+            <DetailField label="Approx Submission"><Input type="date" defaultValue={(opp as any).approx_submission_date ?? ""} onBlur={(e) => updateOpp({ approx_submission_date: e.target.value || null } as any)} /></DetailField>
             <DetailField label="Completed"><Input type="date" defaultValue={opp.completed_date ?? ""} onBlur={(e) => updateOpp({ completed_date: e.target.value || null })} /></DetailField>
             <DetailField label="Region"><Input defaultValue={opp.region ?? ""} placeholder="e.g. EMEA" onBlur={(e) => updateOpp({ region: e.target.value || null })} /></DetailField>
             <DetailField label="End user"><Input defaultValue={opp.end_user ?? ""} placeholder="End user / customer org" onBlur={(e) => updateOpp({ end_user: e.target.value || null })} /></DetailField>

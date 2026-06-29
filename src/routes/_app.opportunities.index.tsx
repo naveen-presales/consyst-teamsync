@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -105,6 +105,23 @@ function OppsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {isVp && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const url = `${window.location.origin}/status`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("Public status link copied", { description: url });
+                } catch {
+                  window.prompt("Copy this public status link:", url);
+                }
+              }}
+            >
+              <Share2 className="h-4 w-4 mr-1.5" /> Share status link
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -292,7 +309,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     customer_name: "", project_name: "", crm_number: "", region: "",
     end_user: "", domain: "",
     rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
-    received_date: "", start_date: "", deadline: "",
+    received_date: "", start_date: "", deadline: "", approx_submission_date: "",
     opportunity_type: "Budgetary", status: "Pending",
     architect_id: "",
   });
@@ -420,6 +437,7 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
         <Field label="Assigned date"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
+        <Field label="Approx Submission" className="col-span-2"><Input type="date" value={form.approx_submission_date} onChange={(e) => set("approx_submission_date", e.target.value)} /></Field>
         <DialogFooter className="col-span-2">
           <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Create"}</Button>
         </DialogFooter>
