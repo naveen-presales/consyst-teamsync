@@ -9,6 +9,7 @@ import {
   Users,
   ListChecks,
   Target,
+  Activity,
   LogOut,
   Sun,
   Moon,
