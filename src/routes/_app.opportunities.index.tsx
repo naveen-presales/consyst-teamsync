@@ -105,6 +105,23 @@ function OppsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {isVp && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const url = `${window.location.origin}/status`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("Public status link copied", { description: url });
+                } catch {
+                  window.prompt("Copy this public status link:", url);
+                }
+              }}
+            >
+              <Share2 className="h-4 w-4 mr-1.5" /> Share status link
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
