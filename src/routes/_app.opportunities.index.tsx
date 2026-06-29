@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Search, Download, PauseCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
