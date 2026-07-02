@@ -28,6 +28,10 @@ export function NotionEditor({ value, onChange, placeholder }: Props) {
       Placeholder.configure({ placeholder: placeholder ?? "Type '/' for commands, or just start writing…" }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Table.configure({ resizable: true, HTMLAttributes: { class: "notion-table" } }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: value || "",
     editorProps: {
