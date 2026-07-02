@@ -85,6 +85,7 @@ export function NotionEditor({ value, onChange, placeholder }: Props) {
         <Btn title="Task list" on={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")}><ListChecks className="h-4 w-4" /></Btn>
         <Btn title="Quote" on={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")}><Quote className="h-4 w-4" /></Btn>
         <Btn title="Divider" on={() => editor.chain().focus().setHorizontalRule().run()}><Minus className="h-4 w-4" /></Btn>
+        <Btn title="Insert table" on={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon className="h-4 w-4" /></Btn>
         <span className="mx-1 h-5 w-px bg-border" />
         <Btn title="Undo" on={() => editor.chain().focus().undo().run()}><Undo className="h-4 w-4" /></Btn>
         <Btn title="Redo" on={() => editor.chain().focus().redo().run()}><Redo className="h-4 w-4" /></Btn>
