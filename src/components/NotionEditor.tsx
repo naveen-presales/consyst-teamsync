@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3,
-  List, ListOrdered, ListChecks, Quote, Undo, Redo, Minus,
+  List, ListOrdered, ListChecks, Quote, Undo, Redo, Minus, Table as TableIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
