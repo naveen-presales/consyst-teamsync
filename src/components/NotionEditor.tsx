@@ -3,11 +3,15 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3,
-  List, ListOrdered, ListChecks, Quote, Undo, Redo, Minus,
+  List, ListOrdered, ListChecks, Quote, Undo, Redo, Minus, Table as TableIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +28,10 @@ export function NotionEditor({ value, onChange, placeholder }: Props) {
       Placeholder.configure({ placeholder: placeholder ?? "Type '/' for commands, or just start writing…" }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Table.configure({ resizable: true, HTMLAttributes: { class: "notion-table" } }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: value || "",
     editorProps: {
@@ -77,6 +85,7 @@ export function NotionEditor({ value, onChange, placeholder }: Props) {
         <Btn title="Task list" on={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")}><ListChecks className="h-4 w-4" /></Btn>
         <Btn title="Quote" on={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")}><Quote className="h-4 w-4" /></Btn>
         <Btn title="Divider" on={() => editor.chain().focus().setHorizontalRule().run()}><Minus className="h-4 w-4" /></Btn>
+        <Btn title="Insert table" on={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}><TableIcon className="h-4 w-4" /></Btn>
         <span className="mx-1 h-5 w-px bg-border" />
         <Btn title="Undo" on={() => editor.chain().focus().undo().run()}><Undo className="h-4 w-4" /></Btn>
         <Btn title="Redo" on={() => editor.chain().focus().redo().run()}><Redo className="h-4 w-4" /></Btn>
