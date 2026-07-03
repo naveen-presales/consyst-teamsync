@@ -194,6 +194,25 @@ function OppsPage() {
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
+          {canAssign && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={handleExcelImport}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={importing}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-1.5" /> {importing ? "Importing…" : "Upload Excel"}
+              </Button>
+            </>
+          )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1.5" /> New opportunity</Button>
