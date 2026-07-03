@@ -273,7 +273,12 @@ function OppsPage() {
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-2.5 font-mono text-xs">
-                    <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
+                    <div className="flex items-center gap-1.5">
+                      <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
+                      {archs.length === 0 && (
+                        <Badge className="h-4 px-1.5 text-[10px] leading-none">New</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
