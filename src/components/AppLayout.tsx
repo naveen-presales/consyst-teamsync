@@ -48,7 +48,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { to: "/ratings", label: "Ratings", icon: Star, show: isVp || isAdmin },
     { to: "/admin/users", label: "Users", icon: Users, show: isAdmin || isVp },
     { to: "/admin/questions", label: "Rating questions", icon: ListChecks, show: isAdmin },
-    { to: "/status", label: "Status", icon: Activity, show: true },
+    { to: "/status", label: "Status", icon: Activity, show: isVp || isAdmin },
   ];
 
 
