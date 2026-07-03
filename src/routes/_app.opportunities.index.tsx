@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2 } from "lucide-react";
+import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } from "lucide-react";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -95,6 +96,76 @@ function OppsPage() {
     const a = document.createElement("a"); a.href = url; a.download = "opportunities.csv"; a.click(); URL.revokeObjectURL(url);
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = "";
+    if (!file || !user) return;
+    setImporting(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const sheet = wb.Sheets["Opportunity"] ?? wb.Sheets[wb.SheetNames[0]];
+      if (!sheet) throw new Error("No worksheet found");
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "", raw: false });
+      if (rows.length === 0) throw new Error("Sheet is empty");
+      const first = rows[0];
+      const keys = Object.keys(first);
+      const findKey = (name: string) => keys.find((k) => k.trim().toLowerCase() === name.toLowerCase());
+      const idKey = findKey("ID");
+      const custKey = findKey("Customer Name");
+      const titleKey = findKey("Title");
+      if (!idKey || !custKey || !titleKey) {
+        throw new Error('Missing required headers: "ID", "Customer Name", "Title" in row 1');
+      }
+      let missing = 0;
+      const parsed: { crm_number: string; customer_name: string; project_name: string }[] = [];
+      for (const r of rows) {
+        const crm = String(r[idKey] ?? "").trim();
+        const cust = String(r[custKey] ?? "").trim();
+        const title = String(r[titleKey] ?? "").trim();
+        if (!crm || !cust || !title) { missing++; continue; }
+        parsed.push({ crm_number: crm, customer_name: cust, project_name: title });
+      }
+      // dedupe within file itself (keep first)
+      const seen = new Set<string>();
+      const unique = parsed.filter((p) => {
+        if (seen.has(p.crm_number)) { missing++; return false; }
+        seen.add(p.crm_number); return true;
+      });
+
+      let dupes = 0;
+      let toInsert = unique;
+      if (unique.length > 0) {
+        const { data: existing, error: exErr } = await supabase
+          .from("opportunities")
+          .select("crm_number")
+          .in("crm_number", unique.map((u) => u.crm_number));
+        if (exErr) throw exErr;
+        const existingSet = new Set((existing ?? []).map((e) => e.crm_number));
+        toInsert = unique.filter((u) => {
+          if (existingSet.has(u.crm_number)) { dupes++; return false; }
+          return true;
+        });
+      }
+
+      let added = 0;
+      if (toInsert.length > 0) {
+        const payload = toInsert.map((r) => ({ ...r, created_by: user.id }));
+        const { error: insErr, data: ins } = await supabase.from("opportunities").insert(payload).select("id");
+        if (insErr) throw insErr;
+        added = ins?.length ?? toInsert.length;
+      }
+      toast.success(`${added} added, ${dupes} skipped (duplicates), ${missing} skipped (missing data)`);
+      qc.invalidateQueries({ queryKey: ["opps"] });
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to import Excel");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <header className="flex items-center justify-between mb-6">
@@ -123,6 +194,25 @@ function OppsPage() {
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
+          {canAssign && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={handleExcelImport}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={importing}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-1.5" /> {importing ? "Importing…" : "Upload Excel"}
+              </Button>
+            </>
+          )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1.5" /> New opportunity</Button>
@@ -183,7 +273,12 @@ function OppsPage() {
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-4 py-2.5 font-mono text-xs">
-                    <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
+                    <div className="flex items-center gap-1.5">
+                      <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
+                      {canAssign && archs.length === 0 && (
+                        <Badge className="h-4 px-1.5 text-[10px] leading-none">New</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
