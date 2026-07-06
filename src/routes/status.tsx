@@ -40,6 +40,27 @@ function StatusPage() {
     },
   });
 
+  const lastUploadQ = useQuery({
+    queryKey: ["app-setting", "last_excel_upload_at"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value, updated_at")
+        .eq("key", "last_excel_upload_at")
+        .maybeSingle();
+      const raw = (data?.value as any) ?? data?.updated_at ?? null;
+      return typeof raw === "string" ? raw : null;
+    },
+  });
+
+  const formatUploadedAt = (iso: string | null) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const rows = (q.data ?? []).filter((o) => {
     if (!search) return true;
     const s = search.toLowerCase();
