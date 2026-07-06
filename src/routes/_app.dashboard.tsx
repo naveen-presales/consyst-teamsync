@@ -217,25 +217,29 @@ function VpDashboard() {
       </header>
 
       <div className="flex gap-3 mb-6">
-        <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Type" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="Budgetary">Budgetary</SelectItem>
-            <SelectItem value="JIH">JIH</SelectItem>
-            <SelectItem value="Firm Budgetary">Firm Budgetary</SelectItem>
-            <SelectItem value="Tender">Tender</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          className="w-44"
+          value={type}
+          onChange={setType}
+          placeholder="All types"
+          options={[
+            { label: "Budgetary", value: "Budgetary" },
+            { label: "JIH", value: "JIH" },
+            { label: "Firm Budgetary", value: "Firm Budgetary" },
+            { label: "Tender", value: "Tender" },
+          ]}
+        />
+        <MultiSelect
+          className="w-44"
+          value={status}
+          onChange={setStatus}
+          placeholder="All statuses"
+          options={[
+            { label: "Pending", value: "Pending" },
+            { label: "In Progress", value: "In Progress" },
+            { label: "Completed", value: "Completed" },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
