@@ -214,6 +214,11 @@ function OppsPage() {
           <p className="text-sm text-muted-foreground">
             {canAssign ? "Create opportunities and assign architects." : "Create and track your opportunities."}
           </p>
+          {lastUploadQ.data && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last upload on {formatUploadedAt(lastUploadQ.data)}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {isVp && (
