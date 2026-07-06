@@ -61,14 +61,27 @@ function OppsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusF, setStatusF] = useState("all");
+  const [statusF, setStatusF] = useState<string[]>([]);
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("opportunities").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("opportunities").select("*");
       if (error) throw error;
-      return data as OppRow[];
+      return (data as OppRow[]).slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
+    },
+  });
+
+  const lastUploadQ = useQuery({
+    queryKey: ["app-setting", "last_excel_upload_at"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value, updated_at")
+        .eq("key", "last_excel_upload_at")
+        .maybeSingle();
+      const raw = (data?.value as any) ?? data?.updated_at ?? null;
+      return typeof raw === "string" ? raw : null;
     },
   });
 
