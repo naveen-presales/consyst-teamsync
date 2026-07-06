@@ -15,6 +15,28 @@ import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
+import { MultiSelect } from "@/components/MultiSelect";
+
+const STATUS_FILTER_OPTIONS = [
+  { label: "Pending", value: "Pending" },
+  { label: "In Progress", value: "In Progress" },
+  { label: "On Hold", value: "On Hold" },
+  { label: "Submitted to Sales", value: "Submitted to Sales" },
+  { label: "Completed", value: "Completed" },
+  { label: "Closed Won", value: "Closed Won" },
+  { label: "Closed Lost", value: "Closed Lost" },
+];
+
+const cmpCrm = (a: string, b: string) =>
+  (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
+
+function formatUploadedAt(iso: string | null | undefined) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
