@@ -113,7 +113,7 @@ function VpDashboard() {
     let list = oppsQ.data ?? [];
     if (type.length > 0) list = list.filter((o) => type.includes(o.opportunity_type));
     if (status.length > 0) list = list.filter((o) => status.includes(o.status));
-    return list;
+    return list.slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
   }, [oppsQ.data, type, status]);
 
   const completedOpps = useMemo(() => opps.filter((o) => o.status === "Completed"), [opps]);
