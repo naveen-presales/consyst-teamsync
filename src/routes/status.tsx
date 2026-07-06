@@ -76,10 +76,15 @@ function StatusPage() {
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
           <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold leading-tight">TeamSync</div>
             <div className="text-[11px] text-muted-foreground">Opportunity Status</div>
           </div>
+          {lastUploadQ.data && (
+            <div className="text-[11px] text-muted-foreground text-right">
+              Last upload on {formatUploadedAt(lastUploadQ.data)}
+            </div>
+          )}
         </div>
       </header>
 
