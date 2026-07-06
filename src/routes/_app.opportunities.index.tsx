@@ -116,7 +116,7 @@ function OppsPage() {
   })();
 
   const filtered = (oppsQ.data ?? []).filter((o) => {
-    if (statusF !== "all" && o.status !== statusF) return false;
+    if (statusF.length > 0 && !statusF.includes(o.status)) return false;
     if (!search) return true;
     const s = search.toLowerCase();
     return o.customer_name.toLowerCase().includes(s) || o.project_name.toLowerCase().includes(s) || o.crm_number.toLowerCase().includes(s);
