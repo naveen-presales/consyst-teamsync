@@ -192,8 +192,13 @@ function OppsPage() {
         if (insErr) throw insErr;
         added = ins?.length ?? toInsert.length;
       }
+      const nowIso = new Date().toISOString();
+      await supabase
+        .from("app_settings")
+        .upsert({ key: "last_excel_upload_at", value: nowIso, updated_at: nowIso }, { onConflict: "key" });
       toast.success(`${added} added, ${dupes} skipped (duplicates), ${missing} skipped (missing data)`);
       qc.invalidateQueries({ queryKey: ["opps"] });
+      qc.invalidateQueries({ queryKey: ["app-setting", "last_excel_upload_at"] });
     } catch (err: any) {
       toast.error(err?.message || "Failed to import Excel");
     } finally {
