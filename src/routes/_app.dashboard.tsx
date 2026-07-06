@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPa
 
 type Opp = {
   id: string;
+  crm_number: string;
   customer_name: string;
   project_name: string;
   start_date: string | null;
@@ -34,6 +35,9 @@ type Opp = {
   rfq_reading_hours?: number | null;
   estimation_hours?: number | null;
 };
+
+const cmpCrm = (a: string, b: string) =>
+  (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
 
 
 function DashboardPage() {
