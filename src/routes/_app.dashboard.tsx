@@ -106,8 +106,8 @@ function VpDashboard() {
 
   const opps = useMemo(() => {
     let list = oppsQ.data ?? [];
-    if (type !== "all") list = list.filter((o) => o.opportunity_type === type);
-    if (status !== "all") list = list.filter((o) => o.status === status);
+    if (type.length > 0) list = list.filter((o) => type.includes(o.opportunity_type));
+    if (status.length > 0) list = list.filter((o) => status.includes(o.status));
     return list;
   }, [oppsQ.data, type, status]);
 
