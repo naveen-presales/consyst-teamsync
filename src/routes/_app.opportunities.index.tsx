@@ -266,19 +266,13 @@ function OppsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search customer, project, CRM…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusF} onValueChange={setStatusF}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="On Hold">On Hold</SelectItem>
-            <SelectItem value="Submitted to Sales">Submitted to Sales</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Closed Won">Closed Won</SelectItem>
-            <SelectItem value="Closed Lost">Closed Lost</SelectItem>
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          className="w-44"
+          options={STATUS_FILTER_OPTIONS}
+          value={statusF}
+          onChange={setStatusF}
+          placeholder="All statuses"
+        />
       </div>
 
       <Card className="overflow-hidden">
