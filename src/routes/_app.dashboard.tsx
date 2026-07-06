@@ -45,8 +45,8 @@ function DashboardPage() {
 
 function VpDashboard() {
   const { isAdmin, isVp } = useAuth();
-  const [type, setType] = useState<string>("all");
-  const [status, setStatus] = useState<string>("all");
+  const [type, setType] = useState<string[]>([]);
+  const [status, setStatus] = useState<string[]>([]);
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
   const [teamRatingOpen, setTeamRatingOpen] = useState(false);
   const [questionDrill, setQuestionDrill] = useState<null | { id: string; text: string }>(null);
