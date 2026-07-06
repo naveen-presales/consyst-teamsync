@@ -13,12 +13,14 @@ import { AlertTriangle, Briefcase, CheckCircle2, Timer, Star, ChevronRight } fro
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MultiSelect } from "@/components/MultiSelect";
 
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
 type Opp = {
   id: string;
+  crm_number: string;
   customer_name: string;
   project_name: string;
   start_date: string | null;
@@ -34,6 +36,9 @@ type Opp = {
   estimation_hours?: number | null;
 };
 
+const cmpCrm = (a: string, b: string) =>
+  (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
+
 
 function DashboardPage() {
   const { isAdmin, isVp, isArchitect, user } = useAuth();
@@ -45,8 +50,8 @@ function DashboardPage() {
 
 function VpDashboard() {
   const { isAdmin, isVp } = useAuth();
-  const [type, setType] = useState<string>("all");
-  const [status, setStatus] = useState<string>("all");
+  const [type, setType] = useState<string[]>([]);
+  const [status, setStatus] = useState<string[]>([]);
   const [selectedArchitect, setSelectedArchitect] = useState<string | null>(null);
   const [teamRatingOpen, setTeamRatingOpen] = useState(false);
   const [questionDrill, setQuestionDrill] = useState<null | { id: string; text: string }>(null);
@@ -64,7 +69,7 @@ function VpDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours");
+        .select("id, crm_number, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours");
       if (error) throw error;
       return data as Opp[];
     },
@@ -106,9 +111,9 @@ function VpDashboard() {
 
   const opps = useMemo(() => {
     let list = oppsQ.data ?? [];
-    if (type !== "all") list = list.filter((o) => o.opportunity_type === type);
-    if (status !== "all") list = list.filter((o) => o.status === status);
-    return list;
+    if (type.length > 0) list = list.filter((o) => type.includes(o.opportunity_type));
+    if (status.length > 0) list = list.filter((o) => status.includes(o.status));
+    return list.slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
   }, [oppsQ.data, type, status]);
 
   const completedOpps = useMemo(() => opps.filter((o) => o.status === "Completed"), [opps]);
@@ -217,25 +222,29 @@ function VpDashboard() {
       </header>
 
       <div className="flex gap-3 mb-6">
-        <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Type" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="Budgetary">Budgetary</SelectItem>
-            <SelectItem value="JIH">JIH</SelectItem>
-            <SelectItem value="Firm Budgetary">Firm Budgetary</SelectItem>
-            <SelectItem value="Tender">Tender</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          className="w-44"
+          value={type}
+          onChange={setType}
+          placeholder="All types"
+          options={[
+            { label: "Budgetary", value: "Budgetary" },
+            { label: "JIH", value: "JIH" },
+            { label: "Firm Budgetary", value: "Firm Budgetary" },
+            { label: "Tender", value: "Tender" },
+          ]}
+        />
+        <MultiSelect
+          className="w-44"
+          value={status}
+          onChange={setStatus}
+          placeholder="All statuses"
+          options={[
+            { label: "Pending", value: "Pending" },
+            { label: "In Progress", value: "In Progress" },
+            { label: "Completed", value: "Completed" },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
@@ -546,7 +555,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
       if (ids.length === 0) return [] as Opp[];
       const { data } = await supabase
         .from("opportunities")
-        .select("id, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours")
+        .select("id, crm_number, customer_name, project_name, start_date, deadline, completed_date, opportunity_type, revision_count, status, breach_ignored, breach_ignored_reason, breach_ignored_at, rfq_reading_hours, estimation_hours")
         .in("id", ids);
       return (data ?? []) as Opp[];
     },

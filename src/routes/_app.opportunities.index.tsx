@@ -15,6 +15,28 @@ import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
+import { MultiSelect } from "@/components/MultiSelect";
+
+const STATUS_FILTER_OPTIONS = [
+  { label: "Pending", value: "Pending" },
+  { label: "In Progress", value: "In Progress" },
+  { label: "On Hold", value: "On Hold" },
+  { label: "Submitted to Sales", value: "Submitted to Sales" },
+  { label: "Completed", value: "Completed" },
+  { label: "Closed Won", value: "Closed Won" },
+  { label: "Closed Lost", value: "Closed Lost" },
+];
+
+const cmpCrm = (a: string, b: string) =>
+  (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
+
+function formatUploadedAt(iso: string | null | undefined) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export const Route = createFileRoute("/_app/opportunities/")({ component: OppsPage });
 
@@ -39,14 +61,27 @@ function OppsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusF, setStatusF] = useState("all");
+  const [statusF, setStatusF] = useState<string[]>([]);
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("opportunities").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("opportunities").select("*");
       if (error) throw error;
-      return data as OppRow[];
+      return (data as OppRow[]).slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
+    },
+  });
+
+  const lastUploadQ = useQuery({
+    queryKey: ["app-setting", "last_excel_upload_at"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value, updated_at")
+        .eq("key", "last_excel_upload_at")
+        .maybeSingle();
+      const raw = (data?.value as any) ?? data?.updated_at ?? null;
+      return typeof raw === "string" ? raw : null;
     },
   });
 
@@ -81,7 +116,7 @@ function OppsPage() {
   })();
 
   const filtered = (oppsQ.data ?? []).filter((o) => {
-    if (statusF !== "all" && o.status !== statusF) return false;
+    if (statusF.length > 0 && !statusF.includes(o.status)) return false;
     if (!search) return true;
     const s = search.toLowerCase();
     return o.customer_name.toLowerCase().includes(s) || o.project_name.toLowerCase().includes(s) || o.crm_number.toLowerCase().includes(s);
@@ -157,8 +192,13 @@ function OppsPage() {
         if (insErr) throw insErr;
         added = ins?.length ?? toInsert.length;
       }
+      const nowIso = new Date().toISOString();
+      await supabase
+        .from("app_settings")
+        .upsert({ key: "last_excel_upload_at", value: nowIso, updated_at: nowIso }, { onConflict: "key" });
       toast.success(`${added} added, ${dupes} skipped (duplicates), ${missing} skipped (missing data)`);
       qc.invalidateQueries({ queryKey: ["opps"] });
+      qc.invalidateQueries({ queryKey: ["app-setting", "last_excel_upload_at"] });
     } catch (err: any) {
       toast.error(err?.message || "Failed to import Excel");
     } finally {
@@ -174,6 +214,11 @@ function OppsPage() {
           <p className="text-sm text-muted-foreground">
             {canAssign ? "Create opportunities and assign architects." : "Create and track your opportunities."}
           </p>
+          {lastUploadQ.data && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last upload on {formatUploadedAt(lastUploadQ.data)}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {isVp && (
@@ -231,19 +276,13 @@ function OppsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search customer, project, CRM…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusF} onValueChange={setStatusF}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="On Hold">On Hold</SelectItem>
-            <SelectItem value="Submitted to Sales">Submitted to Sales</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Closed Won">Closed Won</SelectItem>
-            <SelectItem value="Closed Lost">Closed Lost</SelectItem>
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          className="w-44"
+          options={STATUS_FILTER_OPTIONS}
+          value={statusF}
+          onChange={setStatusF}
+          placeholder="All statuses"
+        />
       </div>
 
       <Card className="overflow-hidden">
