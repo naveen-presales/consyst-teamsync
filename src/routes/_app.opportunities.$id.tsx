@@ -823,75 +823,104 @@ function RatingsPanel({ oppId, canRate }: { oppId: string; canRate: boolean }) {
 }
 
 function ArchitectAssignment({
-  assignedIds, profiles, canManage, onChange,
+  assignedIds, profiles, canManage, onChange, onShare,
 }: {
   assignedIds: string[];
   profiles: { id: string; full_name: string | null; email: string | null }[];
   canManage: boolean;
   onChange: (newId: string) => Promise<void>;
+  onShare?: (newId: string) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState(false);
+  const [mode, setMode] = useState<null | "change" | "share">(null);
   const [pick, setPick] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const current = assignedIds[0]
     ? profiles.find((p) => p.id === assignedIds[0]) ?? null
     : null;
+  const assignedSet = new Set(assignedIds);
+  const shareOptions = profiles.filter((p) => !assignedSet.has(p.id));
 
   const submit = async () => {
-    if (!pick || pick === assignedIds[0]) return setEditing(false);
-    setSaving(true);
-    await onChange(pick);
+    if (!pick) return setMode(null);
+    if (mode === "change") {
+      if (pick === assignedIds[0]) return setMode(null);
+      setSaving(true);
+      await onChange(pick);
+    } else if (mode === "share" && onShare) {
+      setSaving(true);
+      await onShare(pick);
+    }
     setSaving(false);
-    setEditing(false);
+    setMode(null);
     setPick("");
   };
 
-  if (!editing) {
+  if (!mode) {
     return (
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="min-w-0">
-          {current ? (
-            <>
-              <div className="font-medium text-sm truncate">{current.full_name || current.email}</div>
-              <div className="text-xs text-muted-foreground truncate">{current.email}</div>
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground">No architect assigned.</div>
-          )}
-        </div>
+      <div className="space-y-2">
+        {assignedIds.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No architect assigned.</div>
+        ) : (
+          <ul className="space-y-1">
+            {assignedIds.map((uid) => {
+              const p = profiles.find((pp) => pp.id === uid);
+              return (
+                <li key={uid} className="text-sm">
+                  <div className="font-medium">{p?.full_name || p?.email || "Unknown"}</div>
+                  {p?.email && <div className="text-xs text-muted-foreground">{p.email}</div>}
+                </li>
+              );
+            })}
+          </ul>
+        )}
         {canManage && (
-          <Button size="sm" variant="outline" onClick={() => { setPick(assignedIds[0] ?? ""); setEditing(true); }}>
-            {current ? "Change architect" : "Assign architect"}
-          </Button>
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" variant="outline" onClick={() => { setPick(assignedIds[0] ?? ""); setMode("change"); }}>
+              {current ? "Change architect" : "Assign architect"}
+            </Button>
+            {onShare && current && (
+              <Button size="sm" variant="outline" onClick={() => { setPick(""); setMode("share"); }}>
+                Share opportunity
+              </Button>
+            )}
+          </div>
         )}
       </div>
     );
   }
 
+  const options = mode === "share" ? shareOptions : profiles;
+
   return (
     <div className="space-y-3">
+      <div className="text-xs font-medium text-muted-foreground">
+        {mode === "share" ? "Share with another architect" : "Change assigned architect"}
+      </div>
       <Select value={pick} onValueChange={setPick}>
         <SelectTrigger><SelectValue placeholder="Select an architect…" /></SelectTrigger>
         <SelectContent>
-          {profiles.map((p) => (
+          {options.map((p) => (
             <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
           ))}
         </SelectContent>
       </Select>
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} disabled={saving || !pick}>
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving…" : mode === "share" ? "Confirm share" : "Save"}
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setPick(""); }} disabled={saving}>
+        <Button size="sm" variant="ghost" onClick={() => { setMode(null); setPick(""); }} disabled={saving}>
           Cancel
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        The new architect will be notified, and the previous architect will be notified that they are no longer assigned.
+        {mode === "share"
+          ? "The opportunity will also appear in the selected architect's list, and they will be notified."
+          : "The new architect will be notified, and the previous architect will be notified that they are no longer assigned."}
       </p>
     </div>
   );
 }
+
 
 
 function BreachPanel({ opp, canManage, userId }: { opp: any; canManage: boolean; userId: string }) {
