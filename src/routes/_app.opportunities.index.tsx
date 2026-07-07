@@ -83,7 +83,10 @@ function OppsPage() {
       const raw = (data?.value as any) ?? data?.updated_at ?? null;
       return typeof raw === "string" ? raw : null;
     },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
+
 
   const assignsQ = useQuery({
     queryKey: ["opps-assigns"],
