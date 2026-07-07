@@ -27,7 +27,9 @@ type Row = {
   opportunity_type: string;
   status: string;
   approx_submission_date: string | null;
+  has_architect: boolean | null;
 };
+
 
 function StatusPage() {
   const [search, setSearch] = useState("");
@@ -36,9 +38,12 @@ function StatusPage() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_status_board");
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return ((data ?? []) as unknown) as Row[];
     },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
+
 
   const lastUploadQ = useQuery({
     queryKey: ["app-setting", "last_excel_upload_at"],
@@ -51,7 +56,10 @@ function StatusPage() {
       const raw = (data?.value as any) ?? data?.updated_at ?? null;
       return typeof raw === "string" ? raw : null;
     },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
+
 
   const formatUploadedAt = (iso: string | null) => {
     if (!iso) return null;
@@ -75,9 +83,9 @@ function StatusPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
-          <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
+          <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold leading-tight">TeamSync</div>
+            <div className="text-lg font-bold leading-tight tracking-tight">TeamSync</div>
             <div className="text-[11px] text-muted-foreground">Opportunity Status</div>
           </div>
           {lastUploadQ.data && (
@@ -87,6 +95,7 @@ function StatusPage() {
           )}
         </div>
       </header>
+
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <div className="flex items-center justify-between gap-3 mb-4">
@@ -126,7 +135,14 @@ function StatusPage() {
                 {!q.isLoading &&
                   rows.map((o) => (
                     <tr key={o.id} className="border-t border-border select-none">
-                      <td className="px-4 py-2.5 font-mono text-xs">{o.crm_number}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span>{o.crm_number}</span>
+                          {!o.has_architect && (
+                            <Badge className="h-4 px-1.5 text-[10px] leading-none">New</Badge>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-2.5">{o.customer_name}</td>
                       <td className="px-4 py-2.5">{o.project_name}</td>
                       <td className="px-4 py-2.5">
@@ -136,6 +152,7 @@ function StatusPage() {
                       <td className="px-4 py-2.5">{o.approx_submission_date ?? "—"}</td>
                     </tr>
                   ))}
+
                 {!q.isLoading && rows.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">

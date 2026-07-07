@@ -111,12 +111,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="px-5 py-5 flex items-center gap-2 border-b border-sidebar-border">
-          <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
+          <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] text-muted-foreground">TeamSync</div>
+            <div className="text-lg font-bold tracking-tight">TeamSync</div>
           </div>
           <NotificationBell />
         </div>
+
         {navContent()}
       </aside>
 
@@ -131,16 +132,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64 bg-sidebar flex flex-col">
               <div className="px-5 py-5 flex items-center gap-2 border-b border-sidebar-border">
-                <img src={consystLogo} alt="Consyst" className="h-7 w-auto object-contain" />
+                <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-muted-foreground">TeamSync</div>
+                  <div className="text-lg font-bold tracking-tight">TeamSync</div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
-          <img src={consystLogo} alt="Consyst" className="h-6 w-auto object-contain" />
-          <div className="text-xs text-muted-foreground">TeamSync</div>
+          <img src={consystLogo} alt="Consyst" className="h-8 w-auto object-contain" />
+          <div className="text-sm font-bold tracking-tight">TeamSync</div>
+
           <div className="ml-auto">
             <NotificationBell />
           </div>
