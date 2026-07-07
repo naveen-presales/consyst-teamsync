@@ -27,7 +27,9 @@ type Row = {
   opportunity_type: string;
   status: string;
   approx_submission_date: string | null;
+  has_architect: boolean | null;
 };
+
 
 function StatusPage() {
   const [search, setSearch] = useState("");
