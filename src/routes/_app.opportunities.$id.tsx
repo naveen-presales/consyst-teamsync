@@ -333,8 +333,10 @@ function OppDetail() {
               profiles={profilesQ.data ?? []}
               canManage={isManager}
               onChange={changeArchitect}
+              onShare={shareOpportunity}
             />
           </Card>
+
         </TabsContent>
 
 
