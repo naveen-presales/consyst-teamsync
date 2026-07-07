@@ -38,9 +38,12 @@ function StatusPage() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_status_board");
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return ((data ?? []) as unknown) as Row[];
     },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
+
 
   const lastUploadQ = useQuery({
     queryKey: ["app-setting", "last_excel_upload_at"],
