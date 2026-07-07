@@ -196,12 +196,17 @@ function OppsPage() {
         added = ins?.length ?? toInsert.length;
       }
       const nowIso = new Date().toISOString();
-      await supabase
+      const { error: setErr } = await supabase
         .from("app_settings")
-        .upsert({ key: "last_excel_upload_at", value: nowIso, updated_at: nowIso }, { onConflict: "key" });
+        .upsert(
+          { key: "last_excel_upload_at", value: nowIso, updated_at: nowIso },
+          { onConflict: "key" },
+        );
+      if (setErr) console.error("Failed to record last upload timestamp:", setErr);
       toast.success(`${added} added, ${dupes} skipped (duplicates), ${missing} skipped (missing data)`);
       qc.invalidateQueries({ queryKey: ["opps"] });
       qc.invalidateQueries({ queryKey: ["app-setting", "last_excel_upload_at"] });
+
     } catch (err: any) {
       toast.error(err?.message || "Failed to import Excel");
     } finally {
