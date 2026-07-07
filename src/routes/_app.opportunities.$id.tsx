@@ -171,6 +171,41 @@ function OppDetail() {
     toast.success("Architect updated");
   };
 
+  const shareOpportunity = async (newId: string): Promise<void> => {
+    const already = (assignedQ.data ?? []).includes(newId);
+    if (already) {
+      toast.info("This architect is already assigned.");
+      return;
+    }
+    const { error: insErr } = await supabase
+      .from("opportunity_architects")
+      .insert({ opportunity_id: id, user_id: newId });
+    if (insErr) { toast.error(insErr.message); return; }
+
+    const profName = profilesQ.data?.find((p) => p.id === newId);
+    const newName = profName?.full_name || profName?.email || "architect";
+    await logActivity(id, user!.id, "architect_shared", `Shared with ${newName}`);
+
+    if (newId !== user!.id) {
+      await notify({
+        recipient_id: newId,
+        actor_id: user!.id,
+        type: "opportunity_shared",
+        title: "Opportunity shared with you",
+        body: `${opp.project_name} (${opp.crm_number})`,
+        link: `/opportunities/${id}`,
+        opportunity_id: id,
+      });
+    }
+
+    qc.invalidateQueries({ queryKey: ["opp-assigned", id] });
+    qc.invalidateQueries({ queryKey: ["opp-activity", id] });
+    qc.invalidateQueries({ queryKey: ["opps"] });
+    qc.invalidateQueries({ queryKey: ["opps-assigns"] });
+    toast.success(`Shared with ${newName}`);
+  };
+
+
 
   const newDoc = async () => {
     const name = prompt("Document name:");
