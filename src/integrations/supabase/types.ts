@@ -650,6 +650,7 @@ export type Database = {
           approx_submission_date: string
           crm_number: string
           customer_name: string
+          has_architect: boolean
           id: string
           opportunity_type: string
           project_name: string
