@@ -648,6 +648,7 @@ export type Database = {
         Args: never
         Returns: {
           approx_submission_date: string
+          architect_names: string
           crm_number: string
           customer_name: string
           has_architect: boolean
@@ -691,6 +692,7 @@ export type Database = {
         | "Submitted to Sales"
         | "Closed Won"
         | "Closed Lost"
+        | "Waiting for Clarification"
       opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
       request_status: "pending" | "approved" | "rejected"
       user_status: "pending" | "approved" | "rejected"
@@ -833,6 +835,7 @@ export const Constants = {
         "Submitted to Sales",
         "Closed Won",
         "Closed Lost",
+        "Waiting for Clarification",
       ],
       opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
       request_status: ["pending", "approved", "rejected"],
