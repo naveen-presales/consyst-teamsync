@@ -692,7 +692,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "My VP rating — completed opportunities", description: `Average ${avgRating || "—"} across ${completedRatedAvgs.length} rated of ${completed.length} completed opportunity(s).`, items: completed, ratingByOpp })}>
-          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
+          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
           <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
