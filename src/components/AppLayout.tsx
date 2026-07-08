@@ -110,12 +110,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-        <div className="px-5 py-5 flex items-center gap-2 border-b border-sidebar-border">
-          <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
+        <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
+          <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold tracking-tight">TeamSync</div>
+            <div className="text-base font-bold tracking-tight truncate">TeamSync</div>
           </div>
-          <NotificationBell />
+          <div className="shrink-0"><NotificationBell /></div>
         </div>
 
         {navContent()}
