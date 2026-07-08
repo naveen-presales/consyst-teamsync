@@ -271,7 +271,7 @@ function VpDashboard() {
           <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setTeamRatingOpen(true)}>
-          <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 8} />
+          <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
         </ClickableKpi>
         <ClickableKpi
           onClick={() => setDrill({
