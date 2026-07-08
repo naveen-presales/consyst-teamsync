@@ -242,6 +242,7 @@ function VpDashboard() {
           options={[
             { label: "Pending", value: "Pending" },
             { label: "In Progress", value: "In Progress" },
+            { label: "Waiting for Clarification", value: "Waiting for Clarification" },
             { label: "Completed", value: "Completed" },
           ]}
         />
