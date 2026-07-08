@@ -79,15 +79,6 @@ function RatingsPage() {
     });
     return out;
   }, [ratingsQ.data, answersQ.data]);
-    const out: Record<string, { avg: number; reviews: number }> = {};
-    Object.entries(byOpp).forEach(([oid, arr]) => {
-      out[oid] = {
-        avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10,
-        reviews: arr.length,
-      };
-    });
-    return out;
-  }, [ratingsQ.data, answersQ.data]);
 
   if (selectedArchitect) {
     return (
