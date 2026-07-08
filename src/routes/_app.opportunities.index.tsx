@@ -381,7 +381,7 @@ function OppsPage() {
                   <td className="px-4 py-2.5 text-xs text-muted-foreground max-w-[220px] truncate" title={o.system_details ?? ""}>{o.system_details || "—"}</td>
                   {canAssign && (
                     <td className="px-4 py-2.5 text-xs">
-                      {archs.length === 0 ? <span className="text-muted-foreground">Unassigned</span> : archs.join(", ")}
+                      {archs.length === 0 ? <span className="text-muted-foreground">Unassigned</span> : archs.map((a) => a.name).join(", ")}
                     </td>
                   )}
                   <td className="px-4 py-2.5"><Badge variant="secondary">{o.opportunity_type}</Badge></td>
