@@ -20,6 +20,7 @@ import { MultiSelect } from "@/components/MultiSelect";
 const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
   { label: "In Progress", value: "In Progress" },
+  { label: "Waiting for Clarification", value: "Waiting for Clarification" },
   { label: "On Hold", value: "On Hold" },
   { label: "Submitted to Sales", value: "Submitted to Sales" },
   { label: "Completed", value: "Completed" },
