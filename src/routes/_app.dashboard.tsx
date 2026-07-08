@@ -606,7 +606,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   });
   const ratingByOpp: Record<string, number> = {};
   Object.entries(byOppScores).forEach(([oid, arr]) => {
-    ratingByOpp[oid] = Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10;
+    ratingByOpp[oid] = Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10;
   });
 
   // VP rating: avg across COMPLETED opps that have at least one rating
