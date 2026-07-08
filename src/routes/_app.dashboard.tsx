@@ -656,7 +656,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const trend = Object.entries(byRating)
     .map(([rid, arr]) => {
       const meta = (ratingsQ.data ?? []).find((x) => x.rating_id === rid)?.ratings;
-      return { date: meta?.created_at ?? "", avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10, rid };
+      return { date: meta?.created_at ?? "", avg: Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10, rid };
     })
     .filter((d) => d.date)
     .sort((a, b) => a.date.localeCompare(b.date))
