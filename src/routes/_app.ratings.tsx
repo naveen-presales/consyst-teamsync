@@ -57,7 +57,7 @@ function RatingsPage() {
     },
   });
 
-  // avg score per opportunity
+  // avg score per opportunity, converted to 5-point scale (raw 1-10 avg / 2)
   const oppAvg = useMemo(() => {
     const byRating: Record<string, number[]> = {};
     (answersQ.data ?? []).forEach((a) => (byRating[a.rating_id] ||= []).push(a.score));
@@ -69,6 +69,16 @@ function RatingsPage() {
         (byOpp[r.opportunity_id] ||= []).push(avg);
       }
     });
+    const out: Record<string, { avg: number; reviews: number }> = {};
+    Object.entries(byOpp).forEach(([oid, arr]) => {
+      const raw10 = arr.reduce((a, b) => a + b, 0) / arr.length;
+      out[oid] = {
+        avg: Math.round((raw10 / 2) * 10) / 10,
+        reviews: arr.length,
+      };
+    });
+    return out;
+  }, [ratingsQ.data, answersQ.data]);
     const out: Record<string, { avg: number; reviews: number }> = {};
     Object.entries(byOpp).forEach(([oid, arr]) => {
       out[oid] = {
