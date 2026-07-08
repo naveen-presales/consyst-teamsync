@@ -161,7 +161,7 @@ function VpDashboard() {
       uid,
       name: profMap.get(uid)?.full_name || profMap.get(uid)?.email || "Unknown",
       email: profMap.get(uid)?.email ?? "",
-      avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10,
+      avg: Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10,
       reviews: arr.length,
     })).sort((a, b) => b.avg - a.avg);
   }, [byOppRating, assignsQ.data, profilesQ.data]);
