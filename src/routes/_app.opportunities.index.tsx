@@ -308,8 +308,8 @@ function OppsPage() {
         </div>
       </header>
 
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search customer, project, CRM…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -320,6 +320,25 @@ function OppsPage() {
           onChange={setStatusF}
           placeholder="All statuses"
         />
+        <MultiSelect
+          className="w-52"
+          options={architectOptions}
+          value={architectF}
+          onChange={setArchitectF}
+          placeholder="All architects"
+        />
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer">
+          <input type="checkbox" className="h-3.5 w-3.5" checked={unassignedOnly} onChange={(e) => setUnassignedOnly(e.target.checked)} />
+          Unassigned only
+        </label>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+          <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="crm">Sort: CRM ID</SelectItem>
+            <SelectItem value="architect">Sort: Architect A→Z</SelectItem>
+            <SelectItem value="architect_desc">Sort: Architect Z→A</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card className="overflow-hidden">
