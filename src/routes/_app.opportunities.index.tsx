@@ -374,7 +374,7 @@ function OppsPage() {
   );
 }
 
-const STATUS_OPTIONS = ["Pending", "In Progress", "Completed", "Closed Won", "Closed Lost"] as const;
+const STATUS_OPTIONS = ["Pending", "In Progress", "Waiting for Clarification", "Completed", "Closed Won", "Closed Lost"] as const;
 
 function StatusSelect({ opp }: { opp: OppRow }) {
   const qc = useQueryClient();
