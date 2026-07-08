@@ -139,10 +139,10 @@ function RatingsPage() {
                   <td className="px-4 py-2.5">{r.ratedOpps}</td>
                   <td className="px-4 py-2.5">{r.reviews}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`inline-flex items-center gap-1 font-medium ${r.avg > 0 && r.avg < 8 ? "text-destructive" : ""}`}>
+                    <span className={`inline-flex items-center gap-1 font-medium ${r.avg > 0 && r.avg < 4 ? "text-destructive" : ""}`}>
                       <Star className="h-3.5 w-3.5" />{r.avg || "—"}
                     </span>
-                    {r.avg > 0 && r.avg < 8 && <Badge variant="destructive" className="ml-2">Below threshold</Badge>}
+                    {r.avg > 0 && r.avg < 4 && <Badge variant="destructive" className="ml-2">Below threshold</Badge>}
                   </td>
                   <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">View →</td>
                 </tr>
@@ -189,7 +189,7 @@ function ArchitectDetail({
         </div>
         <div className="text-right">
           <div className="text-xs text-muted-foreground">Overall avg</div>
-          <div className={`text-2xl font-semibold inline-flex items-center gap-1 ${overall > 0 && overall < 8 ? "text-destructive" : ""}`}>
+          <div className={`text-2xl font-semibold inline-flex items-center gap-1 ${overall > 0 && overall < 4 ? "text-destructive" : ""}`}>
             <Star className="h-5 w-5" />{overall || "—"}
           </div>
         </div>
@@ -220,7 +220,7 @@ function ArchitectDetail({
                     <td className="px-4 py-2.5">{r?.reviews ?? 0}</td>
                     <td className="px-4 py-2.5">
                       {r ? (
-                        <span className={`inline-flex items-center gap-1 font-medium ${r.avg < 8 ? "text-destructive" : ""}`}>
+                        <span className={`inline-flex items-center gap-1 font-medium ${r.avg < 4 ? "text-destructive" : ""}`}>
                           <Star className="h-3.5 w-3.5" />{r.avg}
                         </span>
                       ) : <span className="text-muted-foreground">—</span>}
