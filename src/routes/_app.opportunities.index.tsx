@@ -63,6 +63,9 @@ function OppsPage() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState<string[]>([]);
+  const [architectF, setArchitectF] = useState<string[]>([]);
+  const [unassignedOnly, setUnassignedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc">("crm");
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
@@ -91,7 +94,6 @@ function OppsPage() {
 
   const assignsQ = useQuery({
     queryKey: ["opps-assigns"],
-    enabled: canAssign,
     queryFn: async () => {
       const { data } = await supabase.from("opportunity_architects").select("opportunity_id, user_id");
       return (data ?? []) as { opportunity_id: string; user_id: string }[];
@@ -100,31 +102,57 @@ function OppsPage() {
 
   const profilesQ = useQuery({
     queryKey: ["opps-profiles"],
-    enabled: canAssign,
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("id, full_name, email");
       return (data ?? []) as Profile[];
     },
   });
 
+  const profNameMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
+
   const archByOpp = (() => {
-    const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p.full_name || p.email || "Unknown"]));
-    const m = new Map<string, string[]>();
+    const m = new Map<string, { id: string; name: string }[]>();
     (assignsQ.data ?? []).forEach((a) => {
-      const name = profMap.get(a.user_id) || "Unknown";
+      const name = profNameMap.get(a.user_id) || "Unknown";
       const arr = m.get(a.opportunity_id) ?? [];
-      arr.push(name);
+      arr.push({ id: a.user_id, name });
       m.set(a.opportunity_id, arr);
     });
     return m;
   })();
 
-  const filtered = (oppsQ.data ?? []).filter((o) => {
-    if (statusF.length > 0 && !statusF.includes(o.status)) return false;
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return o.customer_name.toLowerCase().includes(s) || o.project_name.toLowerCase().includes(s) || o.crm_number.toLowerCase().includes(s);
-  });
+  // Architect options (only architects with at least one assignment shown, plus any known architect)
+  const architectOptions = (() => {
+    const ids = new Set<string>();
+    (assignsQ.data ?? []).forEach((a) => ids.add(a.user_id));
+    return Array.from(ids)
+      .map((id) => ({ label: profNameMap.get(id) || "Unknown", value: id }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  })();
+
+  const filtered = (() => {
+    let rows = (oppsQ.data ?? []).filter((o) => {
+      if (statusF.length > 0 && !statusF.includes(o.status)) return false;
+      const archs = archByOpp.get(o.id) ?? [];
+      if (unassignedOnly && archs.length > 0) return false;
+      if (architectF.length > 0) {
+        const ids = archs.map((a) => a.id);
+        if (!architectF.some((f) => ids.includes(f))) return false;
+      }
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return o.customer_name.toLowerCase().includes(s) || o.project_name.toLowerCase().includes(s) || o.crm_number.toLowerCase().includes(s);
+    });
+    if (sortBy === "architect" || sortBy === "architect_desc") {
+      const dir = sortBy === "architect" ? 1 : -1;
+      rows = rows.slice().sort((a, b) => {
+        const an = (archByOpp.get(a.id) ?? []).map((x) => x.name).join(", ") || "~";
+        const bn = (archByOpp.get(b.id) ?? []).map((x) => x.name).join(", ") || "~";
+        return an.localeCompare(bn) * dir;
+      });
+    }
+    return rows;
+  })();
 
   const exportCsv = () => {
     const headers = ["CRM", "Customer", "Project", "Region", "System Details", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
