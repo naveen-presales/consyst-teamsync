@@ -647,7 +647,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   (ratingsQ.data ?? []).forEach((a) => { (byQ[a.question_id] ||= []).push(a.score); });
   const radarData = (questionsQ.data ?? []).map((q) => {
     const arr = byQ[q.id] ?? [];
-    const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+    const avg = arr.length ? Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10 : 0;
     const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
     return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
   });
