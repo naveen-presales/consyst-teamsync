@@ -284,6 +284,7 @@ function OppDetail() {
                 <SelectContent>
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Waiting for Clarification">Waiting for Clarification</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                   <SelectItem value="Closed Won">Closed Won</SelectItem>
                   <SelectItem value="Closed Lost">Closed Lost</SelectItem>

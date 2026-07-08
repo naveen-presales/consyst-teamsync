@@ -161,7 +161,7 @@ function VpDashboard() {
       uid,
       name: profMap.get(uid)?.full_name || profMap.get(uid)?.email || "Unknown",
       email: profMap.get(uid)?.email ?? "",
-      avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10,
+      avg: Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10,
       reviews: arr.length,
     })).sort((a, b) => b.avg - a.avg);
   }, [byOppRating, assignsQ.data, profilesQ.data]);
@@ -206,7 +206,7 @@ function VpDashboard() {
     });
     return (questionsQ.data ?? []).map((q) => {
       const arr = byQ[q.id] ?? [];
-      const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+      const avg = arr.length ? Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10 : 0;
       const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
       return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
     });
@@ -242,6 +242,7 @@ function VpDashboard() {
           options={[
             { label: "Pending", value: "Pending" },
             { label: "In Progress", value: "In Progress" },
+            { label: "Waiting for Clarification", value: "Waiting for Clarification" },
             { label: "Completed", value: "Completed" },
           ]}
         />
@@ -270,7 +271,7 @@ function VpDashboard() {
           <Kpi icon={CheckCircle2} label="On-time rate" value={`${kpis.completionRate}%`} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setTeamRatingOpen(true)}>
-          <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 8} />
+          <Kpi icon={Star} label="Avg team rating" value={kpis.avgRating || "—"} flag={kpis.avgRating > 0 && kpis.avgRating < 4} />
         </ClickableKpi>
         <ClickableKpi
           onClick={() => setDrill({
@@ -351,7 +352,7 @@ function VpDashboard() {
                 >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 10]} tickCount={6} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 5]} tickCount={6} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
                 </RadarChart>
@@ -605,7 +606,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   });
   const ratingByOpp: Record<string, number> = {};
   Object.entries(byOppScores).forEach(([oid, arr]) => {
-    ratingByOpp[oid] = Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10;
+    ratingByOpp[oid] = Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10;
   });
 
   // VP rating: avg across COMPLETED opps that have at least one rating
@@ -646,7 +647,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   (ratingsQ.data ?? []).forEach((a) => { (byQ[a.question_id] ||= []).push(a.score); });
   const radarData = (questionsQ.data ?? []).map((q) => {
     const arr = byQ[q.id] ?? [];
-    const avg = arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10 : 0;
+    const avg = arr.length ? Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10 : 0;
     const short = q.text.length > 32 ? q.text.slice(0, 30) + "…" : q.text;
     return { id: q.id, question: short, fullText: q.text, avg, reviews: arr.length };
   });
@@ -655,7 +656,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
   const trend = Object.entries(byRating)
     .map(([rid, arr]) => {
       const meta = (ratingsQ.data ?? []).find((x) => x.rating_id === rid)?.ratings;
-      return { date: meta?.created_at ?? "", avg: Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10, rid };
+      return { date: meta?.created_at ?? "", avg: Math.round(((arr.reduce((a, b) => a + b, 0) / arr.length) / 2) * 10) / 10, rid };
     })
     .filter((d) => d.date)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -691,7 +692,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <ClickableKpi onClick={() => setDrill({ title: "My VP rating — completed opportunities", description: `Average ${avgRating || "—"} across ${completedRatedAvgs.length} rated of ${completed.length} completed opportunity(s).`, items: completed, ratingByOpp })}>
-          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 8} />
+          <Kpi icon={Star} label="My VP rating" value={avgRating || "—"} flag={avgRating > 0 && avgRating < 4} />
         </ClickableKpi>
         <ClickableKpi onClick={() => setDrill({ title: "Completed opportunities", items: completed })}>
           <Kpi icon={CheckCircle2} label="Completed" value={completed.length} />
@@ -776,7 +777,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                 <RadarChart data={radarData}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="question" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 10]} tickCount={6} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 5]} tickCount={6} tick={{ fontSize: 10 }} />
                   <Radar dataKey="avg" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={0.4} />
                   <Tooltip formatter={(v: any, _n, p: any) => [`${v} (${p?.payload?.reviews ?? 0} reviews)`, p?.payload?.fullText ?? "Score"]} />
                 </RadarChart>
@@ -800,7 +801,7 @@ function ArchitectDashboard({ userId }: { userId: string }) {
                 }}
               >
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="avg" fill="var(--chart-1)" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }} />
               </BarChart>
