@@ -190,8 +190,11 @@ function StatusPage() {
             <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="crm">Sort: CRM ID</SelectItem>
+              <SelectItem value="priority">Sort: Priority High→Low</SelectItem>
+              <SelectItem value="priority_desc">Sort: Priority Low→High</SelectItem>
               <SelectItem value="architect">Sort: Architect A→Z</SelectItem>
               <SelectItem value="architect_desc">Sort: Architect Z→A</SelectItem>
+
             </SelectContent>
           </Select>
           <div className="text-xs text-muted-foreground ml-auto">{rows.length} opportunities</div>
