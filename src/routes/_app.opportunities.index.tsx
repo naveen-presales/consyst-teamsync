@@ -16,6 +16,8 @@ import { Progress } from "@/components/ui/progress";
 import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
 import { MultiSelect } from "@/components/MultiSelect";
+import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+
 
 const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
