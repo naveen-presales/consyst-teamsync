@@ -522,8 +522,10 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
     received_date: "", start_date: "", deadline: "", approx_submission_date: "",
     opportunity_type: "Budgetary", status: "Pending",
+    priority: "Medium",
     architect_id: "",
   });
+
   const [saving, setSaving] = useState(false);
 
   const architectsQ = useQuery({
