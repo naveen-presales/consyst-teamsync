@@ -248,9 +248,11 @@ function OppDetail() {
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
+            <PriorityBadge value={(opp as any).priority} />
           </div>
         </div>
       </header>
+
 
       {opp.on_hold && (
         <Card className="mb-4 p-4 border-amber-500/40 bg-amber-500/10">
