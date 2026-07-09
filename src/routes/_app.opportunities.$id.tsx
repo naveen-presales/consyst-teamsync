@@ -306,6 +306,17 @@ function OppDetail() {
                 </SelectContent>
               </Select>
             </DetailField>
+            <DetailField label="Priority">
+              <Select value={(opp as any).priority ?? "Medium"} onValueChange={(v) => updateOpp({ priority: v } as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </DetailField>
+
             <DetailField label="Revisions">
               <Input
                 type="number"
