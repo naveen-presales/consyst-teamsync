@@ -256,6 +256,7 @@ export type Database = {
           pre_hold_status:
             | Database["public"]["Enums"]["opportunity_status"]
             | null
+          priority: Database["public"]["Enums"]["opportunity_priority"]
           project_name: string
           received_date: string | null
           region: string | null
@@ -295,6 +296,7 @@ export type Database = {
           pre_hold_status?:
             | Database["public"]["Enums"]["opportunity_status"]
             | null
+          priority?: Database["public"]["Enums"]["opportunity_priority"]
           project_name: string
           received_date?: string | null
           region?: string | null
@@ -334,6 +336,7 @@ export type Database = {
           pre_hold_status?:
             | Database["public"]["Enums"]["opportunity_status"]
             | null
+          priority?: Database["public"]["Enums"]["opportunity_priority"]
           project_name?: string
           received_date?: string | null
           region?: string | null
@@ -654,6 +657,7 @@ export type Database = {
           has_architect: boolean
           id: string
           opportunity_type: string
+          priority: string
           project_name: string
           status: string
         }[]
@@ -684,6 +688,7 @@ export type Database = {
       goal_measurement: "numeric" | "percentage" | "currency" | "boolean"
       goal_operator: "gte" | "gt" | "eq" | "lte" | "lt"
       goal_scope: "team" | "department" | "individual"
+      opportunity_priority: "Low" | "Medium" | "High"
       opportunity_status:
         | "Pending"
         | "In Progress"
@@ -827,6 +832,7 @@ export const Constants = {
       goal_measurement: ["numeric", "percentage", "currency", "boolean"],
       goal_operator: ["gte", "gt", "eq", "lte", "lt"],
       goal_scope: ["team", "department", "individual"],
+      opportunity_priority: ["Low", "Medium", "High"],
       opportunity_status: [
         "Pending",
         "In Progress",
