@@ -54,7 +54,7 @@ function StatusPage() {
   const [statusF, setStatusF] = useState<string[]>([]);
   const [architectF, setArchitectF] = useState<string[]>([]);
   const [unassignedOnly, setUnassignedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc">("crm");
+  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("crm");
 
   const q = useQuery({
     queryKey: ["status-board"],
