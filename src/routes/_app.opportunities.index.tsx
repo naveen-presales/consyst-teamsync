@@ -391,7 +391,13 @@ function OppsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
-                  <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link>
+                      <PriorityBadge value={o.priority} />
+                    </div>
+                  </td>
+
                   <td className="px-4 py-2.5 text-xs text-muted-foreground">{o.region || "—"}</td>
                   <td className="px-4 py-2.5 text-xs text-muted-foreground max-w-[220px] truncate" title={o.system_details ?? ""}>{o.system_details || "—"}</td>
                   {canAssign && (
