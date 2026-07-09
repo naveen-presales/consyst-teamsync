@@ -234,7 +234,13 @@ function StatusPage() {
                         </div>
                       </td>
                       <td className="px-4 py-2.5">{o.customer_name}</td>
-                      <td className="px-4 py-2.5">{o.project_name}</td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span>{o.project_name}</span>
+                          <PriorityBadge value={o.priority} />
+                        </div>
+                      </td>
+
                       <td className="px-4 py-2.5 text-xs">
                         {o.architect_names
                           ? o.architect_names
