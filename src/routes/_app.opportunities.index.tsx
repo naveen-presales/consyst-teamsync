@@ -16,6 +16,8 @@ import { Progress } from "@/components/ui/progress";
 import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
 import { MultiSelect } from "@/components/MultiSelect";
+import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+
 
 const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
@@ -51,7 +53,9 @@ type OppRow = {
   region: string | null;
   system_details: string | null;
   final_bom: string | null;
+  priority: Priority | null;
 };
+
 
 type Profile = { id: string; full_name: string | null; email: string | null };
 type Role = { user_id: string; role: string };
@@ -65,7 +69,7 @@ function OppsPage() {
   const [statusF, setStatusF] = useState<string[]>([]);
   const [architectF, setArchitectF] = useState<string[]>([]);
   const [unassignedOnly, setUnassignedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc">("crm");
+  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("crm");
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
@@ -150,9 +154,17 @@ function OppsPage() {
         const bn = (archByOpp.get(b.id) ?? []).map((x) => x.name).join(", ") || "~";
         return an.localeCompare(bn) * dir;
       });
+    } else if (sortBy === "priority" || sortBy === "priority_desc") {
+      const dir = sortBy === "priority" ? 1 : -1;
+      rows = rows.slice().sort((a, b) => {
+        const ar = PRIORITY_RANK[(a.priority ?? "Medium") as Priority] ?? 1;
+        const br = PRIORITY_RANK[(b.priority ?? "Medium") as Priority] ?? 1;
+        return (ar - br) * dir;
+      });
     }
     return rows;
   })();
+
 
   const exportCsv = () => {
     const headers = ["CRM", "Customer", "Project", "Region", "System Details", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
@@ -335,8 +347,11 @@ function OppsPage() {
           <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="crm">Sort: CRM ID</SelectItem>
+            <SelectItem value="priority">Sort: Priority High→Low</SelectItem>
+            <SelectItem value="priority_desc">Sort: Priority Low→High</SelectItem>
             <SelectItem value="architect">Sort: Architect A→Z</SelectItem>
             <SelectItem value="architect_desc">Sort: Architect Z→A</SelectItem>
+
           </SelectContent>
         </Select>
       </div>
@@ -376,7 +391,13 @@ function OppsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-2.5">{o.customer_name}</td>
-                  <td className="px-4 py-2.5"><Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link></td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.project_name}</Link>
+                      <PriorityBadge value={o.priority} />
+                    </div>
+                  </td>
+
                   <td className="px-4 py-2.5 text-xs text-muted-foreground">{o.region || "—"}</td>
                   <td className="px-4 py-2.5 text-xs text-muted-foreground max-w-[220px] truncate" title={o.system_details ?? ""}>{o.system_details || "—"}</td>
                   {canAssign && (
@@ -501,8 +522,10 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     rfq_reading_hours: "", estimation_hours: "", opportunity_cost: "",
     received_date: "", start_date: "", deadline: "", approx_submission_date: "",
     opportunity_type: "Budgetary", status: "Pending",
+    priority: "Medium",
     architect_id: "",
   });
+
   const [saving, setSaving] = useState(false);
 
   const architectsQ = useQuery({
@@ -625,6 +648,17 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Priority">
+          <Select value={form.priority} onValueChange={(v) => set("priority", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Low">Low</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="High">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
         <Field label="Assigned date"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>

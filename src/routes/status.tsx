@@ -9,6 +9,8 @@ import { Search } from "lucide-react";
 import { useState } from "react";
 import consystLogo from "@/assets/consyst-logo.png";
 import { MultiSelect } from "@/components/MultiSelect";
+import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+
 
 export const Route = createFileRoute("/status")({
   head: () => ({
@@ -28,10 +30,12 @@ type Row = {
   project_name: string;
   opportunity_type: string;
   status: string;
+  priority: string | null;
   approx_submission_date: string | null;
   has_architect: boolean | null;
   architect_names: string | null;
 };
+
 
 const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
@@ -50,7 +54,7 @@ function StatusPage() {
   const [statusF, setStatusF] = useState<string[]>([]);
   const [architectF, setArchitectF] = useState<string[]>([]);
   const [unassignedOnly, setUnassignedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc">("crm");
+  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("crm");
 
   const q = useQuery({
     queryKey: ["status-board"],
@@ -124,9 +128,17 @@ function StatusPage() {
       const bn = (b.architect_names || "~");
       return an.localeCompare(bn) * dir;
     });
+  } else if (sortBy === "priority" || sortBy === "priority_desc") {
+    const dir = sortBy === "priority" ? 1 : -1;
+    rows = rows.slice().sort((a, b) => {
+      const ar = PRIORITY_RANK[((a.priority ?? "Medium") as Priority)] ?? 1;
+      const br = PRIORITY_RANK[((b.priority ?? "Medium") as Priority)] ?? 1;
+      return (ar - br) * dir;
+    });
   } else {
     rows = rows.slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
   }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,8 +190,11 @@ function StatusPage() {
             <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="crm">Sort: CRM ID</SelectItem>
+              <SelectItem value="priority">Sort: Priority High→Low</SelectItem>
+              <SelectItem value="priority_desc">Sort: Priority Low→High</SelectItem>
               <SelectItem value="architect">Sort: Architect A→Z</SelectItem>
               <SelectItem value="architect_desc">Sort: Architect Z→A</SelectItem>
+
             </SelectContent>
           </Select>
           <div className="text-xs text-muted-foreground ml-auto">{rows.length} opportunities</div>
@@ -219,7 +234,13 @@ function StatusPage() {
                         </div>
                       </td>
                       <td className="px-4 py-2.5">{o.customer_name}</td>
-                      <td className="px-4 py-2.5">{o.project_name}</td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span>{o.project_name}</span>
+                          <PriorityBadge value={o.priority} />
+                        </div>
+                      </td>
+
                       <td className="px-4 py-2.5 text-xs">
                         {o.architect_names
                           ? o.architect_names

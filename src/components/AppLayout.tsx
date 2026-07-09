@@ -108,14 +108,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* Floating notification bell — top-right across all app pages */}
+      <div className="fixed top-3 right-4 z-50">
+        <NotificationBell />
+      </div>
+
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
-          <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
+          <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-base font-bold tracking-tight truncate">TeamSync</div>
+            <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
           </div>
-          <div className="shrink-0"><NotificationBell /></div>
         </div>
 
         {navContent()}
@@ -132,20 +136,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64 bg-sidebar flex flex-col">
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
-                <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
+                <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-base font-bold tracking-tight truncate">TeamSync</div>
+                  <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
-          <img src={consystLogo} alt="Consyst" className="h-8 w-auto shrink-0 object-contain" />
-          <div className="text-sm font-bold tracking-tight truncate min-w-0 flex-1">TeamSync</div>
-
-          <div className="ml-auto shrink-0">
-            <NotificationBell />
-          </div>
+          <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
+          <div className="text-base font-bold tracking-tight truncate min-w-0 flex-1">TeamSync</div>
+          {/* Reserve room so the fixed bell doesn't overlap the title */}
+          <div className="w-10 shrink-0" aria-hidden />
         </header>
 
         <main className="flex-1 min-w-0">{children}</main>
@@ -153,3 +155,4 @@ export function AppLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

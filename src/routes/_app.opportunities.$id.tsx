@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
+import { PriorityBadge } from "@/components/PriorityBadge";
+
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
 
@@ -246,9 +248,11 @@ function OppDetail() {
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
+            <PriorityBadge value={(opp as any).priority} />
           </div>
         </div>
       </header>
+
 
       {opp.on_hold && (
         <Card className="mb-4 p-4 border-amber-500/40 bg-amber-500/10">
@@ -302,6 +306,17 @@ function OppDetail() {
                 </SelectContent>
               </Select>
             </DetailField>
+            <DetailField label="Priority">
+              <Select value={(opp as any).priority ?? "Medium"} onValueChange={(v) => updateOpp({ priority: v } as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </DetailField>
+
             <DetailField label="Revisions">
               <Input
                 type="number"
