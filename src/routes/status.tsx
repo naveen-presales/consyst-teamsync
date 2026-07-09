@@ -128,9 +128,17 @@ function StatusPage() {
       const bn = (b.architect_names || "~");
       return an.localeCompare(bn) * dir;
     });
+  } else if (sortBy === "priority" || sortBy === "priority_desc") {
+    const dir = sortBy === "priority" ? 1 : -1;
+    rows = rows.slice().sort((a, b) => {
+      const ar = PRIORITY_RANK[((a.priority ?? "Medium") as Priority)] ?? 1;
+      const br = PRIORITY_RANK[((b.priority ?? "Medium") as Priority)] ?? 1;
+      return (ar - br) * dir;
+    });
   } else {
     rows = rows.slice().sort((a, b) => cmpCrm(a.crm_number, b.crm_number));
   }
+
 
   return (
     <div className="min-h-screen bg-background">
