@@ -30,10 +30,12 @@ type Row = {
   project_name: string;
   opportunity_type: string;
   status: string;
+  priority: string | null;
   approx_submission_date: string | null;
   has_architect: boolean | null;
   architect_names: string | null;
 };
+
 
 const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
