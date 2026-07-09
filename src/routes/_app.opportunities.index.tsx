@@ -648,6 +648,17 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Priority">
+          <Select value={form.priority} onValueChange={(v) => set("priority", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Low">Low</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="High">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
         <Field label="Assigned date"><Input type="date" value={form.received_date} onChange={(e) => set("received_date", e.target.value)} /></Field>
         <Field label="Start"><Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
         <Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></Field>
