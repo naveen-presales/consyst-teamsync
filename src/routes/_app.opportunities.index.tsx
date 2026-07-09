@@ -53,7 +53,9 @@ type OppRow = {
   region: string | null;
   system_details: string | null;
   final_bom: string | null;
+  priority: Priority | null;
 };
+
 
 type Profile = { id: string; full_name: string | null; email: string | null };
 type Role = { user_id: string; role: string };
