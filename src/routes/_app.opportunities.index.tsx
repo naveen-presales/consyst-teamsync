@@ -154,9 +154,17 @@ function OppsPage() {
         const bn = (archByOpp.get(b.id) ?? []).map((x) => x.name).join(", ") || "~";
         return an.localeCompare(bn) * dir;
       });
+    } else if (sortBy === "priority" || sortBy === "priority_desc") {
+      const dir = sortBy === "priority" ? 1 : -1;
+      rows = rows.slice().sort((a, b) => {
+        const ar = PRIORITY_RANK[(a.priority ?? "Medium") as Priority] ?? 1;
+        const br = PRIORITY_RANK[(b.priority ?? "Medium") as Priority] ?? 1;
+        return (ar - br) * dir;
+      });
     }
     return rows;
   })();
+
 
   const exportCsv = () => {
     const headers = ["CRM", "Customer", "Project", "Region", "System Details", "Type", "Status", "Received", "Start", "Deadline", "Completed", "Revisions"];
