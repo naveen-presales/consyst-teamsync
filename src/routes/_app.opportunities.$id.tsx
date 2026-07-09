@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
+import { PriorityBadge } from "@/components/PriorityBadge";
+
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
 
