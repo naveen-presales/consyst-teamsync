@@ -37,6 +37,8 @@ function OppDetail() {
   const { id } = useParams({ from: "/_app/opportunities/$id" });
   const { user, isAdmin, isVp } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
 
   const oppQ = useQuery({
     queryKey: ["opp", id],
