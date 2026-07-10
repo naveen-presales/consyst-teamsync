@@ -246,6 +246,43 @@ function OppDetail() {
   const isManager = isVp || isAdmin;
   const progressPct = computeProgress(opp);
 
+  const deleteOpportunity = async () => {
+    setDeleting(true);
+    try {
+      const architectIds = assignedQ.data ?? [];
+      const link = `/opportunities/${id}`;
+      const body = `${opp.project_name} (${opp.crm_number})`;
+
+      // Clean up rows without ON DELETE FKs first (best-effort).
+      await supabase.from("notifications").delete().eq("opportunity_id", id);
+      await supabase.from("opportunity_breach_history").delete().eq("opportunity_id", id);
+
+      const { error } = await supabase.from("opportunities").delete().eq("id", id);
+      if (error) { toast.error(error.message); setDeleting(false); return; }
+
+      // Notify previously assigned architects (skip actor).
+      const recipients = architectIds.filter((uid) => uid !== user!.id);
+      if (recipients.length) {
+        await notify(recipients.map((rid) => ({
+          recipient_id: rid,
+          actor_id: user!.id,
+          type: "opportunity_deleted",
+          title: "Opportunity deleted",
+          body,
+          link: null,
+          opportunity_id: null,
+        })));
+      }
+
+      toast.success("Opportunity deleted");
+      qc.invalidateQueries({ queryKey: ["opps"] });
+      qc.invalidateQueries({ queryKey: ["status-board"] });
+      navigate({ to: "/opportunities" });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
       <Link to="/opportunities" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
