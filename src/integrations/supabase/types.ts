@@ -401,7 +401,7 @@ export type Database = {
           {
             foreignKeyName: "opportunity_architects_opportunity_id_fkey"
             columns: ["opportunity_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },

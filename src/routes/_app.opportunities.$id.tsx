@@ -1,4 +1,15 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -26,6 +37,8 @@ function OppDetail() {
   const { id } = useParams({ from: "/_app/opportunities/$id" });
   const { user, isAdmin, isVp } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
 
   const oppQ = useQuery({
     queryKey: ["opp", id],
@@ -233,6 +246,43 @@ function OppDetail() {
   const isManager = isVp || isAdmin;
   const progressPct = computeProgress(opp);
 
+  const deleteOpportunity = async () => {
+    setDeleting(true);
+    try {
+      const architectIds = assignedQ.data ?? [];
+      const link = `/opportunities/${id}`;
+      const body = `${opp.project_name} (${opp.crm_number})`;
+
+      // Clean up rows without ON DELETE FKs first (best-effort).
+      await supabase.from("notifications").delete().eq("opportunity_id", id);
+      await supabase.from("opportunity_breach_history").delete().eq("opportunity_id", id);
+
+      const { error } = await supabase.from("opportunities").delete().eq("id", id);
+      if (error) { toast.error(error.message); setDeleting(false); return; }
+
+      // Notify previously assigned architects (skip actor).
+      const recipients = architectIds.filter((uid) => uid !== user!.id);
+      if (recipients.length) {
+        await notify(recipients.map((rid) => ({
+          recipient_id: rid,
+          actor_id: user!.id,
+          type: "opportunity_deleted",
+          title: "Opportunity deleted",
+          body,
+          link: null,
+          opportunity_id: null,
+        })));
+      }
+
+      toast.success("Opportunity deleted");
+      qc.invalidateQueries({ queryKey: ["opps"] });
+      qc.invalidateQueries({ queryKey: ["status-board"] });
+      navigate({ to: "/opportunities" });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
       <Link to="/opportunities" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
@@ -249,6 +299,28 @@ function OppDetail() {
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
             <Badge>{opp.status}</Badge>
             <PriorityBadge value={(opp as any).priority} />
+            {isManager && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="destructive" disabled={deleting}>
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    {deleting ? "Deleting…" : "Delete"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this opportunity?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      The action is irreversible and deleted opportunity will not be restored.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteOpportunity}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </header>
