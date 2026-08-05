@@ -564,8 +564,9 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     e.preventDefault();
     setSaving(true);
     const { architect_id, ...rest } = form;
-    const payload: any = { ...rest, created_by: userId };
+    const payload: any = { ...rest, crm_number: rest.crm_number.trim().toUpperCase(), created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
+
     ["rfq_reading_hours", "estimation_hours", "opportunity_cost"].forEach((k) => {
       if (payload[k] != null) payload[k] = Number(payload[k]);
     });
