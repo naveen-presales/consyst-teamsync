@@ -615,63 +615,8 @@ function PhaseTracker({ opp, userId, isManager, disabled, progressPct }: { opp: 
   );
 }
 
-function HoldDialog({ open, onOpenChange, opp, userId }: { open: boolean; onOpenChange: (o: boolean) => void; opp: any; userId: string }) {
-  const qc = useQueryClient();
-  const [reason, setReason] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reason.trim()) return toast.error("Reason required");
-    setSaving(true);
-    const { error } = await supabase.from("opportunities").update({
-      on_hold: true,
-      hold_reason: reason.trim(),
-      hold_started_at: new Date().toISOString(),
-      pre_hold_status: opp.status,
-      status: "On Hold",
-    }).eq("id", opp.id);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    await logActivity(opp.id, userId, "on_hold", `Placed on hold: ${reason.trim()}`);
 
-    // Notify the other side
-    const link = `/opportunities/${opp.id}`;
-    const archs = await getOppArchitectRecipients(opp.id, opp.created_by, userId);
-    const vps = await getVpAdminIds(userId);
-    const recipients = Array.from(new Set([...archs, ...vps]));
-    if (recipients.length) {
-      await notify(recipients.map((rid) => ({
-        recipient_id: rid, actor_id: userId, type: "opportunity_on_hold",
-        title: "Opportunity placed on hold",
-        body: `${opp.project_name} (${opp.crm_number}) — ${reason.trim()}`,
-        link, opportunity_id: opp.id,
-      })));
-    }
-
-    qc.invalidateQueries({ queryKey: ["opp", opp.id] });
-    qc.invalidateQueries({ queryKey: ["opp-activity", opp.id] });
-    qc.invalidateQueries({ queryKey: ["opps"] });
-    onOpenChange(false);
-    setReason("");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Place opportunity on hold</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="space-y-3">
-          <Label className="text-xs">Reason</Label>
-          <Textarea required value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Brief reason for hold…" />
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Confirm hold"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function ResumeButton({ opp, userId }: { opp: any; userId: string }) {
   const qc = useQueryClient();
