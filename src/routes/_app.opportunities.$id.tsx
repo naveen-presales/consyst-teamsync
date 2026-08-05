@@ -41,6 +41,8 @@ function OppDetail() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
+  const [detailHoldOpen, setDetailHoldOpen] = useState(false);
+
 
   const oppQ = useQuery({
     queryKey: ["opp", id],
