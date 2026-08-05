@@ -497,18 +497,30 @@ function StatusSelect({ opp }: { opp: OppRow }) {
   };
   const inList = (STATUS_OPTIONS as readonly string[]).includes(value);
   return (
-    <Select value={inList ? value : ""} onValueChange={onChange}>
-      <SelectTrigger className="h-8 text-xs">
-        <SelectValue placeholder={value || "Set status"} />
-      </SelectTrigger>
-      <SelectContent>
-        {STATUS_OPTIONS.map((s) => (
-          <SelectItem key={s} value={s}>{s}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <>
+      <Select value={inList ? value : ""} onValueChange={onChange}>
+        <SelectTrigger className="h-8 text-xs">
+          <SelectValue placeholder={value || "Set status"} />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((s) => (
+            <SelectItem key={s} value={s}>{s}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {user && (
+        <HoldDialog
+          open={holdOpen}
+          onOpenChange={setHoldOpen}
+          opp={opp}
+          userId={user.id}
+          onCancelled={() => setValue(opp.status)}
+        />
+      )}
+    </>
   );
 }
+
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
