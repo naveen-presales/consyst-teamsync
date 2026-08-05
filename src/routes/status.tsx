@@ -41,10 +41,13 @@ const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
   { label: "In Progress", value: "In Progress" },
   { label: "Waiting for Clarification", value: "Waiting for Clarification" },
+  { label: "Reopened", value: "Reopened" },
   { label: "Submitted to Sales", value: "Submitted to Sales" },
   { label: "Closed Won", value: "Closed Won" },
   { label: "Closed Lost", value: "Closed Lost" },
+  { label: "Regret", value: "Regret" },
 ];
+
 
 const cmpCrm = (a: string, b: string) =>
   (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
