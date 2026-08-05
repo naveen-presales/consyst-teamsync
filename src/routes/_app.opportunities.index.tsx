@@ -358,6 +358,7 @@ function OppsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">CRM</th>
                 <th className="text-left px-4 py-2.5 font-medium">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium">Project</th>
@@ -373,12 +374,13 @@ function OppsPage() {
 
             </thead>
             <tbody>
-              {filtered.map((o) => {
+              {filtered.map((o, i) => {
                 const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
                 const pct = done * 25;
                 const archs = archByOpp.get(o.id) ?? [];
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">
                     <div className="flex items-center gap-1.5">
                       <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
@@ -387,6 +389,7 @@ function OppsPage() {
                       )}
                     </div>
                   </td>
+
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1.5">
