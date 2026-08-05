@@ -17,6 +17,8 @@ import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } fro
 import * as XLSX from "xlsx";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+import { HoldDialog } from "@/components/HoldDialog";
+import { useSessionState } from "@/hooks/use-session-state";
 
 
 const STATUS_FILTER_OPTIONS = [
@@ -24,11 +26,14 @@ const STATUS_FILTER_OPTIONS = [
   { label: "In Progress", value: "In Progress" },
   { label: "Waiting for Clarification", value: "Waiting for Clarification" },
   { label: "On Hold", value: "On Hold" },
+  { label: "Reopened", value: "Reopened" },
   { label: "Submitted to Sales", value: "Submitted to Sales" },
   { label: "Completed", value: "Completed" },
   { label: "Closed Won", value: "Closed Won" },
   { label: "Closed Lost", value: "Closed Lost" },
+  { label: "Regret", value: "Regret" },
 ];
+
 
 const cmpCrm = (a: string, b: string) =>
   (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
