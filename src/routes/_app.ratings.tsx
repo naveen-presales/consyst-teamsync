@@ -116,6 +116,7 @@ function RatingsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">Architect</th>
                 <th className="text-left px-4 py-2.5 font-medium">Opportunities</th>
                 <th className="text-left px-4 py-2.5 font-medium">Rated</th>
@@ -125,16 +126,18 @@ function RatingsPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.map((r, i) => (
                 <tr
                   key={r.id}
                   className="border-t border-border hover:bg-muted/30 cursor-pointer"
                   onClick={() => setSelectedArchitect(r.id)}
                 >
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5">
                     <div className="font-medium">{r.full_name || r.email}</div>
                     <div className="text-xs text-muted-foreground">{r.email}</div>
                   </td>
+
                   <td className="px-4 py-2.5">{r.opps}</td>
                   <td className="px-4 py-2.5">{r.ratedOpps}</td>
                   <td className="px-4 py-2.5">{r.reviews}</td>
