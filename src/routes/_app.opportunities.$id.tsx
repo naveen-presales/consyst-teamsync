@@ -29,6 +29,8 @@ import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
 import { PriorityBadge } from "@/components/PriorityBadge";
+import { HoldDialog } from "@/components/HoldDialog";
+
 
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
