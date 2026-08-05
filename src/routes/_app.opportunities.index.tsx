@@ -207,7 +207,7 @@ function OppsPage() {
       let missing = 0;
       const parsed: { crm_number: string; customer_name: string; project_name: string }[] = [];
       for (const r of rows) {
-        const crm = String(r[idKey] ?? "").trim();
+        const crm = String(r[idKey] ?? "").trim().toUpperCase();
         const cust = String(r[custKey] ?? "").trim();
         const title = String(r[titleKey] ?? "").trim();
         if (!crm || !cust || !title) { missing++; continue; }
@@ -220,28 +220,19 @@ function OppsPage() {
         seen.add(p.crm_number); return true;
       });
 
-      let dupes = 0;
-      let toInsert = unique;
-      if (unique.length > 0) {
-        const { data: existing, error: exErr } = await supabase
-          .from("opportunities")
-          .select("crm_number")
-          .in("crm_number", unique.map((u) => u.crm_number));
-        if (exErr) throw exErr;
-        const existingSet = new Set((existing ?? []).map((e) => e.crm_number));
-        toInsert = unique.filter((u) => {
-          if (existingSet.has(u.crm_number)) { dupes++; return false; }
-          return true;
-        });
-      }
-
+      // Single atomic upsert: existing CRM numbers are ignored by the DB.
       let added = 0;
-      if (toInsert.length > 0) {
-        const payload = toInsert.map((r) => ({ ...r, created_by: user.id }));
-        const { error: insErr, data: ins } = await supabase.from("opportunities").insert(payload).select("id");
+      if (unique.length > 0) {
+        const payload = unique.map((r) => ({ ...r, created_by: user.id }));
+        const { error: insErr, data: ins } = await supabase
+          .from("opportunities")
+          .upsert(payload, { onConflict: "crm_number", ignoreDuplicates: true })
+          .select("id");
         if (insErr) throw insErr;
-        added = ins?.length ?? toInsert.length;
+        added = ins?.length ?? 0;
       }
+      const dupes = unique.length - added;
+
       const nowIso = new Date().toISOString();
       const { error: setErr } = await supabase
         .from("app_settings")
