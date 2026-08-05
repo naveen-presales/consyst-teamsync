@@ -70,11 +70,12 @@ function OppsPage() {
   const canAssign = isAdmin || isVp;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [statusF, setStatusF] = useState<string[]>([]);
-  const [architectF, setArchitectF] = useState<string[]>([]);
-  const [unassignedOnly, setUnassignedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("crm");
+  const [search, setSearch] = useSessionState<string>("opps.search", "");
+  const [statusF, setStatusF] = useSessionState<string[]>("opps.statusF", []);
+  const [architectF, setArchitectF] = useSessionState<string[]>("opps.architectF", []);
+  const [unassignedOnly, setUnassignedOnly] = useSessionState<boolean>("opps.unassignedOnly", false);
+  const [sortBy, setSortBy] = useSessionState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("opps.sortBy", "crm");
+
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
