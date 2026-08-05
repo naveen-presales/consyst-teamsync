@@ -203,6 +203,7 @@ function ArchitectDetail({
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">Opportunity</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
                 <th className="text-left px-4 py-2.5 font-medium">Reviews</th>
@@ -211,14 +212,16 @@ function ArchitectDetail({
               </tr>
             </thead>
             <tbody>
-              {myOpps.map((o) => {
+              {myOpps.map((o, i) => {
                 const r = oppAvg[o.id];
                 return (
                   <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                     <td className="px-4 py-2.5">
                       <div className="font-medium">{o.project_name}</div>
                       <div className="text-xs text-muted-foreground">{o.customer_name}</div>
                     </td>
+
                     <td className="px-4 py-2.5"><Badge variant="secondary">{o.status}</Badge></td>
                     <td className="px-4 py-2.5">{r?.reviews ?? 0}</td>
                     <td className="px-4 py-2.5">
