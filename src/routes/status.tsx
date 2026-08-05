@@ -41,10 +41,13 @@ const STATUS_FILTER_OPTIONS = [
   { label: "Pending", value: "Pending" },
   { label: "In Progress", value: "In Progress" },
   { label: "Waiting for Clarification", value: "Waiting for Clarification" },
+  { label: "Reopened", value: "Reopened" },
   { label: "Submitted to Sales", value: "Submitted to Sales" },
   { label: "Closed Won", value: "Closed Won" },
   { label: "Closed Lost", value: "Closed Lost" },
+  { label: "Regret", value: "Regret" },
 ];
+
 
 const cmpCrm = (a: string, b: string) =>
   (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
@@ -205,6 +208,7 @@ function StatusPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
+                  <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                   <th className="text-left px-4 py-2.5 font-medium">CRM ID</th>
                   <th className="text-left px-4 py-2.5 font-medium">Customer Name</th>
                   <th className="text-left px-4 py-2.5 font-medium">Project name</th>
@@ -217,14 +221,15 @@ function StatusPage() {
               <tbody>
                 {q.isLoading && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                       Loading…
                     </td>
                   </tr>
                 )}
                 {!q.isLoading &&
-                  rows.map((o) => (
+                  rows.map((o, i) => (
                     <tr key={o.id} className="border-t border-border select-none">
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                       <td className="px-4 py-2.5 font-mono text-xs">
                         <div className="flex items-center gap-1.5">
                           <span>{o.crm_number}</span>
@@ -233,6 +238,7 @@ function StatusPage() {
                           )}
                         </div>
                       </td>
+
                       <td className="px-4 py-2.5">{o.customer_name}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-1.5">

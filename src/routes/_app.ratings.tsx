@@ -116,6 +116,7 @@ function RatingsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">Architect</th>
                 <th className="text-left px-4 py-2.5 font-medium">Opportunities</th>
                 <th className="text-left px-4 py-2.5 font-medium">Rated</th>
@@ -125,16 +126,18 @@ function RatingsPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.map((r, i) => (
                 <tr
                   key={r.id}
                   className="border-t border-border hover:bg-muted/30 cursor-pointer"
                   onClick={() => setSelectedArchitect(r.id)}
                 >
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5">
                     <div className="font-medium">{r.full_name || r.email}</div>
                     <div className="text-xs text-muted-foreground">{r.email}</div>
                   </td>
+
                   <td className="px-4 py-2.5">{r.opps}</td>
                   <td className="px-4 py-2.5">{r.ratedOpps}</td>
                   <td className="px-4 py-2.5">{r.reviews}</td>
@@ -148,7 +151,7 @@ function RatingsPage() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground text-sm">No architects yet.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground text-sm">No architects yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -200,6 +203,7 @@ function ArchitectDetail({
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">Opportunity</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
                 <th className="text-left px-4 py-2.5 font-medium">Reviews</th>
@@ -208,14 +212,16 @@ function ArchitectDetail({
               </tr>
             </thead>
             <tbody>
-              {myOpps.map((o) => {
+              {myOpps.map((o, i) => {
                 const r = oppAvg[o.id];
                 return (
                   <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                     <td className="px-4 py-2.5">
                       <div className="font-medium">{o.project_name}</div>
                       <div className="text-xs text-muted-foreground">{o.customer_name}</div>
                     </td>
+
                     <td className="px-4 py-2.5"><Badge variant="secondary">{o.status}</Badge></td>
                     <td className="px-4 py-2.5">{r?.reviews ?? 0}</td>
                     <td className="px-4 py-2.5">
@@ -232,7 +238,7 @@ function ArchitectDetail({
                 );
               })}
               {myOpps.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities assigned to this architect.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities assigned to this architect.</td></tr>
               )}
             </tbody>
           </table>

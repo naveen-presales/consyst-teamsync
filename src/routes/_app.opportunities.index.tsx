@@ -17,6 +17,8 @@ import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } fro
 import * as XLSX from "xlsx";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+import { HoldDialog } from "@/components/HoldDialog";
+import { useSessionState } from "@/hooks/use-session-state";
 
 
 const STATUS_FILTER_OPTIONS = [
@@ -24,11 +26,14 @@ const STATUS_FILTER_OPTIONS = [
   { label: "In Progress", value: "In Progress" },
   { label: "Waiting for Clarification", value: "Waiting for Clarification" },
   { label: "On Hold", value: "On Hold" },
+  { label: "Reopened", value: "Reopened" },
   { label: "Submitted to Sales", value: "Submitted to Sales" },
   { label: "Completed", value: "Completed" },
   { label: "Closed Won", value: "Closed Won" },
   { label: "Closed Lost", value: "Closed Lost" },
+  { label: "Regret", value: "Regret" },
 ];
+
 
 const cmpCrm = (a: string, b: string) =>
   (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
@@ -65,11 +70,12 @@ function OppsPage() {
   const canAssign = isAdmin || isVp;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [statusF, setStatusF] = useState<string[]>([]);
-  const [architectF, setArchitectF] = useState<string[]>([]);
-  const [unassignedOnly, setUnassignedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("crm");
+  const [search, setSearch] = useSessionState<string>("opps.search", "");
+  const [statusF, setStatusF] = useSessionState<string[]>("opps.statusF", []);
+  const [architectF, setArchitectF] = useSessionState<string[]>("opps.architectF", []);
+  const [unassignedOnly, setUnassignedOnly] = useSessionState<boolean>("opps.unassignedOnly", false);
+  const [sortBy, setSortBy] = useSessionState<"crm" | "architect" | "architect_desc" | "priority" | "priority_desc">("opps.sortBy", "crm");
+
 
   const oppsQ = useQuery({
     queryKey: ["opps"],
@@ -201,7 +207,7 @@ function OppsPage() {
       let missing = 0;
       const parsed: { crm_number: string; customer_name: string; project_name: string }[] = [];
       for (const r of rows) {
-        const crm = String(r[idKey] ?? "").trim();
+        const crm = String(r[idKey] ?? "").trim().toUpperCase();
         const cust = String(r[custKey] ?? "").trim();
         const title = String(r[titleKey] ?? "").trim();
         if (!crm || !cust || !title) { missing++; continue; }
@@ -214,28 +220,19 @@ function OppsPage() {
         seen.add(p.crm_number); return true;
       });
 
-      let dupes = 0;
-      let toInsert = unique;
-      if (unique.length > 0) {
-        const { data: existing, error: exErr } = await supabase
-          .from("opportunities")
-          .select("crm_number")
-          .in("crm_number", unique.map((u) => u.crm_number));
-        if (exErr) throw exErr;
-        const existingSet = new Set((existing ?? []).map((e) => e.crm_number));
-        toInsert = unique.filter((u) => {
-          if (existingSet.has(u.crm_number)) { dupes++; return false; }
-          return true;
-        });
-      }
-
+      // Single atomic upsert: existing CRM numbers are ignored by the DB.
       let added = 0;
-      if (toInsert.length > 0) {
-        const payload = toInsert.map((r) => ({ ...r, created_by: user.id }));
-        const { error: insErr, data: ins } = await supabase.from("opportunities").insert(payload).select("id");
+      if (unique.length > 0) {
+        const payload = unique.map((r) => ({ ...r, created_by: user.id }));
+        const { error: insErr, data: ins } = await supabase
+          .from("opportunities")
+          .upsert(payload, { onConflict: "crm_number", ignoreDuplicates: true })
+          .select("id");
         if (insErr) throw insErr;
-        added = ins?.length ?? toInsert.length;
+        added = ins?.length ?? 0;
       }
+      const dupes = unique.length - added;
+
       const nowIso = new Date().toISOString();
       const { error: setErr } = await supabase
         .from("app_settings")
@@ -361,6 +358,7 @@ function OppsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">CRM</th>
                 <th className="text-left px-4 py-2.5 font-medium">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium">Project</th>
@@ -376,12 +374,13 @@ function OppsPage() {
 
             </thead>
             <tbody>
-              {filtered.map((o) => {
+              {filtered.map((o, i) => {
                 const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
                 const pct = done * 25;
                 const archs = archByOpp.get(o.id) ?? [];
                 return (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">
                     <div className="flex items-center gap-1.5">
                       <Link to="/opportunities/$id" params={{ id: o.id }} className="hover:underline">{o.crm_number}</Link>
@@ -390,6 +389,7 @@ function OppsPage() {
                       )}
                     </div>
                   </td>
+
                   <td className="px-4 py-2.5">{o.customer_name}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1.5">
@@ -432,8 +432,9 @@ function OppsPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={canAssign ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
+                <tr><td colSpan={canAssign ? 12 : 11} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities yet.</td></tr>
               )}
+
             </tbody>
           </table>
         </div>
@@ -442,16 +443,19 @@ function OppsPage() {
   );
 }
 
-const STATUS_OPTIONS = ["Pending", "In Progress", "Waiting for Clarification", "Completed", "Closed Won", "Closed Lost"] as const;
+const STATUS_OPTIONS = ["Pending", "In Progress", "Waiting for Clarification", "On Hold", "Reopened", "Completed", "Closed Won", "Closed Lost", "Regret"] as const;
 
 function StatusSelect({ opp }: { opp: OppRow }) {
   const qc = useQueryClient();
   const { user, isVp, isAdmin } = useAuth();
   const [value, setValue] = useState(opp.status);
+  const [holdOpen, setHoldOpen] = useState(false);
   const onChange = async (v: string) => {
+    if (v === "On Hold") { setHoldOpen(true); return; }
     const prev = value;
     setValue(v);
     const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", opp.id);
+
     if (error) {
       setValue(prev);
       return toast.error(error.message);
@@ -493,18 +497,30 @@ function StatusSelect({ opp }: { opp: OppRow }) {
   };
   const inList = (STATUS_OPTIONS as readonly string[]).includes(value);
   return (
-    <Select value={inList ? value : ""} onValueChange={onChange}>
-      <SelectTrigger className="h-8 text-xs">
-        <SelectValue placeholder={value || "Set status"} />
-      </SelectTrigger>
-      <SelectContent>
-        {STATUS_OPTIONS.map((s) => (
-          <SelectItem key={s} value={s}>{s}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <>
+      <Select value={inList ? value : ""} onValueChange={onChange}>
+        <SelectTrigger className="h-8 text-xs">
+          <SelectValue placeholder={value || "Set status"} />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((s) => (
+            <SelectItem key={s} value={s}>{s}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {user && (
+        <HoldDialog
+          open={holdOpen}
+          onOpenChange={setHoldOpen}
+          opp={opp}
+          userId={user.id}
+          onCancelled={() => setValue(opp.status)}
+        />
+      )}
+    </>
   );
 }
+
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -548,8 +564,9 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
     e.preventDefault();
     setSaving(true);
     const { architect_id, ...rest } = form;
-    const payload: any = { ...rest, created_by: userId };
+    const payload: any = { ...rest, crm_number: rest.crm_number.trim().toUpperCase(), created_by: userId };
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
+
     ["rfq_reading_hours", "estimation_hours", "opportunity_cost"].forEach((k) => {
       if (payload[k] != null) payload[k] = Number(payload[k]);
     });
@@ -644,7 +661,10 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Waiting for Clarification">Waiting for Clarification</SelectItem>
+              <SelectItem value="Reopened">Reopened</SelectItem>
               <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Regret">Regret</SelectItem>
+
             </SelectContent>
           </Select>
         </Field>

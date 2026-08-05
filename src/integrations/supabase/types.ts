@@ -698,6 +698,8 @@ export type Database = {
         | "Closed Won"
         | "Closed Lost"
         | "Waiting for Clarification"
+        | "Reopened"
+        | "Regret"
       opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
       request_status: "pending" | "approved" | "rejected"
       user_status: "pending" | "approved" | "rejected"
@@ -842,6 +844,8 @@ export const Constants = {
         "Closed Won",
         "Closed Lost",
         "Waiting for Clarification",
+        "Reopened",
+        "Regret",
       ],
       opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
       request_status: ["pending", "approved", "rejected"],
