@@ -443,16 +443,19 @@ function OppsPage() {
   );
 }
 
-const STATUS_OPTIONS = ["Pending", "In Progress", "Waiting for Clarification", "Completed", "Closed Won", "Closed Lost"] as const;
+const STATUS_OPTIONS = ["Pending", "In Progress", "Waiting for Clarification", "On Hold", "Reopened", "Completed", "Closed Won", "Closed Lost", "Regret"] as const;
 
 function StatusSelect({ opp }: { opp: OppRow }) {
   const qc = useQueryClient();
   const { user, isVp, isAdmin } = useAuth();
   const [value, setValue] = useState(opp.status);
+  const [holdOpen, setHoldOpen] = useState(false);
   const onChange = async (v: string) => {
+    if (v === "On Hold") { setHoldOpen(true); return; }
     const prev = value;
     setValue(v);
     const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", opp.id);
+
     if (error) {
       setValue(prev);
       return toast.error(error.message);
