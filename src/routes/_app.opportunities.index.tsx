@@ -661,7 +661,10 @@ function CreateDialog({ canAssign, userId, onCreated }: { canAssign: boolean; us
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Waiting for Clarification">Waiting for Clarification</SelectItem>
+              <SelectItem value="Reopened">Reopened</SelectItem>
               <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Regret">Regret</SelectItem>
+
             </SelectContent>
           </Select>
         </Field>
