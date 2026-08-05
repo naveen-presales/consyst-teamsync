@@ -357,18 +357,26 @@ function OppDetail() {
         <TabsContent value="details" className="mt-4">
           <Card className="p-5 grid grid-cols-2 md:grid-cols-3 gap-4">
             <DetailField label="Status">
-              <Select value={opp.status} onValueChange={(v) => updateOpp({ status: v })}>
+              <Select
+                value={opp.status}
+                onValueChange={(v) => { if (v === "On Hold") setDetailHoldOpen(true); else updateOpp({ status: v }); }}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
                   <SelectItem value="Waiting for Clarification">Waiting for Clarification</SelectItem>
+                  <SelectItem value="On Hold">On Hold</SelectItem>
+                  <SelectItem value="Reopened">Reopened</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
                   <SelectItem value="Closed Won">Closed Won</SelectItem>
                   <SelectItem value="Closed Lost">Closed Lost</SelectItem>
+                  <SelectItem value="Regret">Regret</SelectItem>
                 </SelectContent>
               </Select>
+              <HoldDialog open={detailHoldOpen} onOpenChange={setDetailHoldOpen} opp={opp} userId={user!.id} />
             </DetailField>
+
             <DetailField label="Type">
               <Select value={opp.opportunity_type} onValueChange={(v) => updateOpp({ opportunity_type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
