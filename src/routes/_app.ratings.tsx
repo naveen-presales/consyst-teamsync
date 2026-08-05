@@ -238,7 +238,7 @@ function ArchitectDetail({
                 );
               })}
               {myOpps.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities assigned to this architect.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground text-sm">No opportunities assigned to this architect.</td></tr>
               )}
             </tbody>
           </table>
