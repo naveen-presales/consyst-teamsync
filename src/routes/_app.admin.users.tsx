@@ -101,6 +101,7 @@ function AdminUsers() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">User</th>
                 <th className="text-left px-4 py-2.5 font-medium">Status</th>
                 <th className="text-left px-4 py-2.5 font-medium">Roles</th>
@@ -108,14 +109,16 @@ function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {(profilesQ.data ?? []).map((p) => {
+              {(profilesQ.data ?? []).map((p, i) => {
                 const roles = (rolesQ.data ?? []).filter((r) => r.user_id === p.id).map((r) => r.role);
                 return (
                   <tr key={p.id} className="border-t border-border align-top">
+                    <td className="px-4 py-3 text-xs text-muted-foreground tabular-nums">{i + 1}</td>
                     <td className="px-4 py-3">
                       <div className="font-medium">{p.full_name || "—"}</div>
                       <div className="text-xs text-muted-foreground">{p.email}</div>
                     </td>
+
                     <td className="px-4 py-3">
                       <Badge variant={p.status === "approved" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>
                         {p.status}
