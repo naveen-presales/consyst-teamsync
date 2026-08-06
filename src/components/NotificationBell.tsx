@@ -127,6 +127,9 @@ export function NotificationBell() {
         <div className="flex items-center justify-between px-3 py-2 border-b">
           <div className="text-sm font-medium">Notifications {unread > 0 && <span className="text-muted-foreground">· {unread} new</span>}</div>
           <div className="flex gap-1">
+            {perm === "default" && (
+              <Button variant="ghost" size="sm" onClick={requestPerm} className="h-7 px-2 text-xs">Enable desktop alerts</Button>
+            )}
             <Button variant="ghost" size="sm" onClick={markAllRead} disabled={unread === 0} className="h-7 px-2 text-xs"><Check className="h-3 w-3 mr-1" />Read</Button>
             <Button variant="ghost" size="sm" onClick={clearAll} disabled={items.length === 0} className="h-7 px-2 text-xs"><Trash2 className="h-3 w-3" /></Button>
           </div>
