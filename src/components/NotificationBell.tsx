@@ -31,6 +31,21 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [items, setItems] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
+  const [perm, setPerm] = useState<string>("unsupported");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof Notification !== "undefined") {
+      setPerm(Notification.permission);
+    }
+  }, []);
+
+  const requestPerm = async () => {
+    if (typeof Notification === "undefined") return;
+    try {
+      const res = await Notification.requestPermission();
+      setPerm(res);
+    } catch { /* ignore */ }
+  };
 
   const load = async () => {
     if (!user) return;
@@ -52,7 +67,22 @@ export function NotificationBell() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
-        () => load(),
+        (payload: any) => {
+          load();
+          if (payload.eventType !== "INSERT") return;
+          if (typeof window === "undefined" || typeof Notification === "undefined") return;
+          if (Notification.permission !== "granted") return;
+          const row = payload.new;
+          if (!row) return;
+          try {
+            const notif = new Notification(row.title, { body: row.body ?? undefined, tag: row.id });
+            setTimeout(() => notif.close(), 6000);
+            notif.onclick = () => {
+              window.focus();
+              if (row.link) navigate({ to: row.link });
+            };
+          } catch { /* ignore */ }
+        },
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
