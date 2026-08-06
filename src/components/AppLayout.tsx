@@ -113,16 +113,31 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <NotificationBell />
       </div>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+      {/* Desktop sidebar (resizable) */}
+      <aside
+        className="hidden md:flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar relative"
+        style={{ width: sidebarWidth }}
+      >
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
           <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
+            <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+              TeamSync
+            </div>
           </div>
         </div>
 
         {navContent()}
+
+        {/* Drag handle */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          onMouseDown={startResize}
+          onDoubleClick={() => setSidebarWidth(240)}
+          className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize hover:bg-sidebar-accent active:bg-sidebar-accent transition-colors"
+        />
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
@@ -138,17 +153,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
                 <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
+                  <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">TeamSync</div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
           <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
-          <div className="text-base font-bold tracking-tight truncate min-w-0 flex-1">TeamSync</div>
+          <div className="font-brand text-lg font-bold tracking-tight whitespace-nowrap min-w-0 flex-1">TeamSync</div>
           {/* Reserve room so the fixed bell doesn't overlap the title */}
           <div className="w-10 shrink-0" aria-hidden />
         </header>
+
 
         <main className="flex-1 min-w-0">{children}</main>
       </div>
