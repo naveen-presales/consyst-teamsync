@@ -34,6 +34,35 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 240;
+    const saved = Number(window.localStorage.getItem("sidebar-width"));
+    return saved >= 180 && saved <= 480 ? saved : 240;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem("sidebar-width", String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebarWidth;
+    const onMove = (ev: MouseEvent) => {
+      const next = Math.min(480, Math.max(180, startW + ev.clientX - startX));
+      setSidebarWidth(next);
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   // Re-sync roles/profile on route change so role updates take effect without re-login
   useEffect(() => { refresh(); }, [pathname]);
@@ -113,16 +142,31 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <NotificationBell />
       </div>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+      {/* Desktop sidebar (resizable) */}
+      <aside
+        className="hidden md:flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar relative"
+        style={{ width: sidebarWidth }}
+      >
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
           <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
+            <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+              TeamSync
+            </div>
           </div>
         </div>
 
         {navContent()}
+
+        {/* Drag handle */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          onMouseDown={startResize}
+          onDoubleClick={() => setSidebarWidth(240)}
+          className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize hover:bg-sidebar-accent active:bg-sidebar-accent transition-colors"
+        />
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
@@ -138,17 +182,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
                 <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-lg font-bold tracking-tight truncate">TeamSync</div>
+                  <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">TeamSync</div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
           <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
-          <div className="text-base font-bold tracking-tight truncate min-w-0 flex-1">TeamSync</div>
+          <div className="font-brand text-lg font-bold tracking-tight whitespace-nowrap min-w-0 flex-1">TeamSync</div>
           {/* Reserve room so the fixed bell doesn't overlap the title */}
           <div className="w-10 shrink-0" aria-hidden />
         </header>
+
 
         <main className="flex-1 min-w-0">{children}</main>
       </div>

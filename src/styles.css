@@ -135,6 +135,11 @@
   }
 }
 
+/* Brand wordmark font */
+@utility font-brand {
+  font-family: "Ink Free", "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive;
+}
+
 /* Notion-style editor */
 .prose-notion { color: var(--foreground); font-size: 0.95rem; line-height: 1.65; }
 .prose-notion h1 { font-size: 1.875rem; font-weight: 700; margin: 1.25rem 0 0.5rem; letter-spacing: -0.02em; }
