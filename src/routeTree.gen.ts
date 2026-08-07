@@ -9,47 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StatusRouteImport } from './routes/status'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as PendingRouteImport } from './routes/pending'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PendingRouteImport } from './routes/pending'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
-import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
-import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
-import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
-import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
-import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
+import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
 import { Route as AppAdminQuestionsRouteImport } from './routes/_app.admin.questions'
+import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
+import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
+import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
+import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
+import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
 import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
-const StatusRoute = StatusRouteImport.update({
-  id: '/status',
-  path: '/status',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PendingRoute = PendingRouteImport.update({
-  id: '/pending',
-  path: '/pending',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -57,43 +41,44 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PendingRoute = PendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRatingsRoute = AppRatingsRouteImport.update({
-  id: '/ratings',
-  path: '/ratings',
-  getParentRoute: () => AppRoute,
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOpportunitiesIndexRoute = AppOpportunitiesIndexRouteImport.update({
-  id: '/opportunities/',
-  path: '/opportunities/',
+const AppRatingsRoute = AppRatingsRouteImport.update({
+  id: '/ratings',
+  path: '/ratings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGoalsIndexRoute = AppGoalsIndexRouteImport.update({
-  id: '/goals/',
-  path: '/goals/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
-  id: '/opportunities/$id',
-  path: '/opportunities/$id',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGoalsScopeRoute = AppGoalsScopeRouteImport.update({
-  id: '/goals/$scope',
-  path: '/goals/$scope',
+const AppAdminQuestionsRoute = AppAdminQuestionsRouteImport.update({
+  id: '/admin/questions',
+  path: '/admin/questions',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
@@ -101,9 +86,24 @@ const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminQuestionsRoute = AppAdminQuestionsRouteImport.update({
-  id: '/admin/questions',
-  path: '/admin/questions',
+const AppGoalsIndexRoute = AppGoalsIndexRouteImport.update({
+  id: '/goals/',
+  path: '/goals/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGoalsScopeRoute = AppGoalsScopeRouteImport.update({
+  id: '/goals/$scope',
+  path: '/goals/$scope',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOpportunitiesIndexRoute = AppOpportunitiesIndexRouteImport.update({
+  id: '/opportunities/',
+  path: '/opportunities/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
+  id: '/opportunities/$id',
+  path: '/opportunities/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppGoalsArchitectsUserIdRoute =
@@ -240,46 +240,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/status': {
-      id: '/status'
-      path: '/status'
-      fullPath: '/status'
-      preLoaderRoute: typeof StatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pending': {
-      id: '/pending'
-      path: '/pending'
-      fullPath: '/pending'
-      preLoaderRoute: typeof PendingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -289,19 +254,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/ratings': {
-      id: '/_app/ratings'
-      path: '/ratings'
-      fullPath: '/ratings'
-      preLoaderRoute: typeof AppRatingsRouteImport
-      parentRoute: typeof AppRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending': {
+      id: '/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof PendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/dashboard': {
       id: '/_app/dashboard'
@@ -310,32 +303,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/opportunities/': {
-      id: '/_app/opportunities/'
-      path: '/opportunities'
-      fullPath: '/opportunities/'
-      preLoaderRoute: typeof AppOpportunitiesIndexRouteImport
+    '/_app/ratings': {
+      id: '/_app/ratings'
+      path: '/ratings'
+      fullPath: '/ratings'
+      preLoaderRoute: typeof AppRatingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/goals/': {
-      id: '/_app/goals/'
-      path: '/goals'
-      fullPath: '/goals/'
-      preLoaderRoute: typeof AppGoalsIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/opportunities/$id': {
-      id: '/_app/opportunities/$id'
-      path: '/opportunities/$id'
-      fullPath: '/opportunities/$id'
-      preLoaderRoute: typeof AppOpportunitiesIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/goals/$scope': {
-      id: '/_app/goals/$scope'
-      path: '/goals/$scope'
-      fullPath: '/goals/$scope'
-      preLoaderRoute: typeof AppGoalsScopeRouteImport
+    '/_app/admin/questions': {
+      id: '/_app/admin/questions'
+      path: '/admin/questions'
+      fullPath: '/admin/questions'
+      preLoaderRoute: typeof AppAdminQuestionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/users': {
@@ -345,11 +324,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminUsersRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/questions': {
-      id: '/_app/admin/questions'
-      path: '/admin/questions'
-      fullPath: '/admin/questions'
-      preLoaderRoute: typeof AppAdminQuestionsRouteImport
+    '/_app/goals/': {
+      id: '/_app/goals/'
+      path: '/goals'
+      fullPath: '/goals/'
+      preLoaderRoute: typeof AppGoalsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/goals/$scope': {
+      id: '/_app/goals/$scope'
+      path: '/goals/$scope'
+      fullPath: '/goals/$scope'
+      preLoaderRoute: typeof AppGoalsScopeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/opportunities/': {
+      id: '/_app/opportunities/'
+      path: '/opportunities'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof AppOpportunitiesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/opportunities/$id': {
+      id: '/_app/opportunities/$id'
+      path: '/opportunities/$id'
+      fullPath: '/opportunities/$id'
+      preLoaderRoute: typeof AppOpportunitiesIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/goals/architects/$userId': {
