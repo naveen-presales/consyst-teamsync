@@ -150,7 +150,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
           <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
-            <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+            <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
               TeamSync
             </div>
           </div>
@@ -182,14 +182,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
                 <img src={consystLogo} alt="Consyst" className="h-10 w-auto shrink-0 object-contain" />
                 <div className="min-w-0 flex-1">
-                  <div className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">TeamSync</div>
+                  <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap">TeamSync</div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
           <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
-          <div className="font-brand text-lg font-bold tracking-tight whitespace-nowrap min-w-0 flex-1">TeamSync</div>
+          <div className="font-brand text-xl font-extrabold tracking-tight whitespace-nowrap min-w-0 flex-1">TeamSync</div>
           {/* Reserve room so the fixed bell doesn't overlap the title */}
           <div className="w-10 shrink-0" aria-hidden />
         </header>
