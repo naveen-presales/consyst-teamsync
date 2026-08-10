@@ -10,6 +10,7 @@ import { useState } from "react";
 import consystLogo from "@/assets/consyst-logo.png";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+import { getStatusBoard } from "@/lib/status.functions";
 
 
 export const Route = createFileRoute("/status")({
