@@ -31,7 +31,7 @@ import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCirc
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { HoldDialog } from "@/components/HoldDialog";
 
-
+const ERP_OPPORTUNITY_BASE_URL = "https://erp.consyst.biz/app/opportunity/";
 
 export const Route = createFileRoute("/_app/opportunities/$id")({ component: OppDetail });
 
@@ -297,7 +297,18 @@ function OppDetail() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{opp.project_name}</h1>
-            <p className="text-sm text-muted-foreground">{opp.customer_name} · CRM <span className="font-mono">{opp.crm_number}</span></p>
+            <p className="text-sm text-muted-foreground">
+              {opp.customer_name} ·{" "}
+              <a
+                href={`${ERP_OPPORTUNITY_BASE_URL}${encodeURIComponent(opp.crm_number)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono underline hover:text-foreground"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {opp.crm_number}
+              </a>
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary">{opp.opportunity_type}</Badge>
