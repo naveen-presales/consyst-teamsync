@@ -39,6 +39,14 @@ type Opp = {
 const cmpCrm = (a: string, b: string) =>
   (a ?? "").localeCompare(b ?? "", undefined, { numeric: true, sensitivity: "base" });
 
+function bucketForStatus(status: string): "Pending" | "In Progress" | "Waiting for Clarification" | "On Hold" | "Completed" {
+  if (status === "Pending") return "Pending";
+  if (status === "In Progress" || status === "Reopened") return "In Progress";
+  if (status === "Waiting for Clarification") return "Waiting for Clarification";
+  if (status === "On Hold") return "On Hold";
+  // Completed, Closed Won, Closed Lost, Regret all roll into Completed
+  return "Completed";
+}
 
 function DashboardPage() {
   const { isAdmin, isVp, isArchitect, user } = useAuth();
@@ -384,14 +392,18 @@ function VpDashboard() {
                 {(() => {
                   const profMap = new Map((profilesQ.data ?? []).map((p) => [p.id, p]));
                   const oppMap = new Map(opps.map((o) => [o.id, o]));
-                  const byUser: Record<string, { inProg: number; completed: number; pending: number }> = {};
+                  const byUser: Record<string, { pending: number; inProg: number; waiting: number; onHold: number; completed: number; total: number }> = {};
                   (assignsQ.data ?? []).forEach((a) => {
                     const o = oppMap.get(a.opportunity_id);
                     if (!o) return;
-                    const b = (byUser[a.user_id] ||= { inProg: 0, completed: 0, pending: 0 });
-                    if (o.status === "In Progress") b.inProg++;
-                    else if (o.status === "Completed") b.completed++;
-                    else b.pending++;
+                    const b = (byUser[a.user_id] ||= { pending: 0, inProg: 0, waiting: 0, onHold: 0, completed: 0, total: 0 });
+                    const bucket = bucketForStatus(o.status);
+                    if (bucket === "Pending") b.pending++;
+                    else if (bucket === "In Progress") b.inProg++;
+                    else if (bucket === "Waiting for Clarification") b.waiting++;
+                    else if (bucket === "On Hold") b.onHold++;
+                    else if (bucket === "Completed") b.completed++;
+                    b.total++;
                   });
                   const rows = Object.entries(byUser).map(([uid, c]) => ({
                     uid,
