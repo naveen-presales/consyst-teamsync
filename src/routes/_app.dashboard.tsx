@@ -483,11 +483,24 @@ function ArchitectDetailDialog({
   opps: Opp[];
 }) {
   const open = !!userId;
+  const [activeTab, setActiveTab] = useState<"All" | "Pending" | "In Progress" | "Waiting for Clarification" | "On Hold" | "Completed">("All");
   const counts = {
-    pending: opps.filter((o) => o.status === "Pending").length,
-    inProg: opps.filter((o) => o.status === "In Progress").length,
-    completed: opps.filter((o) => o.status === "Completed").length,
+    all: opps.length,
+    pending: opps.filter((o) => bucketForStatus(o.status) === "Pending").length,
+    inProg: opps.filter((o) => bucketForStatus(o.status) === "In Progress").length,
+    waiting: opps.filter((o) => bucketForStatus(o.status) === "Waiting for Clarification").length,
+    onHold: opps.filter((o) => bucketForStatus(o.status) === "On Hold").length,
+    completed: opps.filter((o) => bucketForStatus(o.status) === "Completed").length,
   };
+  const filteredOpps = activeTab === "All" ? opps : opps.filter((o) => bucketForStatus(o.status) === activeTab);
+  const tabs: { key: typeof activeTab; label: string; count: number }[] = [
+    { key: "All", label: "All", count: counts.all },
+    { key: "Pending", label: "Pending", count: counts.pending },
+    { key: "In Progress", label: "In Progress", count: counts.inProg },
+    { key: "Waiting for Clarification", label: "Waiting", count: counts.waiting },
+    { key: "On Hold", label: "On Hold", count: counts.onHold },
+    { key: "Completed", label: "Completed", count: counts.completed },
+  ];
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-3xl">
@@ -500,6 +513,21 @@ function ArchitectDetailDialog({
           <Card className="p-3"><div className="text-[11px] text-muted-foreground">In Progress</div><div className="text-lg font-semibold">{counts.inProg}</div></Card>
           <Card className="p-3"><div className="text-[11px] text-muted-foreground">Completed</div><div className="text-lg font-semibold">{counts.completed}</div></Card>
         </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                activeTab === t.key
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-muted/50"
+              }`}
+            >
+              {t.label} <span className="ml-1 tabular-nums">({t.count})</span>
+            </button>
+          ))}
+        </div>
         <div className="max-h-96 overflow-y-auto border border-border rounded-md">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground sticky top-0">
@@ -511,10 +539,10 @@ function ArchitectDetailDialog({
               </tr>
             </thead>
             <tbody>
-              {opps.length === 0 && (
+              {filteredOpps.length === 0 && (
                 <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">No opportunities.</td></tr>
               )}
-              {opps.map((o) => (
+              {filteredOpps.map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="px-3 py-2">
                     <Link to="/opportunities/$id" params={{ id: o.id }} onClick={onClose} className="hover:underline">
