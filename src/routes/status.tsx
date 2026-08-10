@@ -62,8 +62,7 @@ function StatusPage() {
   const q = useQuery({
     queryKey: ["status-board"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_status_board");
-      if (error) throw error;
+      const data = await getStatusBoard();
       return ((data ?? []) as unknown) as Row[];
     },
     refetchInterval: 60_000,
