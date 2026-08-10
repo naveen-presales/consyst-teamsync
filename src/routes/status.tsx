@@ -10,6 +10,7 @@ import { useState } from "react";
 import consystLogo from "@/assets/consyst-logo.png";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+import { getStatusBoard } from "@/lib/status.functions";
 
 
 export const Route = createFileRoute("/status")({
@@ -62,8 +63,7 @@ function StatusPage() {
   const q = useQuery({
     queryKey: ["status-board"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_status_board");
-      if (error) throw error;
+      const data = await getStatusBoard();
       return ((data ?? []) as unknown) as Row[];
     },
     refetchInterval: 60_000,
