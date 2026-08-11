@@ -17,6 +17,7 @@ import { Plus, Search, Download, PauseCircle, CheckCircle2, Share2, Upload } fro
 import * as XLSX from "xlsx";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
+import { celebrateClosedWon } from "@/lib/confetti";
 import { HoldDialog } from "@/components/HoldDialog";
 import { useSessionState } from "@/hooks/use-session-state";
 
@@ -452,6 +453,7 @@ function StatusSelect({ opp }: { opp: OppRow }) {
   const [holdOpen, setHoldOpen] = useState(false);
   const onChange = async (v: string) => {
     if (v === "On Hold") { setHoldOpen(true); return; }
+    if (v === "Closed Won") celebrateClosedWon();
     const prev = value;
     setValue(v);
     const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", opp.id);
