@@ -376,16 +376,16 @@ function VpDashboard() {
           <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
           <p className="text-xs text-muted-foreground mb-3">Click an architect to see their opportunities.</p>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
               <thead className="text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="text-left py-2 font-medium">Architect</th>
-                  <th className="text-right py-2 font-medium">Pending</th>
-                  <th className="text-right py-2 font-medium">In Progress</th>
-                  <th className="text-right py-2 font-medium">Waiting for Clarification</th>
-                  <th className="text-right py-2 font-medium">On Hold</th>
-                  <th className="text-right py-2 font-medium">Completed</th>
-                  <th className="text-right py-2 font-medium">Total</th>
+                  <th className="text-left px-3 py-2 font-medium w-[22%]">Architect</th>
+                  <th className="text-center px-3 py-2 font-medium">Pending</th>
+                  <th className="text-center px-3 py-2 font-medium">In Progress</th>
+                  <th className="text-center px-3 py-2 font-medium">Waiting</th>
+                  <th className="text-center px-3 py-2 font-medium">On Hold</th>
+                  <th className="text-center px-3 py-2 font-medium">Completed</th>
+                  <th className="text-center px-3 py-2 font-medium">Total</th>
                   <th className="w-6" />
                 </tr>
               </thead>
