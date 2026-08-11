@@ -376,16 +376,16 @@ function VpDashboard() {
           <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
           <p className="text-xs text-muted-foreground mb-3">Click an architect to see their opportunities.</p>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
               <thead className="text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="text-left py-2 font-medium">Architect</th>
-                  <th className="text-right py-2 font-medium">Pending</th>
-                  <th className="text-right py-2 font-medium">In Progress</th>
-                  <th className="text-right py-2 font-medium">Waiting for Clarification</th>
-                  <th className="text-right py-2 font-medium">On Hold</th>
-                  <th className="text-right py-2 font-medium">Completed</th>
-                  <th className="text-right py-2 font-medium">Total</th>
+                  <th className="text-left px-3 py-2 font-medium w-[22%]">Architect</th>
+                  <th className="text-center px-3 py-2 font-medium">Pending</th>
+                  <th className="text-center px-3 py-2 font-medium">In Progress</th>
+                  <th className="text-center px-3 py-2 font-medium">Waiting</th>
+                  <th className="text-center px-3 py-2 font-medium">On Hold</th>
+                  <th className="text-center px-3 py-2 font-medium">Completed</th>
+                  <th className="text-center px-3 py-2 font-medium">Total</th>
                   <th className="w-6" />
                 </tr>
               </thead>
@@ -424,13 +424,13 @@ function VpDashboard() {
                       className="border-t border-border cursor-pointer hover:bg-muted/40"
                       onClick={() => setSelectedArchitect(r.uid)}
                     >
-                      <td className="py-2.5 font-medium">{r.name}</td>
-                      <td className="py-2.5 text-right">{r.pending}</td>
-                      <td className="py-2.5 text-right">{r.inProg}</td>
-                      <td className="py-2.5 text-right">{r.waiting}</td>
-                      <td className="py-2.5 text-right">{r.onHold}</td>
-                      <td className="py-2.5 text-right">{r.completed}</td>
-                      <td className="py-2.5 text-right font-semibold">{r.total}</td>
+                      <td className="px-3 py-2.5 font-medium">{r.name}</td>
+                      <td className="px-3 py-2.5 text-center">{r.pending}</td>
+                      <td className="px-3 py-2.5 text-center">{r.inProg}</td>
+                      <td className="px-3 py-2.5 text-center">{r.waiting}</td>
+                      <td className="px-3 py-2.5 text-center">{r.onHold}</td>
+                      <td className="px-3 py-2.5 text-center">{r.completed}</td>
+                      <td className="px-3 py-2.5 text-center font-semibold">{r.total}</td>
                       <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
                     </tr>
                   ));
