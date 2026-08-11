@@ -13,6 +13,8 @@ export function celebrateClosedWon() {
       startVelocity: 55,
       origin: { x: 0, y: 0.75 },
       colors: ["#22c55e", "#facc15", "#3b82f6", "#ec4899"],
+      zIndex: 2147483647,
+      disableForReducedMotion: false,
     });
     // Right cannon — fires up and to the left
     confetti({
@@ -22,6 +24,8 @@ export function celebrateClosedWon() {
       startVelocity: 55,
       origin: { x: 1, y: 0.75 },
       colors: ["#22c55e", "#facc15", "#3b82f6", "#ec4899"],
+      zIndex: 2147483647,
+      disableForReducedMotion: false,
     });
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
