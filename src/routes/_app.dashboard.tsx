@@ -380,9 +380,10 @@ function VpDashboard() {
               <thead className="text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="text-left py-2 font-medium">Architect</th>
-                  <th className="text-left py-2 font-medium">Email</th>
-                  <th className="text-right py-2 font-medium">Active</th>
+                  <th className="text-right py-2 font-medium">Pending</th>
                   <th className="text-right py-2 font-medium">In Progress</th>
+                  <th className="text-right py-2 font-medium">Waiting for Clarification</th>
+                  <th className="text-right py-2 font-medium">On Hold</th>
                   <th className="text-right py-2 font-medium">Completed</th>
                   <th className="text-right py-2 font-medium">Total</th>
                   <th className="w-6" />
@@ -412,7 +413,7 @@ function VpDashboard() {
                     active: c.pending + c.inProg,
                     ...c,
                     total: c.pending + c.inProg + c.completed,
-                  })).sort((a, b) => b.active - a.active);
+                  })).sort((a, b) => b.total - a.total);
 
                   if (rows.length === 0) {
                     return <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No assignments yet.</td></tr>;
@@ -424,9 +425,10 @@ function VpDashboard() {
                       onClick={() => setSelectedArchitect(r.uid)}
                     >
                       <td className="py-2.5 font-medium">{r.name}</td>
-                      <td className="py-2.5 text-muted-foreground text-xs">{r.email}</td>
-                      <td className="py-2.5 text-right">{r.active}</td>
+                      <td className="py-2.5 text-right">{r.pending}</td>
                       <td className="py-2.5 text-right">{r.inProg}</td>
+                      <td className="py-2.5 text-right">{r.waiting}</td>
+                      <td className="py-2.5 text-right">{r.onHold}</td>
                       <td className="py-2.5 text-right">{r.completed}</td>
                       <td className="py-2.5 text-right font-semibold">{r.total}</td>
                       <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
@@ -508,11 +510,6 @@ function ArchitectDetailDialog({
           <DialogTitle>{profile?.full_name || profile?.email || "Architect"}</DialogTitle>
           <p className="text-xs text-muted-foreground">{profile?.email}</p>
         </DialogHeader>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Pending</div><div className="text-lg font-semibold">{counts.pending}</div></Card>
-          <Card className="p-3"><div className="text-[11px] text-muted-foreground">In Progress</div><div className="text-lg font-semibold">{counts.inProg}</div></Card>
-          <Card className="p-3"><div className="text-[11px] text-muted-foreground">Completed</div><div className="text-lg font-semibold">{counts.completed}</div></Card>
-        </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {tabs.map((t) => (
             <button
