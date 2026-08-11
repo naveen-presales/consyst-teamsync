@@ -424,13 +424,13 @@ function VpDashboard() {
                       className="border-t border-border cursor-pointer hover:bg-muted/40"
                       onClick={() => setSelectedArchitect(r.uid)}
                     >
-                      <td className="py-2.5 font-medium">{r.name}</td>
-                      <td className="py-2.5 text-right">{r.pending}</td>
-                      <td className="py-2.5 text-right">{r.inProg}</td>
-                      <td className="py-2.5 text-right">{r.waiting}</td>
-                      <td className="py-2.5 text-right">{r.onHold}</td>
-                      <td className="py-2.5 text-right">{r.completed}</td>
-                      <td className="py-2.5 text-right font-semibold">{r.total}</td>
+                      <td className="px-3 py-2.5 font-medium">{r.name}</td>
+                      <td className="px-3 py-2.5 text-center">{r.pending}</td>
+                      <td className="px-3 py-2.5 text-center">{r.inProg}</td>
+                      <td className="px-3 py-2.5 text-center">{r.waiting}</td>
+                      <td className="px-3 py-2.5 text-center">{r.onHold}</td>
+                      <td className="px-3 py-2.5 text-center">{r.completed}</td>
+                      <td className="px-3 py-2.5 text-center font-semibold">{r.total}</td>
                       <td className="py-2.5 text-right text-muted-foreground"><ChevronRight className="h-4 w-4 inline" /></td>
                     </tr>
                   ));
