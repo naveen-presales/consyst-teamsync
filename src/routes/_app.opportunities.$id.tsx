@@ -30,6 +30,7 @@ import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCircle2, Lock, Circle, PauseCircle, PlayCircle, RotateCcw } from "lucide-react";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { HoldDialog } from "@/components/HoldDialog";
+import { celebrateClosedWon } from "@/lib/confetti";
 
 const ERP_OPPORTUNITY_BASE_URL = "https://erp.consyst.biz/app/opportunity/";
 
@@ -372,7 +373,11 @@ function OppDetail() {
             <DetailField label="Status">
               <Select
                 value={opp.status}
-                onValueChange={(v) => { if (v === "On Hold") setDetailHoldOpen(true); else updateOpp({ status: v }); }}
+                onValueChange={(v) => {
+                  if (v === "On Hold") { setDetailHoldOpen(true); return; }
+                  updateOpp({ status: v });
+                  if (v === "Closed Won") celebrateClosedWon();
+                }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
