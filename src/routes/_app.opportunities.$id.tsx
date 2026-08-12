@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { triggerCompletedCelebration } from "@/components/CompletedCelebration";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -378,7 +377,6 @@ function OppDetail() {
                   if (v === "On Hold") { setDetailHoldOpen(true); return; }
                   updateOpp({ status: v });
                   if (v === "Closed Won") celebrateClosedWon();
-                  if (v === "Completed") triggerCompletedCelebration();
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
