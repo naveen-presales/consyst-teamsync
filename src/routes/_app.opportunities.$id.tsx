@@ -377,6 +377,7 @@ function OppDetail() {
                   if (v === "On Hold") { setDetailHoldOpen(true); return; }
                   updateOpp({ status: v });
                   if (v === "Closed Won") celebrateClosedWon();
+                  if (v === "Completed") triggerCompletedCelebration();
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>

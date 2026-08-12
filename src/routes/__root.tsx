@@ -7,6 +7,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { CompletedCelebrationOverlay } from "@/components/CompletedCelebration";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 
@@ -76,6 +77,7 @@ function RootComponent() {
         <AuthProvider>
           <Outlet />
           <Toaster richColors position="top-right" />
+          <CompletedCelebrationOverlay />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
