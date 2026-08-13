@@ -25,6 +25,7 @@ import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
 import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
 import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
 import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
+import { Route as AppVendorEnquiriesIndexRouteImport } from './routes/_app.vendor-enquiries.index'
 import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -106,6 +107,11 @@ const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
   path: '/opportunities/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVendorEnquiriesIndexRoute = AppVendorEnquiriesIndexRouteImport.update({
+  id: '/vendor-enquiries/',
+  path: '/vendor-enquiries/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGoalsArchitectsUserIdRoute =
   AppGoalsArchitectsUserIdRouteImport.update({
     id: '/goals/architects/$userId',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
   '/goals/': typeof AppGoalsIndexRoute
   '/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
   '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
   '/goals': typeof AppGoalsIndexRoute
   '/opportunities': typeof AppOpportunitiesIndexRoute
+  '/vendor-enquiries': typeof AppVendorEnquiriesIndexRoute
   '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesById {
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
   '/_app/goals/': typeof AppGoalsIndexRoute
   '/_app/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/_app/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
   '/_app/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRouteTypes {
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/opportunities/$id'
     | '/goals/'
     | '/opportunities/'
+    | '/vendor-enquiries/'
     | '/goals/architects/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/opportunities/$id'
     | '/goals'
     | '/opportunities'
+    | '/vendor-enquiries'
     | '/goals/architects/$userId'
   id:
     | '__root__'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/_app/opportunities/$id'
     | '/_app/goals/'
     | '/_app/opportunities/'
+    | '/_app/vendor-enquiries/'
     | '/_app/goals/architects/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -352,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOpportunitiesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/vendor-enquiries/': {
+      id: '/_app/vendor-enquiries/'
+      path: '/vendor-enquiries'
+      fullPath: '/vendor-enquiries/'
+      preLoaderRoute: typeof AppVendorEnquiriesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/goals/architects/$userId': {
       id: '/_app/goals/architects/$userId'
       path: '/goals/architects/$userId'
@@ -371,6 +390,7 @@ interface AppRouteChildren {
   AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
   AppGoalsIndexRoute: typeof AppGoalsIndexRoute
   AppOpportunitiesIndexRoute: typeof AppOpportunitiesIndexRoute
+  AppVendorEnquiriesIndexRoute: typeof AppVendorEnquiriesIndexRoute
   AppGoalsArchitectsUserIdRoute: typeof AppGoalsArchitectsUserIdRoute
 }
 
@@ -383,6 +403,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
   AppGoalsIndexRoute: AppGoalsIndexRoute,
   AppOpportunitiesIndexRoute: AppOpportunitiesIndexRoute,
+  AppVendorEnquiriesIndexRoute: AppVendorEnquiriesIndexRoute,
   AppGoalsArchitectsUserIdRoute: AppGoalsArchitectsUserIdRoute,
 }
 
