@@ -10,6 +10,8 @@ import {
   ListChecks,
   Target,
   Activity,
+  PackageSearch,
+
   LogOut,
   Sun,
   Moon,

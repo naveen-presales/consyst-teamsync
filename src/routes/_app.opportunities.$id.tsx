@@ -364,9 +364,11 @@ function OppDetail() {
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="docs">Documents</TabsTrigger>
+          <TabsTrigger value="vendors">Vendor enquiries</TabsTrigger>
           <TabsTrigger value="ratings">VP Ratings</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="details" className="mt-4">
           <Card className="p-5 grid grid-cols-2 md:grid-cols-3 gap-4">
