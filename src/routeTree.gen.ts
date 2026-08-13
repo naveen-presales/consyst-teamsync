@@ -25,6 +25,8 @@ import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
 import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
 import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
 import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
+import { Route as AppVendorEnquiriesIndexRouteImport } from './routes/_app.vendor-enquiries.index'
+import { Route as AppVendorEnquiriesVendorIdRouteImport } from './routes/_app.vendor-enquiries.$vendorId'
 import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -106,6 +108,17 @@ const AppOpportunitiesIdRoute = AppOpportunitiesIdRouteImport.update({
   path: '/opportunities/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVendorEnquiriesIndexRoute = AppVendorEnquiriesIndexRouteImport.update({
+  id: '/vendor-enquiries/',
+  path: '/vendor-enquiries/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVendorEnquiriesVendorIdRoute =
+  AppVendorEnquiriesVendorIdRouteImport.update({
+    id: '/vendor-enquiries/$vendorId',
+    path: '/vendor-enquiries/$vendorId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppGoalsArchitectsUserIdRoute =
   AppGoalsArchitectsUserIdRouteImport.update({
     id: '/goals/architects/$userId',
@@ -127,8 +140,10 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/goals/': typeof AppGoalsIndexRoute
   '/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
   '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -145,8 +160,10 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/goals': typeof AppGoalsIndexRoute
   '/opportunities': typeof AppOpportunitiesIndexRoute
+  '/vendor-enquiries': typeof AppVendorEnquiriesIndexRoute
   '/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRoutesById {
@@ -165,8 +182,10 @@ export interface FileRoutesById {
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/goals/$scope': typeof AppGoalsScopeRoute
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/_app/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/_app/goals/': typeof AppGoalsIndexRoute
   '/_app/opportunities/': typeof AppOpportunitiesIndexRoute
+  '/_app/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
   '/_app/goals/architects/$userId': typeof AppGoalsArchitectsUserIdRoute
 }
 export interface FileRouteTypes {
@@ -185,8 +204,10 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/goals/$scope'
     | '/opportunities/$id'
+    | '/vendor-enquiries/$vendorId'
     | '/goals/'
     | '/opportunities/'
+    | '/vendor-enquiries/'
     | '/goals/architects/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -203,8 +224,10 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/goals/$scope'
     | '/opportunities/$id'
+    | '/vendor-enquiries/$vendorId'
     | '/goals'
     | '/opportunities'
+    | '/vendor-enquiries'
     | '/goals/architects/$userId'
   id:
     | '__root__'
@@ -222,8 +245,10 @@ export interface FileRouteTypes {
     | '/_app/admin/users'
     | '/_app/goals/$scope'
     | '/_app/opportunities/$id'
+    | '/_app/vendor-enquiries/$vendorId'
     | '/_app/goals/'
     | '/_app/opportunities/'
+    | '/_app/vendor-enquiries/'
     | '/_app/goals/architects/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -352,6 +377,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOpportunitiesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/vendor-enquiries/': {
+      id: '/_app/vendor-enquiries/'
+      path: '/vendor-enquiries'
+      fullPath: '/vendor-enquiries/'
+      preLoaderRoute: typeof AppVendorEnquiriesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/vendor-enquiries/$vendorId': {
+      id: '/_app/vendor-enquiries/$vendorId'
+      path: '/vendor-enquiries/$vendorId'
+      fullPath: '/vendor-enquiries/$vendorId'
+      preLoaderRoute: typeof AppVendorEnquiriesVendorIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/goals/architects/$userId': {
       id: '/_app/goals/architects/$userId'
       path: '/goals/architects/$userId'
@@ -369,8 +408,10 @@ interface AppRouteChildren {
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppGoalsScopeRoute: typeof AppGoalsScopeRoute
   AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
+  AppVendorEnquiriesVendorIdRoute: typeof AppVendorEnquiriesVendorIdRoute
   AppGoalsIndexRoute: typeof AppGoalsIndexRoute
   AppOpportunitiesIndexRoute: typeof AppOpportunitiesIndexRoute
+  AppVendorEnquiriesIndexRoute: typeof AppVendorEnquiriesIndexRoute
   AppGoalsArchitectsUserIdRoute: typeof AppGoalsArchitectsUserIdRoute
 }
 
@@ -381,8 +422,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppGoalsScopeRoute: AppGoalsScopeRoute,
   AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
+  AppVendorEnquiriesVendorIdRoute: AppVendorEnquiriesVendorIdRoute,
   AppGoalsIndexRoute: AppGoalsIndexRoute,
   AppOpportunitiesIndexRoute: AppOpportunitiesIndexRoute,
+  AppVendorEnquiriesIndexRoute: AppVendorEnquiriesIndexRoute,
   AppGoalsArchitectsUserIdRoute: AppGoalsArchitectsUserIdRoute,
 }
 
@@ -401,3 +444,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

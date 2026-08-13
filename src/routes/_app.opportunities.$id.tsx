@@ -31,6 +31,9 @@ import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCirc
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { HoldDialog } from "@/components/HoldDialog";
 import { celebrateClosedWon } from "@/lib/confetti";
+import { EnquiryList } from "@/components/vendor/EnquiryList";
+import { EnquiryDialog } from "@/components/vendor/EnquiryDialog";
+
 
 const ERP_OPPORTUNITY_BASE_URL = "https://erp.consyst.biz/app/opportunity/";
 
@@ -43,6 +46,8 @@ function OppDetail() {
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [detailHoldOpen, setDetailHoldOpen] = useState(false);
+  const [vendorEnquiryOpen, setVendorEnquiryOpen] = useState(false);
+
 
 
   const oppQ = useQuery({
@@ -364,9 +369,11 @@ function OppDetail() {
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="docs">Documents</TabsTrigger>
+          <TabsTrigger value="vendors">Vendor enquiries</TabsTrigger>
           <TabsTrigger value="ratings">VP Ratings</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="details" className="mt-4">
           <Card className="p-5 grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -480,7 +487,18 @@ function OppDetail() {
           </div>
         </TabsContent>
 
+        <TabsContent value="vendors" className="mt-4">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => setVendorEnquiryOpen(true)}>
+              <Plus className="h-4 w-4 mr-1.5" /> Log enquiry
+            </Button>
+          </div>
+          <EnquiryList opportunityId={id} showCrm={false} />
+          <EnquiryDialog open={vendorEnquiryOpen} onOpenChange={setVendorEnquiryOpen} opportunityId={id} />
+        </TabsContent>
+
         <TabsContent value="ratings" className="mt-4">
+
           <RatingsPanel oppId={id} canRate={isVp} />
         </TabsContent>
 
