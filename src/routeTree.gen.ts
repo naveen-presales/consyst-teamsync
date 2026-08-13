@@ -26,6 +26,7 @@ import { Route as AppGoalsScopeRouteImport } from './routes/_app.goals.$scope'
 import { Route as AppOpportunitiesIndexRouteImport } from './routes/_app.opportunities.index'
 import { Route as AppOpportunitiesIdRouteImport } from './routes/_app.opportunities.$id'
 import { Route as AppVendorEnquiriesIndexRouteImport } from './routes/_app.vendor-enquiries.index'
+import { Route as AppVendorEnquiriesVendorIdRouteImport } from './routes/_app.vendor-enquiries.$vendorId'
 import { Route as AppGoalsArchitectsUserIdRouteImport } from './routes/_app.goals.architects.$userId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -112,6 +113,12 @@ const AppVendorEnquiriesIndexRoute = AppVendorEnquiriesIndexRouteImport.update({
   path: '/vendor-enquiries/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVendorEnquiriesVendorIdRoute =
+  AppVendorEnquiriesVendorIdRouteImport.update({
+    id: '/vendor-enquiries/$vendorId',
+    path: '/vendor-enquiries/$vendorId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppGoalsArchitectsUserIdRoute =
   AppGoalsArchitectsUserIdRouteImport.update({
     id: '/goals/architects/$userId',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/goals/': typeof AppGoalsIndexRoute
   '/opportunities/': typeof AppOpportunitiesIndexRoute
   '/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
@@ -152,6 +160,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
   '/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/goals': typeof AppGoalsIndexRoute
   '/opportunities': typeof AppOpportunitiesIndexRoute
   '/vendor-enquiries': typeof AppVendorEnquiriesIndexRoute
@@ -173,6 +182,7 @@ export interface FileRoutesById {
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/goals/$scope': typeof AppGoalsScopeRoute
   '/_app/opportunities/$id': typeof AppOpportunitiesIdRoute
+  '/_app/vendor-enquiries/$vendorId': typeof AppVendorEnquiriesVendorIdRoute
   '/_app/goals/': typeof AppGoalsIndexRoute
   '/_app/opportunities/': typeof AppOpportunitiesIndexRoute
   '/_app/vendor-enquiries/': typeof AppVendorEnquiriesIndexRoute
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/goals/$scope'
     | '/opportunities/$id'
+    | '/vendor-enquiries/$vendorId'
     | '/goals/'
     | '/opportunities/'
     | '/vendor-enquiries/'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/goals/$scope'
     | '/opportunities/$id'
+    | '/vendor-enquiries/$vendorId'
     | '/goals'
     | '/opportunities'
     | '/vendor-enquiries'
@@ -233,6 +245,7 @@ export interface FileRouteTypes {
     | '/_app/admin/users'
     | '/_app/goals/$scope'
     | '/_app/opportunities/$id'
+    | '/_app/vendor-enquiries/$vendorId'
     | '/_app/goals/'
     | '/_app/opportunities/'
     | '/_app/vendor-enquiries/'
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVendorEnquiriesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/vendor-enquiries/$vendorId': {
+      id: '/_app/vendor-enquiries/$vendorId'
+      path: '/vendor-enquiries/$vendorId'
+      fullPath: '/vendor-enquiries/$vendorId'
+      preLoaderRoute: typeof AppVendorEnquiriesVendorIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/goals/architects/$userId': {
       id: '/_app/goals/architects/$userId'
       path: '/goals/architects/$userId'
@@ -388,6 +408,7 @@ interface AppRouteChildren {
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppGoalsScopeRoute: typeof AppGoalsScopeRoute
   AppOpportunitiesIdRoute: typeof AppOpportunitiesIdRoute
+  AppVendorEnquiriesVendorIdRoute: typeof AppVendorEnquiriesVendorIdRoute
   AppGoalsIndexRoute: typeof AppGoalsIndexRoute
   AppOpportunitiesIndexRoute: typeof AppOpportunitiesIndexRoute
   AppVendorEnquiriesIndexRoute: typeof AppVendorEnquiriesIndexRoute
@@ -401,6 +422,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppGoalsScopeRoute: AppGoalsScopeRoute,
   AppOpportunitiesIdRoute: AppOpportunitiesIdRoute,
+  AppVendorEnquiriesVendorIdRoute: AppVendorEnquiriesVendorIdRoute,
   AppGoalsIndexRoute: AppGoalsIndexRoute,
   AppOpportunitiesIndexRoute: AppOpportunitiesIndexRoute,
   AppVendorEnquiriesIndexRoute: AppVendorEnquiriesIndexRoute,

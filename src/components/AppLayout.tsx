@@ -74,6 +74,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
     { to: "/opportunities", label: "Opportunities", icon: Briefcase, show: true },
     { to: "/goals", label: "Goals", icon: Target, show: true },
+    { to: "/vendor-enquiries", label: "Vendor enquiries", icon: PackageSearch, show: true },
+
     { to: "/ratings", label: "Ratings", icon: Star, show: isVp || isAdmin },
     { to: "/admin/users", label: "Users", icon: Users, show: isAdmin || isVp },
     { to: "/admin/questions", label: "Rating questions", icon: ListChecks, show: isAdmin },
