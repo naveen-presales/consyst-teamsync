@@ -637,6 +637,189 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string | null
+          role: string | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone?: string | null
+          role?: string | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string | null
+          role?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_contacts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_custom_fields: {
+        Row: {
+          created_at: string
+          field_key: string
+          field_value: string | null
+          id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_key: string
+          field_value?: string | null
+          id?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          field_key?: string
+          field_value?: string | null
+          id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_custom_fields_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_enquiries: {
+        Row: {
+          consyst_final_response: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          enquiry_date: string
+          id: string
+          item_added_erp: boolean
+          last_contact_date: string | null
+          make: string | null
+          opportunity_id: string
+          requirement: string | null
+          shared_by: string | null
+          status: Database["public"]["Enums"]["vendor_enquiry_status"]
+          supplier_quotation_added: boolean
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          consyst_final_response?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enquiry_date?: string
+          id?: string
+          item_added_erp?: boolean
+          last_contact_date?: string | null
+          make?: string | null
+          opportunity_id: string
+          requirement?: string | null
+          shared_by?: string | null
+          status?: Database["public"]["Enums"]["vendor_enquiry_status"]
+          supplier_quotation_added?: boolean
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          consyst_final_response?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enquiry_date?: string
+          id?: string
+          item_added_erp?: boolean
+          last_contact_date?: string | null
+          make?: string | null
+          opportunity_id?: string
+          requirement?: string | null
+          shared_by?: string | null
+          status?: Database["public"]["Enums"]["vendor_enquiry_status"]
+          supplier_quotation_added?: boolean
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_enquiries_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_enquiries_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_enquiries_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_enquiries_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -646,6 +829,7 @@ export type Database = {
         Args: { _request_id: string }
         Returns: string
       }
+      can_view_opportunity: { Args: { _opp_id: string }; Returns: boolean }
       email_exists: { Args: { _email: string }; Returns: boolean }
       get_status_board: {
         Args: never
@@ -678,6 +862,15 @@ export type Database = {
         Args: { _opp_id: string; _user_id: string }
         Returns: boolean
       }
+      opportunity_refs: {
+        Args: never
+        Returns: {
+          crm_number: string
+          customer_name: string
+          id: string
+          project_name: string
+        }[]
+      }
       restore_revision_breach: {
         Args: { _opp_id: string; _reason: string }
         Returns: undefined
@@ -703,6 +896,12 @@ export type Database = {
       opportunity_type: "Budgetary" | "JIH" | "Firm Budgetary" | "Tender"
       request_status: "pending" | "approved" | "rejected"
       user_status: "pending" | "approved" | "rejected"
+      vendor_enquiry_status:
+        | "Pending"
+        | "Quote requested"
+        | "Quote received"
+        | "On hold"
+        | "Regret"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -850,6 +1049,13 @@ export const Constants = {
       opportunity_type: ["Budgetary", "JIH", "Firm Budgetary", "Tender"],
       request_status: ["pending", "approved", "rejected"],
       user_status: ["pending", "approved", "rejected"],
+      vendor_enquiry_status: [
+        "Pending",
+        "Quote requested",
+        "Quote received",
+        "On hold",
+        "Regret",
+      ],
     },
   },
 } as const
