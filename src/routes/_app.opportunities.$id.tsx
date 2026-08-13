@@ -31,6 +31,9 @@ import { ArrowLeft, FileText, Plus, Save, Trash2, AlertTriangle, Star, CheckCirc
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { HoldDialog } from "@/components/HoldDialog";
 import { celebrateClosedWon } from "@/lib/confetti";
+import { EnquiryList } from "@/components/vendor/EnquiryList";
+import { EnquiryDialog } from "@/components/vendor/EnquiryDialog";
+
 
 const ERP_OPPORTUNITY_BASE_URL = "https://erp.consyst.biz/app/opportunity/";
 
@@ -482,7 +485,18 @@ function OppDetail() {
           </div>
         </TabsContent>
 
+        <TabsContent value="vendors" className="mt-4">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => setVendorEnquiryOpen(true)}>
+              <Plus className="h-4 w-4 mr-1.5" /> Log enquiry
+            </Button>
+          </div>
+          <EnquiryList opportunityId={id} showCrm={false} />
+          <EnquiryDialog open={vendorEnquiryOpen} onOpenChange={setVendorEnquiryOpen} opportunityId={id} />
+        </TabsContent>
+
         <TabsContent value="ratings" className="mt-4">
+
           <RatingsPanel oppId={id} canRate={isVp} />
         </TabsContent>
 
