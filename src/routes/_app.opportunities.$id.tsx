@@ -46,6 +46,8 @@ function OppDetail() {
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [detailHoldOpen, setDetailHoldOpen] = useState(false);
+  const [vendorEnquiryOpen, setVendorEnquiryOpen] = useState(false);
+
 
 
   const oppQ = useQuery({
