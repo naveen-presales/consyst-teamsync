@@ -126,19 +126,16 @@ function AdminUsers() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-3">
-                        {(["admin", "architect", "vp"] as Role[]).map((r) => {
-                          const canToggle = r === "admin" ? isAdmin : isAdmin || isVp;
-                          return (
-                            <label key={r} className={`flex items-center gap-1.5 text-xs ${!canToggle ? "opacity-60" : ""}`}>
-                              <Checkbox
-                                checked={roles.includes(r)}
-                                disabled={!canToggle}
-                                onCheckedChange={(v) => toggleRole(p.id, r, !!v)}
-                              />
-                              {r}
-                            </label>
-                          );
-                        })}
+                        {(["admin", "architect", "vp"] as Role[]).map((r) => (
+                          <label key={r} className={`flex items-center gap-1.5 text-xs ${!(isAdmin || isVp) ? "opacity-60" : ""}`}>
+                            <Checkbox
+                              checked={roles.includes(r)}
+                              disabled={!(isAdmin || isVp)}
+                              onCheckedChange={(v) => toggleRole(p.id, r, !!v)}
+                            />
+                            {r}
+                          </label>
+                        ))}
                       </div>
                     </td>
                     <td className="px-4 py-3">
