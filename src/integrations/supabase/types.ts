@@ -857,7 +857,6 @@ export type Database = {
         Args: { _opp_id: string; _reason: string }
         Returns: undefined
       }
-      is_approved: { Args: { _user_id: string }; Returns: boolean }
       is_assigned: {
         Args: { _opp_id: string; _user_id: string }
         Returns: boolean
