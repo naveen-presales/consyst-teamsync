@@ -62,10 +62,7 @@ function StatusPage() {
 
   const q = useQuery({
     queryKey: ["status-board"],
-    queryFn: async () => {
-      const data = await getStatusBoard();
-      return ((data ?? []) as unknown) as Row[];
-    },
+    queryFn: () => getStatusBoard(),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
@@ -93,7 +90,9 @@ function StatusPage() {
     return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  const allRows = q.data ?? [];
+  const allRows = (q.data?.rows ?? []) as unknown as Row[];
+
+  if (q.data && !q.data.enabled) return <StatusUnavailable />;
 
   const architectOptions = (() => {
     const set = new Set<string>();
@@ -272,6 +271,18 @@ function StatusPage() {
           </div>
         </Card>
       </main>
+    </div>
+  );
+}
+
+function StatusUnavailable() {
+  return (
+    <div className="min-h-screen bg-background grid place-items-center p-6">
+      <div className="text-center space-y-3">
+        <img src={consystLogo} alt="Consyst" className="h-10 w-auto mx-auto object-contain" />
+        <div className="text-base font-semibold">This page is currently unavailable</div>
+        <p className="text-sm text-muted-foreground">Please check back later.</p>
+      </div>
     </div>
   );
 }

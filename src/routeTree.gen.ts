@@ -19,6 +19,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppRatingsRouteImport } from './routes/_app.ratings'
+import { Route as AppAdminFeaturesRouteImport } from './routes/_app.admin.features'
 import { Route as AppAdminQuestionsRouteImport } from './routes/_app.admin.questions'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppGoalsIndexRouteImport } from './routes/_app.goals.index'
@@ -76,6 +77,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppRatingsRoute = AppRatingsRouteImport.update({
   id: '/ratings',
   path: '/ratings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminFeaturesRoute = AppAdminFeaturesRouteImport.update({
+  id: '/admin/features',
+  path: '/admin/features',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminQuestionsRoute = AppAdminQuestionsRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/status': typeof StatusRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
+  '/admin/features': typeof AppAdminFeaturesRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/status': typeof StatusRoute
   '/dashboard': typeof AppDashboardRoute
   '/ratings': typeof AppRatingsRoute
+  '/admin/features': typeof AppAdminFeaturesRoute
   '/admin/questions': typeof AppAdminQuestionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/goals/$scope': typeof AppGoalsScopeRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/status': typeof StatusRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/ratings': typeof AppRatingsRoute
+  '/_app/admin/features': typeof AppAdminFeaturesRoute
   '/_app/admin/questions': typeof AppAdminQuestionsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/goals/$scope': typeof AppGoalsScopeRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/dashboard'
     | '/ratings'
+    | '/admin/features'
     | '/admin/questions'
     | '/admin/users'
     | '/goals/$scope'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/dashboard'
     | '/ratings'
+    | '/admin/features'
     | '/admin/questions'
     | '/admin/users'
     | '/goals/$scope'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/_app/dashboard'
     | '/_app/ratings'
+    | '/_app/admin/features'
     | '/_app/admin/questions'
     | '/_app/admin/users'
     | '/_app/goals/$scope'
@@ -335,6 +347,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRatingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/features': {
+      id: '/_app/admin/features'
+      path: '/admin/features'
+      fullPath: '/admin/features'
+      preLoaderRoute: typeof AppAdminFeaturesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/questions': {
       id: '/_app/admin/questions'
       path: '/admin/questions'
@@ -404,6 +423,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppRatingsRoute: typeof AppRatingsRoute
+  AppAdminFeaturesRoute: typeof AppAdminFeaturesRoute
   AppAdminQuestionsRoute: typeof AppAdminQuestionsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppGoalsScopeRoute: typeof AppGoalsScopeRoute
@@ -418,6 +438,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppRatingsRoute: AppRatingsRoute,
+  AppAdminFeaturesRoute: AppAdminFeaturesRoute,
   AppAdminQuestionsRoute: AppAdminQuestionsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppGoalsScopeRoute: AppGoalsScopeRoute,
