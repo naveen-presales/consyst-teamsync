@@ -20,6 +20,7 @@ import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/Priori
 import { celebrateClosedWon } from "@/lib/confetti";
 import { HoldDialog } from "@/components/HoldDialog";
 import { useSessionState } from "@/hooks/use-session-state";
+import { FeatureGate } from "@/components/FeatureGate";
 
 
 const STATUS_FILTER_OPTIONS = [
@@ -269,21 +270,23 @@ function OppsPage() {
         </div>
         <div className="flex gap-2">
           {isVp && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                const url = `https://consyst-teamsync.lovable.app/status`;
-                try {
-                  await navigator.clipboard.writeText(url);
-                  toast.success("Public status link copied", { description: url });
-                } catch {
-                  window.prompt("Copy this public status link:", url);
-                }
-              }}
-            >
-              <Share2 className="h-4 w-4 mr-1.5" /> Share status link
-            </Button>
+            <FeatureGate feature="status_board">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const url = `https://consyst-teamsync.lovable.app/status`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Public status link copied", { description: url });
+                  } catch {
+                    window.prompt("Copy this public status link:", url);
+                  }
+                }}
+              >
+                <Share2 className="h-4 w-4 mr-1.5" /> Share status link
+              </Button>
+            </FeatureGate>
           )}
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
           {canAssign && (
