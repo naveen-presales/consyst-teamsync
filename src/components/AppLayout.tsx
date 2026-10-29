@@ -16,18 +16,23 @@ import {
   Sun,
   Moon,
   Menu,
+  ToggleRight,
 } from "lucide-react";
 import consystLogo from "@/assets/consyst-logo.png";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useFeatures, useFeaturesRealtime } from "@/hooks/use-features";
+import { FeatureRouteGuard } from "@/components/FeatureGate";
+import type { FeatureKey } from "@/lib/features";
 
 interface NavItem {
   to: string;
   label: string;
   icon: typeof LayoutDashboard;
   show: boolean;
+  feature?: FeatureKey;
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -36,6 +41,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isEnabled } = useFeatures();
+  useFeaturesRealtime();
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
     if (typeof window === "undefined") return 240;
     const saved = Number(window.localStorage.getItem("sidebar-width"));
@@ -76,19 +83,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
     { to: "/opportunities", label: "Opportunities", icon: Briefcase, show: true },
     { to: "/goals", label: "Goals", icon: Target, show: true },
-    { to: "/vendor-enquiries", label: "Vendor enquiries", icon: PackageSearch, show: true },
+    { to: "/vendor-enquiries", label: "Vendor enquiries", icon: PackageSearch, show: true, feature: "vendor_enquiries" },
 
     { to: "/ratings", label: "Ratings", icon: Star, show: isVp || isAdmin },
     { to: "/admin/users", label: "Users", icon: Users, show: isAdmin || isVp },
     { to: "/admin/questions", label: "Rating questions", icon: ListChecks, show: isAdmin },
-    { to: "/status", label: "Status", icon: Activity, show: isVp || isAdmin },
+    { to: "/status", label: "Status", icon: Activity, show: isVp || isAdmin, feature: "status_board" },
+    { to: "/admin/features", label: "Features", icon: ToggleRight, show: isAdmin || isVp },
   ];
 
 
   const navContent = (onNav?: () => void) => (
     <>
       <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {items.filter((i) => i.show).map((i) => {
+        {items.filter((i) => i.show && (!i.feature || isEnabled(i.feature))).map((i) => {
           const active = pathname === i.to || pathname.startsWith(i.to + "/");
           const Icon = i.icon;
           return (
@@ -199,7 +207,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </header>
 
 
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0"><FeatureRouteGuard pathname={pathname}>{children}</FeatureRouteGuard></main>
       </div>
     </div>
   );
