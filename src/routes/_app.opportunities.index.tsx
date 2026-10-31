@@ -528,6 +528,13 @@ function StatusSelect({ opp }: { opp: OppRow }) {
           userId={user.id}
           onCancelled={() => setValue(opp.status)}
         />
+        <LostDialog
+          open={lostOpen}
+          onOpenChange={setLostOpen}
+          opp={opp}
+          userId={user.id}
+          onCancelled={() => setValue(opp.status)}
+        />
       )}
     </>
   );
