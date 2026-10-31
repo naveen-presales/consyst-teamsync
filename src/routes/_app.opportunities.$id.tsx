@@ -367,6 +367,19 @@ function OppDetail() {
         </Card>
       )}
 
+      {opp.status === "Closed Lost" && (
+        <Card className="mb-4 p-4 border-red-500/40 bg-red-500/10">
+          <div className="flex items-start gap-3">
+            <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <div className="font-medium text-sm">Closed Lost – {lostCategoryLabel(opp.lost_category)}</div>
+              {opp.lost_reason && <div className="text-sm text-muted-foreground">{opp.lost_reason}</div>}
+              {opp.lost_at && <div className="text-xs text-muted-foreground mt-1">Since {new Date(opp.lost_at).toLocaleString()}</div>}
+            </div>
+          </div>
+        </Card>
+      )}
+
       <PhaseTracker opp={opp} userId={user!.id} isManager={isManager} disabled={opp.on_hold} progressPct={progressPct} />
 
       <Tabs defaultValue="details" className="mt-6">
