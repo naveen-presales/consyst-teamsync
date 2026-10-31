@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
 import { celebrateClosedWon } from "@/lib/confetti";
 import { HoldDialog } from "@/components/HoldDialog";
+import { LostDialog } from "@/components/LostDialog";
+import { HOLD_CLEAR, LOST_CLEAR } from "@/lib/lost";
 import { useSessionState } from "@/hooks/use-session-state";
 import { FeatureGate } from "@/components/FeatureGate";
 
@@ -454,12 +456,18 @@ function StatusSelect({ opp }: { opp: OppRow }) {
   const { user, isVp, isAdmin } = useAuth();
   const [value, setValue] = useState(opp.status);
   const [holdOpen, setHoldOpen] = useState(false);
+  const [lostOpen, setLostOpen] = useState(false);
+  useEffect(() => { setValue(opp.status); }, [opp.status]);
   const onChange = async (v: string) => {
     if (v === "On Hold") { setHoldOpen(true); return; }
+    if (v === "Closed Lost") { setLostOpen(true); return; }
     if (v === "Closed Won") celebrateClosedWon();
-    const prev = value;
+    const prev = opp.status ?? value;
     setValue(v);
-    const { error } = await supabase.from("opportunities").update({ status: v as any }).eq("id", opp.id);
+    const patch: any = { status: v };
+    if (opp.on_hold) Object.assign(patch, HOLD_CLEAR);
+    if (prev === "Closed Lost") Object.assign(patch, LOST_CLEAR);
+    const { error } = await supabase.from("opportunities").update(patch).eq("id", opp.id);
 
     if (error) {
       setValue(prev);
@@ -514,13 +522,22 @@ function StatusSelect({ opp }: { opp: OppRow }) {
         </SelectContent>
       </Select>
       {user && (
-        <HoldDialog
-          open={holdOpen}
-          onOpenChange={setHoldOpen}
-          opp={opp}
-          userId={user.id}
-          onCancelled={() => setValue(opp.status)}
-        />
+        <>
+          <HoldDialog
+            open={holdOpen}
+            onOpenChange={setHoldOpen}
+            opp={opp}
+            userId={user.id}
+            onCancelled={() => setValue(opp.status)}
+          />
+          <LostDialog
+            open={lostOpen}
+            onOpenChange={setLostOpen}
+            opp={opp}
+            userId={user.id}
+            onCancelled={() => setValue(opp.status)}
+          />
+        </>
       )}
     </>
   );
