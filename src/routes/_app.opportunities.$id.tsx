@@ -47,6 +47,7 @@ function OppDetail() {
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [detailHoldOpen, setDetailHoldOpen] = useState(false);
+  const [detailLostOpen, setDetailLostOpen] = useState(false);
   const [vendorEnquiryOpen, setVendorEnquiryOpen] = useState(false);
 
 
@@ -385,7 +386,11 @@ function OppDetail() {
                 value={opp.status}
                 onValueChange={(v) => {
                   if (v === "On Hold") { setDetailHoldOpen(true); return; }
-                  updateOpp({ status: v });
+                  if (v === "Closed Lost") { setDetailLostOpen(true); return; }
+                  const patch: any = { status: v };
+                  if (opp.on_hold) Object.assign(patch, HOLD_CLEAR);
+                  if (opp.status === "Closed Lost") Object.assign(patch, LOST_CLEAR);
+                  updateOpp(patch);
                   if (v === "Closed Won") celebrateClosedWon();
                 }}
               >
@@ -403,6 +408,7 @@ function OppDetail() {
                 </SelectContent>
               </Select>
               <HoldDialog open={detailHoldOpen} onOpenChange={setDetailHoldOpen} opp={opp} userId={user!.id} />
+              <LostDialog open={detailLostOpen} onOpenChange={setDetailLostOpen} opp={opp} userId={user!.id} onCancelled={() => {}} />
             </DetailField>
 
             <DetailField label="Type">
