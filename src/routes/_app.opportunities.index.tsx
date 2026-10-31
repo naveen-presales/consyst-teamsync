@@ -521,20 +521,22 @@ function StatusSelect({ opp }: { opp: OppRow }) {
         </SelectContent>
       </Select>
       {user && (
-        <HoldDialog
-          open={holdOpen}
-          onOpenChange={setHoldOpen}
-          opp={opp}
-          userId={user.id}
-          onCancelled={() => setValue(opp.status)}
-        />
-        <LostDialog
-          open={lostOpen}
-          onOpenChange={setLostOpen}
-          opp={opp}
-          userId={user.id}
-          onCancelled={() => setValue(opp.status)}
-        />
+        <>
+          <HoldDialog
+            open={holdOpen}
+            onOpenChange={setHoldOpen}
+            opp={opp}
+            userId={user.id}
+            onCancelled={() => setValue(opp.status)}
+          />
+          <LostDialog
+            open={lostOpen}
+            onOpenChange={setLostOpen}
+            opp={opp}
+            userId={user.id}
+            onCancelled={() => setValue(opp.status)}
+          />
+        </>
       )}
     </>
   );
