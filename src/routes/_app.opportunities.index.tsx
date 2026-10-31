@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { notify, getVpAdminIds, getOppArchitectRecipients } from "@/lib/notify";
 import { toast } from "sonner";
@@ -457,11 +457,12 @@ function StatusSelect({ opp }: { opp: OppRow }) {
   const [value, setValue] = useState(opp.status);
   const [holdOpen, setHoldOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
+  useEffect(() => { setValue(opp.status); }, [opp.status]);
   const onChange = async (v: string) => {
     if (v === "On Hold") { setHoldOpen(true); return; }
     if (v === "Closed Lost") { setLostOpen(true); return; }
     if (v === "Closed Won") celebrateClosedWon();
-    const prev = value;
+    const prev = opp.status ?? value;
     setValue(v);
     const patch: any = { status: v };
     if (opp.on_hold) Object.assign(patch, HOLD_CLEAR);
