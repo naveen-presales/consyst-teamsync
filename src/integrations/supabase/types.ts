@@ -246,6 +246,9 @@ export type Database = {
           hold_reason: string | null
           hold_started_at: string | null
           id: string
+          lost_at: string | null
+          lost_category: string | null
+          lost_reason: string | null
           on_hold: boolean
           opportunity_cost: number | null
           opportunity_type: Database["public"]["Enums"]["opportunity_type"]
@@ -286,6 +289,9 @@ export type Database = {
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
+          lost_at?: string | null
+          lost_category?: string | null
+          lost_reason?: string | null
           on_hold?: boolean
           opportunity_cost?: number | null
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
@@ -326,6 +332,9 @@ export type Database = {
           hold_reason?: string | null
           hold_started_at?: string | null
           id?: string
+          lost_at?: string | null
+          lost_category?: string | null
+          lost_reason?: string | null
           on_hold?: boolean
           opportunity_cost?: number | null
           opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
