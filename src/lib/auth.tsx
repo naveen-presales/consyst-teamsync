@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isSessionExpired, nextCutoffAt } from "@/lib/session-expiry";
 import type { Session, User } from "@supabase/supabase-js";
 
 export type Role = "admin" | "architect" | "vp";
@@ -62,6 +63,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const hasSession = !!session;
+  const signInAt = session?.user?.last_sign_in_at ?? null;
+
+  // Daily 03:00 IST sign-out. Runs on load, on tab focus/visibility, and via a timer for tabs left open.
+  useEffect(() => {
+    if (!hasSession) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    // Returns true when the session was expired and a local sign-out was triggered.
+    const expireIfNeeded = () => {
+      if (!isSessionExpired(signInAt)) return false;
+      void supabase.auth.signOut({ scope: "local" });
+      return true;
+    };
+
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      const delay = Math.max(1000, nextCutoffAt() - Date.now() + 500);
+      timer = setTimeout(() => {
+        if (!expireIfNeeded()) schedule();
+      }, delay);
+    };
+
+    if (expireIfNeeded()) return;
+    schedule();
+
+    const onWake = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!expireIfNeeded()) schedule(); // re-arm: timers drift while a device sleeps
+    };
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+    };
+  }, [hasSession, signInAt]);
 
   const value: AuthCtx = {
     session,
