@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import consystLogo from "@/assets/consyst-logo.png";
 import { MultiSelect } from "@/components/MultiSelect";
 import { PriorityBadge, PRIORITY_RANK, type Priority } from "@/components/PriorityBadge";
 import { getStatusBoard } from "@/lib/status.functions";
@@ -146,7 +145,6 @@ function StatusPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
-          <img src={consystLogo} alt="Consyst" className="h-9 w-auto shrink-0 object-contain" />
           <div className="min-w-0 flex-1">
             <div className="text-base font-bold leading-tight tracking-tight truncate">TeamSync</div>
             <div className="text-[11px] text-muted-foreground">Opportunity Status</div>
@@ -279,7 +277,7 @@ function StatusUnavailable() {
   return (
     <div className="min-h-screen bg-background grid place-items-center p-6">
       <div className="text-center space-y-3">
-        <img src={consystLogo} alt="Consyst" className="h-10 w-auto mx-auto object-contain" />
+        <div className="font-brand text-2xl font-extrabold">TeamSync</div>
         <div className="text-base font-semibold">This page is currently unavailable</div>
         <p className="text-sm text-muted-foreground">Please check back later.</p>
       </div>

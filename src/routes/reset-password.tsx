@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import consystLogo from "@/assets/consyst-logo.png";
 
 export const Route = createFileRoute("/reset-password")({ component: ResetPasswordPage });
 
@@ -89,7 +88,7 @@ function ResetPasswordPage() {
     <div className="min-h-screen grid place-items-center bg-background px-4">
       <Card className="w-full max-w-sm p-7">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <img src={consystLogo} alt="Consyst" className="h-10 w-auto object-contain" />
+          <div className="font-brand text-2xl font-extrabold">TeamSync</div>
           <div className="text-center">
             <div className="font-semibold leading-tight">Reset password</div>
             <div className="text-xs text-muted-foreground">
