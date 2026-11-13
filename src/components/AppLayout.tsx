@@ -19,6 +19,7 @@ import {
   ToggleRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import wordmark from "@/assets/teamsync-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -161,7 +162,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
           <div className="min-w-0 flex-1">
             <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
-              TeamSync
+              <div role="img" aria-label="TeamSync" className="h-6 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} />
             </div>
           </div>
         </div>
@@ -191,13 +192,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <SheetContent side="left" className="p-0 w-64 bg-sidebar flex flex-col">
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
                 <div className="min-w-0 flex-1">
-                  <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap">TeamSync</div>
+                  <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap"><div role="img" aria-label="TeamSync" className="h-6 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></div>
                 </div>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
-          <div className="font-brand text-xl font-extrabold tracking-tight whitespace-nowrap min-w-0 flex-1">TeamSync</div>
+          <div className="font-brand text-xl font-extrabold tracking-tight whitespace-nowrap min-w-0 flex-1"><div role="img" aria-label="TeamSync" className="h-5 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></div>
           {/* Reserve room so the fixed bell doesn't overlap the title */}
           <div className="w-10 shrink-0" aria-hidden />
         </header>

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import wordmark from "@/assets/teamsync-wordmark.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ function LoginPage() {
     <div className="min-h-screen grid place-items-center bg-background px-4">
       <Card className="w-full max-w-sm p-7">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="font-brand text-2xl font-extrabold">TeamSync</div>
+          <div className="font-brand text-2xl font-extrabold mx-auto mb-1"><div role="img" aria-label="TeamSync" className="h-6 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></div>
           <div className="text-center">
             <div className="text-xs text-muted-foreground">Sign in to your workspace</div>
           </div>
