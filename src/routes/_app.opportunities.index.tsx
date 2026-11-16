@@ -387,13 +387,13 @@ function OppsPage() {
                   {canAssign && <div className="min-w-0"><div className="text-muted-foreground">Architect</div><div className="break-words">{archs.length === 0 ? "Unassigned" : archs.map((a) => a.name).join(", ")}</div></div>}
                   <div><div className="text-muted-foreground">Revision</div><div className="tabular-nums">{o.revision_count ?? 0}</div></div>
                   <div><div className="text-muted-foreground">Deadline</div><div className="break-words">{o.deadline || "—"}</div></div>
-                  <div className="min-w-0"><div className="text-muted-foreground">Progress</div><div className="flex items-center gap-2 pt-1"><Progress value={pct} className="h-1.5 min-w-0 flex-1" /><span className="w-9 shrink-0 text-right tabular-nums text-muted-foreground">{pct}%</span></div></div>
+                  <div className="min-w-0"><div className="text-muted-foreground">Progress</div><div className="pt-1">{o.on_hold ? <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><PauseCircle className="h-3 w-3" /> On Hold</span> : pct === 100 ? <span className="inline-flex items-center gap-1 text-xs text-success"><CheckCircle2 className="h-3 w-3" /> 100%</span> : <div className="flex items-center gap-2"><Progress value={pct} className="h-1.5 min-w-0 flex-1" /><span className="w-9 shrink-0 text-right tabular-nums text-muted-foreground">{pct}%</span></div>}</div></div>
                   {o.region && <div className="min-w-0"><div className="text-muted-foreground">Region</div><div className="break-words">{o.region}</div></div>}
                   {o.system_details && <div className="col-span-2 min-w-0"><div className="text-muted-foreground">System details</div><div className="break-words">{o.system_details}</div></div>}
                 </div>
 
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-border pt-2.5">
-                  <span className="min-w-0 truncate text-xs text-muted-foreground">{o.status}</span>
+                  <span className="min-w-0 truncate text-xs text-muted-foreground">Status</span>
                   <StatusSelect opp={o} />
                 </div>
               </article>
