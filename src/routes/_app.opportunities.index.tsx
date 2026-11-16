@@ -257,9 +257,9 @@ function OppsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto">
-      <header className="flex items-center justify-between mb-6">
-        <div>
+    <div className="mx-auto max-w-7xl p-3 sm:p-5 md:p-8">
+      <header className="mb-5 grid gap-4 md:mb-6 md:flex md:items-center md:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">Opportunities</h1>
           <p className="text-sm text-muted-foreground">
             {canAssign ? "Create opportunities and assign architects." : "Create and track your opportunities."}
@@ -270,7 +270,7 @@ function OppsPage() {
             </p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:justify-end">
           {isVp && (
             <FeatureGate feature="status_board">
               <Button
@@ -286,11 +286,11 @@ function OppsPage() {
                   }
                 }}
               >
-                <Share2 className="h-4 w-4 mr-1.5" /> Share status link
+                <Share2 className="h-4 w-4 shrink-0 md:mr-1.5" /><span className="truncate">Share status link</span>
               </Button>
             </FeatureGate>
           )}
-          <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
+          <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 shrink-0 md:mr-1.5" /><span className="truncate">Export CSV</span></Button>
           {canAssign && (
             <>
               <input
@@ -306,13 +306,13 @@ function OppsPage() {
                 disabled={importing}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="h-4 w-4 mr-1.5" /> {importing ? "Importing…" : "Upload Excel"}
+                <Upload className="h-4 w-4 shrink-0 md:mr-1.5" /><span className="truncate">{importing ? "Importing…" : "Upload Excel"}</span>
               </Button>
             </>
           )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1.5" /> New opportunity</Button>
+              <Button size="sm"><Plus className="h-4 w-4 shrink-0 md:mr-1.5" /><span className="truncate">New opportunity</span></Button>
             </DialogTrigger>
             <CreateDialog
               canAssign={canAssign}
@@ -323,31 +323,31 @@ function OppsPage() {
         </div>
       </header>
 
-      <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="mb-4 grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap sm:gap-3">
+        <div className="relative col-span-2 min-w-0 sm:flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search customer, project, CRM…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <MultiSelect
-          className="w-44"
+          className="w-full sm:w-44"
           options={STATUS_FILTER_OPTIONS}
           value={statusF}
           onChange={setStatusF}
           placeholder="All statuses"
         />
         <MultiSelect
-          className="w-52"
+          className="w-full sm:w-52"
           options={architectOptions}
           value={architectF}
           onChange={setArchitectF}
           placeholder="All architects"
         />
-        <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer">
+        <label className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer">
           <input type="checkbox" className="h-3.5 w-3.5" checked={unassignedOnly} onChange={(e) => setUnassignedOnly(e.target.checked)} />
           Unassigned only
         </label>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-          <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full h-9 text-xs sm:w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="crm">Sort: CRM ID</SelectItem>
             <SelectItem value="priority">Sort: Priority High→Low</SelectItem>
@@ -360,7 +360,48 @@ function OppsPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="divide-y divide-border md:hidden">
+          {filtered.map((o, i) => {
+            const done = [o.phase1_completed_at, o.phase2_completed_at, o.phase3_completed_at, o.phase4_completed_at].filter(Boolean).length;
+            const pct = done * 25;
+            const archs = archByOpp.get(o.id) ?? [];
+            return (
+              <article key={o.id} className="min-w-0 space-y-3 p-3.5">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">#{i + 1}</span>
+                      <Link to="/opportunities/$id" params={{ id: o.id }} className="break-all font-mono text-xs font-semibold text-primary hover:underline">{o.crm_number}</Link>
+                      {canAssign && archs.length === 0 && <Badge className="h-4 px-1.5 text-[10px] leading-none">New</Badge>}
+                    </div>
+                    <Link to="/opportunities/$id" params={{ id: o.id }} className="block break-words text-sm font-medium leading-snug hover:underline">{o.project_name}</Link>
+                    <p className="break-words text-xs text-muted-foreground">{o.customer_name}</p>
+                  </div>
+                  <div className="flex max-w-[45%] shrink-0 flex-wrap justify-end gap-1.5">
+                    <PriorityBadge value={o.priority} />
+                    <Badge variant="secondary" className="max-w-full whitespace-normal text-center">{o.opportunity_type}</Badge>
+                  </div>
+                </div>
+
+                <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                  {canAssign && <div className="min-w-0"><div className="text-muted-foreground">Architect</div><div className="break-words">{archs.length === 0 ? "Unassigned" : archs.map((a) => a.name).join(", ")}</div></div>}
+                  <div><div className="text-muted-foreground">Revision</div><div className="tabular-nums">{o.revision_count ?? 0}</div></div>
+                  <div><div className="text-muted-foreground">Deadline</div><div className="break-words">{o.deadline || "—"}</div></div>
+                  <div className="min-w-0"><div className="text-muted-foreground">Progress</div><div className="pt-1">{o.on_hold ? <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><PauseCircle className="h-3 w-3" /> On Hold</span> : pct === 100 ? <span className="inline-flex items-center gap-1 text-xs text-success"><CheckCircle2 className="h-3 w-3" /> 100%</span> : <div className="flex items-center gap-2"><Progress value={pct} className="h-1.5 min-w-0 flex-1" /><span className="w-9 shrink-0 text-right tabular-nums text-muted-foreground">{pct}%</span></div>}</div></div>
+                  {o.region && <div className="min-w-0"><div className="text-muted-foreground">Region</div><div className="break-words">{o.region}</div></div>}
+                  {o.system_details && <div className="col-span-2 min-w-0"><div className="text-muted-foreground">System details</div><div className="break-words">{o.system_details}</div></div>}
+                </div>
+
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-border pt-2.5">
+                  <span className="min-w-0 truncate text-xs text-muted-foreground">Status</span>
+                  <StatusSelect opp={o} />
+                </div>
+              </article>
+            );
+          })}
+          {filtered.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">No opportunities yet.</p>}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
