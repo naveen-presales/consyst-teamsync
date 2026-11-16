@@ -160,11 +160,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
         style={{ width: sidebarWidth }}
       >
         <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
-          <div className="min-w-0 flex-1">
+          <Link to="/dashboard" aria-label="Go to dashboard" className="min-w-0 flex-1">
             <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
               <div role="img" aria-label="TeamSync" className="h-6 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} />
             </div>
-          </div>
+          </Link>
         </div>
 
         {navContent()}
@@ -191,14 +191,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64 bg-sidebar flex flex-col">
               <div className="px-4 py-4 flex items-center gap-2 border-b border-sidebar-border">
-                <div className="min-w-0 flex-1">
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)} aria-label="Go to dashboard" className="min-w-0 flex-1">
                   <div className="font-brand text-2xl font-extrabold tracking-tight whitespace-nowrap"><div role="img" aria-label="TeamSync" className="h-6 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></div>
-                </div>
+                </Link>
               </div>
               {navContent(() => setMobileOpen(false))}
             </SheetContent>
           </Sheet>
-          <div className="font-brand text-xl font-extrabold tracking-tight whitespace-nowrap min-w-0 flex-1"><div role="img" aria-label="TeamSync" className="h-5 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></div>
+          <Link to="/dashboard" aria-label="Go to dashboard" className="font-brand text-xl font-extrabold tracking-tight whitespace-nowrap min-w-0 flex-1"><div role="img" aria-label="TeamSync" className="h-5 max-w-full bg-primary" style={{ aspectRatio: "1644/272", mask: `url(${wordmark}) center/contain no-repeat`, WebkitMask: `url(${wordmark}) center/contain no-repeat` }} /></Link>
           {/* Reserve room so the fixed bell doesn't overlap the title */}
           <div className="w-10 shrink-0" aria-hidden />
         </header>
