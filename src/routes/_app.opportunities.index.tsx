@@ -401,9 +401,9 @@ function OppsPage() {
           })}
           {filtered.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">No opportunities yet.</p>}
         </div>
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-auto max-h-[calc(100dvh-14rem)] md:block">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+            <thead className="bg-muted text-xs uppercase text-muted-foreground sticky top-0 z-10">
               <tr>
                 <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">CRM</th>

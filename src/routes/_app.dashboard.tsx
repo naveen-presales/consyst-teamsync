@@ -375,9 +375,9 @@ function VpDashboard() {
         <Card className="p-5 mt-4">
           <h3 className="text-sm font-medium mb-3">Architect workload details</h3>
           <p className="text-xs text-muted-foreground mb-3">Click an architect to see their opportunities.</p>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto max-h-[calc(100dvh-14rem)]">
             <table className="w-full text-sm table-fixed">
-              <thead className="text-xs uppercase text-muted-foreground">
+              <thead className="text-xs uppercase text-muted-foreground sticky top-0 z-10 bg-card">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium w-[22%]">Architect</th>
                   <th className="text-center px-3 py-2 font-medium">Pending</th>
@@ -849,9 +849,9 @@ function ArchitectDashboard({ userId }: { userId: string }) {
 
       <Card className="p-5 mt-4">
         <h3 className="text-sm font-medium mb-3">My opportunities</h3>
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[calc(100dvh-14rem)]">
           <table className="w-full text-sm">
-            <thead className="text-xs uppercase text-muted-foreground">
+            <thead className="text-xs uppercase text-muted-foreground sticky top-0 z-10 bg-card">
               <tr>
                 <th className="text-left py-2 font-medium">Customer / Project</th>
                 <th className="text-left py-2 font-medium">Type</th>

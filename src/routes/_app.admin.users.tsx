@@ -97,9 +97,9 @@ function AdminUsers() {
       </header>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[calc(100dvh-14rem)]">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+            <thead className="bg-muted text-xs uppercase text-muted-foreground sticky top-0 z-10">
               <tr>
                 <th className="text-left px-4 py-2.5 font-medium w-10">#</th>
                 <th className="text-left px-4 py-2.5 font-medium">User</th>
