@@ -29,6 +29,21 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+const EXPIRY_RELOAD_KEY = "teamsync:expiry-reload-at";
+
+/** Full page reload after the automatic sign-out: clears in-memory caches and loads the latest published build. */
+function reloadAfterExpiry() {
+  try {
+    const last = Number(sessionStorage.getItem(EXPIRY_RELOAD_KEY) ?? 0);
+    if (Date.now() - last < 60_000) return; // loop guard
+    sessionStorage.setItem(EXPIRY_RELOAD_KEY, String(Date.now()));
+  } catch {
+    // sessionStorage unavailable: continue; the sign-out already succeeded, so this cannot loop
+  }
+
+  window.location.reload();
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -75,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Returns true when the session was expired and a local sign-out was triggered.
     const expireIfNeeded = () => {
       if (!isSessionExpired(signInAt)) return false;
-      void supabase.auth.signOut({ scope: "local" });
+      void supabase.auth.signOut({ scope: "local" }).then(({ error }) => {
+        if (!error) reloadAfterExpiry();
+      });
       return true;
     };
 
